@@ -1,0 +1,16 @@
+name: tygrit
+
+channels:
+  - nvidia/label/cuda-12.8.1
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - cuda-toolkit=12.8.1
+  - gxx_linux-64
+  - cmake
+
+  - pip
+  - pip:
+    - poetry

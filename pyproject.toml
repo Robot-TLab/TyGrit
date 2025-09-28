@@ -1,0 +1,26 @@
+[project]
+name = "tygrit"
+version = "0.1.0"
+description = "TyGrit"
+readme = "README.md"
+requires-python = ">=3.11,<3.12.dev0"
+
+[[tool.poetry.source]]
+name = "pytorch"
+url = "https://download.pytorch.org/whl/cu128"
+priority = "supplemental"
+
+
+[[tool.poetry.source]]
+name = "nvidia"
+url = "https://pypi.nvidia.com"
+priority = "supplemental"
+
+[tool.poetry.dependencies]
+torch = {version = "2.7.0", source = "pytorch"}
+torchvision = {version = "0.22.0", source = "pytorch"}
+isaacsim = {version = "5.0.0", extras = ["all", "extscache"], source = "nvidia"}
+[dependency-groups]
+dev = [
+    "pre-commit (>=4.3.0,<5.0.0)"
+]
