@@ -1,0 +1,24 @@
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[project]
+name = "TyGrit"
+version = "0.1.0"
+description = "A tygrit project"
+readme = "README.md"
+authors = [
+    { name = "Hu Tianrun", email = "tianrunhu@gmail.com" },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pip>=25.3,<26",
+    "ros-humble-desktop>=0.10.0,<0.11",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "TyGrit",
+]

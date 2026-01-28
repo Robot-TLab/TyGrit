@@ -1,0 +1,28 @@
+[workspace]
+authors = ["Hu Tianrun <tianrunhu@gmail.com>"]
+channels = ["conda-forge", "robostack-staging"]
+name = "TyGrit"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
+
+[dependencies]
+python = "3.11.*"
+pip = ">=25.3,<26"
+ros-humble-desktop = ">=0.10.0,<0.11"
+
+[feature.dev.dependencies]
+pre-commit = "*"
+pytest = "*"
+black = "*"
+ruff = "*"
+tomli = ">=2.4.0,<3"
+tomli-w = ">=1.2.0,<2"
+
+[pypi-dependencies]
+tygrit = { path = ".", editable = true }
+
+[environments]
+default = ["dev"]
