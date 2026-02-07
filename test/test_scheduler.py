@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import numpy as np
 
-from TyGrit.core.scheduler import Scheduler, SchedulerOutcome
+from TyGrit.core.scheduler import Scheduler
 from TyGrit.types.config import SchedulerConfig
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import PlanResult, Trajectory
+from TyGrit.types.planning import Trajectory
+from TyGrit.types.results import PlanResult, SchedulerOutcome
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
 

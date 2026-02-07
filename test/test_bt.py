@@ -14,7 +14,8 @@ from TyGrit.subgoal_generator.bt.nodes import (
 )
 from TyGrit.subgoal_generator.tasks.grasp import build_grasp_tree
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import PlanResult, Trajectory
+from TyGrit.types.planning import Trajectory
+from TyGrit.types.results import PlanResult
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
 

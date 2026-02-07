@@ -22,76 +22,25 @@ changes here.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Callable, Protocol
+from typing import Callable
 
 import numpy as np
 import numpy.typing as npt
 
 from TyGrit.logging import log
+from TyGrit.protocols.motion_planner import MotionPlanner
+from TyGrit.robot.base import RobotBase
+from TyGrit.scene.representation import SceneRepresentation
 from TyGrit.types.config import SchedulerConfig
-from TyGrit.types.planning import PlanResult, Trajectory
+from TyGrit.types.planning import Trajectory
+from TyGrit.types.results import SchedulerOutcome, SchedulerResult
 from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
-
-# ── Structural protocols (what the scheduler actually needs) ─────────────
-
-
-class _EnvLike(Protocol):
-    """Minimal env interface the scheduler needs."""
-
-    def step(self, action: npt.NDArray[np.float32]) -> SensorSnapshot: ...
-
-    def get_observation(self) -> SensorSnapshot: ...
-
-
-class _SceneLike(Protocol):
-    """Minimal scene interface the scheduler needs."""
-
-    def update(
-        self,
-        snapshot: SensorSnapshot,
-        camera_pose: npt.NDArray[np.float64],
-    ) -> None: ...
-
-
-class _PlannerLike(Protocol):
-    """Minimal planner interface the scheduler needs."""
-
-    def plan_arm(
-        self,
-        start: npt.NDArray[np.float64],
-        goal: npt.NDArray[np.float64],
-    ) -> PlanResult: ...
-
 
 # Type aliases for the pluggable callables
-SubGoalFn = Callable[[_SceneLike, RobotState], npt.NDArray[np.float64] | None]
+SubGoalFn = Callable[[SceneRepresentation, RobotState], npt.NDArray[np.float64] | None]
 ControllerFn = Callable[[RobotState, Trajectory, int], npt.NDArray[np.float32]]
 GoalPredicate = Callable[[RobotState], bool]
 GazeFn = Callable[[Trajectory, int], npt.NDArray[np.float64] | None]
-
-
-# ── Result types ─────────────────────────────────────────────────────────
-
-
-class SchedulerOutcome(Enum):
-    """Possible outcomes of a scheduler run."""
-
-    SUCCESS = "success"
-    MAX_ITERATIONS = "max_iterations"
-    PLAN_FAILURE = "plan_failure"
-
-
-@dataclass
-class SchedulerResult:
-    """Result returned by :meth:`Scheduler.run`."""
-
-    outcome: SchedulerOutcome
-    iterations: int = 0
-    total_steps: int = 0
-    stats: dict[str, float] = field(default_factory=dict)
 
 
 # ── The scheduler ────────────────────────────────────────────────────────
@@ -102,15 +51,12 @@ class Scheduler:
 
     Parameters
     ----------
-    env
-        Any object with ``step(action)`` and ``get_observation()``
-        (e.g. a ``RobotBase`` subclass).
-    scene
-        Any object with ``update(snapshot, camera_pose)``
-        (e.g. a ``SceneRepresentation``).
-    planner
-        Any object with ``plan_arm(start, goal)``
-        (e.g. a ``MotionPlanner``).
+    env : RobotBase
+        Robot environment (calls ``step()`` synchronously).
+    scene : SceneRepresentation
+        World model (belief state).
+    planner : MotionPlanner
+        Collision-free motion planner.
     subgoal_fn : SubGoalFn
         High-level: ``(scene, robot_state) → goal config or None``.
     controller_fn : ControllerFn
@@ -128,9 +74,9 @@ class Scheduler:
 
     def __init__(
         self,
-        env: _EnvLike,
-        scene: _SceneLike,
-        planner: _PlannerLike,
+        env: RobotBase,
+        scene: SceneRepresentation,
+        planner: MotionPlanner,
         subgoal_fn: SubGoalFn,
         controller_fn: ControllerFn,
         goal_predicate: GoalPredicate,

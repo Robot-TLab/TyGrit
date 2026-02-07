@@ -17,11 +17,13 @@ from TyGrit.types.failures import (
     PlannerFailure,
 )
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import (
-    GraspPose,
+from TyGrit.types.grasp import GraspPose
+from TyGrit.types.planning import Trajectory
+from TyGrit.types.results import (
     PlanResult,
+    SchedulerOutcome,
+    SchedulerResult,
     StageResult,
-    Trajectory,
 )
 from TyGrit.types.robot import IKSolution, JointState, RobotState, WholeBodyConfig
 from TyGrit.types.sensor import SensorSnapshot
@@ -44,9 +46,13 @@ __all__ = [
     "ExecutionFailure",
     # planning
     "Trajectory",
-    "PlanResult",
+    # grasp
     "GraspPose",
+    # results / outcomes
+    "PlanResult",
     "StageResult",
+    "SchedulerOutcome",
+    "SchedulerResult",
     # config
     "SceneConfig",
     "GazeConfig",

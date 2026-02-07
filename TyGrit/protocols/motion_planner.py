@@ -7,7 +7,7 @@ from typing import Protocol
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.types.planning import PlanResult
+from TyGrit.types.results import PlanResult
 from TyGrit.types.robot import WholeBodyConfig
 
 
