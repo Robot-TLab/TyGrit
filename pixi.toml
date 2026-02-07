@@ -26,6 +26,7 @@ tomli-w = ">=1.2.0,<2"
 
 [pypi-dependencies]
 tygrit = { path = ".", editable = true }
+py-trees = ">=2.2,<3"
 
 [environments]
 default = ["dev"]

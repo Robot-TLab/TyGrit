@@ -54,6 +54,26 @@ class RobotConfig:
 
 
 @dataclass(frozen=True)
+class MPCConfig:
+    """Parameters for the one-step MPC path tracker."""
+
+    state_weights: tuple[float, ...] = (20.0, 20.0, 15.0) + (12.0,) * 8
+    control_weights: tuple[float, ...] = (0.5, 0.8) + (1.0,) * 8
+    gain: float = 2.5
+    v_max: float = 5.0
+    w_max: float = 5.0
+    joint_vel_max: tuple[float, ...] = (2.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0)
+
+
+@dataclass(frozen=True)
+class SchedulerConfig:
+    """Parameters for the receding horizon scheduler."""
+
+    steps_per_iteration: int = 10
+    waypoint_lookahead: int = 2
+
+
+@dataclass(frozen=True)
 class SystemConfig:
     """Top-level configuration aggregating all sub-configs."""
 
@@ -61,3 +81,5 @@ class SystemConfig:
     scene: SceneConfig = field(default_factory=SceneConfig)
     gaze: GazeConfig = field(default_factory=GazeConfig)
     planner: PlannerConfig = field(default_factory=PlannerConfig)
+    mpc: MPCConfig = field(default_factory=MPCConfig)
+    scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
