@@ -18,10 +18,22 @@ Solve: (Bᵀ Q B + R) u = Bᵀ Q (x_ref − x)
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.types.config import MPCConfig
+
+@dataclass(frozen=True)
+class MPCConfig:
+    """Parameters for the one-step MPC path tracker."""
+
+    state_weights: tuple[float, ...] = (20.0, 20.0, 15.0) + (12.0,) * 8
+    control_weights: tuple[float, ...] = (0.5, 0.8) + (1.0,) * 8
+    gain: float = 2.5
+    v_max: float = 5.0
+    w_max: float = 5.0
+    joint_vel_max: tuple[float, ...] = (2.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0)
 
 
 def compute_mpc_action(

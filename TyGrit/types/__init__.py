@@ -1,14 +1,5 @@
 """Public re-exports for TyGrit type definitions."""
 
-from TyGrit.types.config import (
-    GazeConfig,
-    MPCConfig,
-    PlannerConfig,
-    RobotConfig,
-    SceneConfig,
-    SchedulerConfig,
-    SystemConfig,
-)
 from TyGrit.types.failures import (
     ExecutionFailure,
     GraspFailure,
@@ -53,12 +44,4 @@ __all__ = [
     "StageResult",
     "SchedulerOutcome",
     "SchedulerResult",
-    # config
-    "SceneConfig",
-    "GazeConfig",
-    "MPCConfig",
-    "PlannerConfig",
-    "RobotConfig",
-    "SchedulerConfig",
-    "SystemConfig",
 ]

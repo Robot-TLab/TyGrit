@@ -22,6 +22,7 @@ changes here.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Callable
 
 import numpy as np
@@ -31,10 +32,18 @@ from TyGrit.logging import log
 from TyGrit.protocols.motion_planner import MotionPlanner
 from TyGrit.robot.base import RobotBase
 from TyGrit.scene.representation import SceneRepresentation
-from TyGrit.types.config import SchedulerConfig
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.results import SchedulerOutcome, SchedulerResult
 from TyGrit.types.robot import RobotState
+
+
+@dataclass(frozen=True)
+class SchedulerConfig:
+    """Parameters for the receding horizon scheduler."""
+
+    steps_per_iteration: int = 10
+    waypoint_lookahead: int = 2
+
 
 # Type aliases for the pluggable callables
 SubGoalFn = Callable[[SceneRepresentation, RobotState], npt.NDArray[np.float64] | None]

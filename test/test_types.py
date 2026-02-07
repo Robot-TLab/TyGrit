@@ -14,11 +14,9 @@ from TyGrit.types import (
     PlannerFailure,
     PlanResult,
     RobotState,
-    SceneConfig,
     SE2Pose,
     SensorSnapshot,
     StageResult,
-    SystemConfig,
     Trajectory,
     WholeBodyConfig,
 )
@@ -167,20 +165,3 @@ class TestGraspPose:
     def test_create(self):
         gp = GraspPose(transform=np.eye(4), score=0.95)
         assert gp.score == 0.95
-
-
-# ── config ───────────────────────────────────────────────────────────────────
-
-
-class TestConfig:
-    def test_system_config_defaults(self):
-        cfg = SystemConfig()
-        assert cfg.robot.name == "fetch"
-        assert cfg.scene.ground_z_threshold == 0.3
-        assert cfg.gaze.lookahead_window == 80
-        assert cfg.planner.timeout == 5.0
-
-    def test_scene_config_custom(self):
-        sc = SceneConfig(ground_z_threshold=0.5, merge_radius=0.05)
-        assert sc.ground_z_threshold == 0.5
-        assert sc.merge_radius == 0.05

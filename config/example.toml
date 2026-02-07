@@ -1,0 +1,41 @@
+[robot]
+name = "fetch"
+planning_dof = 8      # torso + 7 arm
+head_dof = 2          # pan + tilt
+
+[scene]
+ground_z_threshold = 0.3
+depth_range = [0.2, 3.0]
+enable_ground_filter = true
+merge_radius = 0.03
+downsample_voxel_size = 0.05
+crop_radius = 2.5
+
+[gaze]
+lookahead_window = 80
+decay_rate = 0.99
+velocity_weight = 1.0
+
+[gaze.joint_priorities]
+base = 3.0
+torso = 2.0
+shoulder_lift = 1.3
+elbow = 1.1
+wrist_flex = 1.0
+gripper = 1.0
+
+[planner]
+timeout = 5.0
+point_radius = 0.03
+
+[mpc]
+gain = 2.5
+v_max = 5.0
+w_max = 5.0
+state_weights = [20.0, 20.0, 15.0, 12.0, 12.0, 12.0, 12.0, 12.0, 12.0, 12.0, 12.0]
+control_weights = [0.5, 0.8, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+joint_vel_max = [2.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0, 7.0]
+
+[scheduler]
+steps_per_iteration = 10
+waypoint_lookahead = 2
