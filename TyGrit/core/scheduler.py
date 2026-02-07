@@ -8,8 +8,8 @@ locks.  Every iteration is sequential:
 
 The scheduler is parameterised by pluggable components:
 
-- **env** — ``RobotBase`` (calls ``step()`` synchronously)
-- **scene** — ``SceneRepresentation`` (world model)
+- **robot** — ``RobotBase`` (calls ``step()`` synchronously)
+- **scene** — ``Scene`` (world model)
 - **planner** — ``MotionPlanner`` (low-level motion planning)
 - **subgoal_fn** — callable that produces the next subgoal
 - **controller** — callable that maps (state, trajectory) → action
@@ -31,7 +31,7 @@ import numpy.typing as npt
 from TyGrit.logging import log
 from TyGrit.protocols.motion_planner import MotionPlanner
 from TyGrit.robot.base import RobotBase
-from TyGrit.scene.representation import SceneRepresentation
+from TyGrit.scene.scene import Scene
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.results import SchedulerOutcome, SchedulerResult
 from TyGrit.types.robot import RobotState
@@ -46,7 +46,7 @@ class SchedulerConfig:
 
 
 # Type aliases for the pluggable callables
-SubGoalFn = Callable[[SceneRepresentation, RobotState], npt.NDArray[np.float64] | None]
+SubGoalFn = Callable[[Scene, RobotState], npt.NDArray[np.float64] | None]
 ControllerFn = Callable[[RobotState, Trajectory, int], npt.NDArray[np.float32]]
 GoalPredicate = Callable[[RobotState], bool]
 GazeFn = Callable[[Trajectory, int], npt.NDArray[np.float64] | None]
@@ -60,9 +60,9 @@ class Scheduler:
 
     Parameters
     ----------
-    env : RobotBase
-        Robot environment (calls ``step()`` synchronously).
-    scene : SceneRepresentation
+    robot : RobotBase
+        Robot interface (calls ``step()`` synchronously).
+    scene : Scene
         World model (belief state).
     planner : MotionPlanner
         Collision-free motion planner.
@@ -83,8 +83,8 @@ class Scheduler:
 
     def __init__(
         self,
-        env: RobotBase,
-        scene: SceneRepresentation,
+        robot: RobotBase,
+        scene: Scene,
         planner: MotionPlanner,
         subgoal_fn: SubGoalFn,
         controller_fn: ControllerFn,
@@ -93,7 +93,7 @@ class Scheduler:
         gaze_fn: GazeFn | None = None,
         camera_pose_fn: Callable[[RobotState], npt.NDArray[np.float64]] | None = None,
     ) -> None:
-        self.env = env
+        self.robot = robot
         self.scene = scene
         self.planner = planner
         self.subgoal_fn = subgoal_fn
@@ -111,7 +111,7 @@ class Scheduler:
         Returns
         -------
         SchedulerResult
-            Outcome, iteration count, and total env steps taken.
+            Outcome, iteration count, and total steps taken.
         """
         trajectory: Trajectory | None = None
         waypoint_idx = 0
@@ -119,7 +119,7 @@ class Scheduler:
 
         for iteration in range(max_iterations):
             # 1. Observe
-            obs = self.env.get_observation()
+            obs = self.robot.get_observation()
             state = obs.robot_state
 
             # 2. Update scene (if camera pose is available)
@@ -154,7 +154,7 @@ class Scheduler:
 
             # 6. Execute N steps
             for _ in range(self.config.steps_per_iteration):
-                obs = self.env.step(action)
+                obs = self.robot.step(action)
                 total_steps += 1
 
             # Advance waypoint

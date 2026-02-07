@@ -15,7 +15,7 @@ from typing import Protocol
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.scene.representation import SceneRepresentation
+from TyGrit.scene.scene import Scene
 from TyGrit.types.robot import RobotState
 
 
@@ -24,14 +24,14 @@ class SubGoalGenerator(Protocol):
 
     def generate(
         self,
-        scene: SceneRepresentation,
+        scene: Scene,
         robot_state: RobotState,
     ) -> npt.NDArray[np.float64] | None:
         """Return the next goal configuration, or ``None`` if no goal available.
 
         Parameters
         ----------
-        scene : SceneRepresentation
+        scene : Scene
             Current world model (point cloud, etc.).
         robot_state : RobotState
             Current robot state.

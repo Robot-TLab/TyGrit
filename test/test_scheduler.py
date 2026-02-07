@@ -47,8 +47,8 @@ def _noop_controller(_state, _traj, _idx):
     return np.zeros(10, dtype=np.float32)
 
 
-class MockEnv:
-    """Mock environment that counts steps."""
+class MockRobot:
+    """Mock robot that counts steps."""
 
     def __init__(self) -> None:
         self.step_count = 0
@@ -105,7 +105,7 @@ class TestScheduler:
     def test_immediate_goal(self):
         """If goal is already reached, scheduler returns SUCCESS with 0 iterations."""
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(),
             subgoal_fn=_noop_subgoal,
@@ -118,8 +118,8 @@ class TestScheduler:
         assert result.total_steps == 0
 
     def test_runs_expected_steps(self):
-        """Scheduler steps the env steps_per_iteration times per iteration."""
-        env = MockEnv()
+        """Scheduler steps the robot steps_per_iteration times per iteration."""
+        robot = MockRobot()
         n_waypoints = 3
         steps_per = 5
         config = SchedulerConfig(steps_per_iteration=steps_per)
@@ -130,7 +130,7 @@ class TestScheduler:
             return call_count[0] > n_waypoints + 1
 
         scheduler = Scheduler(
-            env=env,
+            robot=robot,
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=n_waypoints),
             subgoal_fn=_noop_subgoal,
@@ -140,12 +140,12 @@ class TestScheduler:
         )
         result = scheduler.run(max_iterations=100)
         assert result.outcome == SchedulerOutcome.SUCCESS
-        assert env.step_count == result.iterations * steps_per
+        assert robot.step_count == result.iterations * steps_per
 
     def test_plan_failure(self):
         """If planning fails, scheduler returns PLAN_FAILURE."""
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=FailPlanner(),
             subgoal_fn=_noop_subgoal,
@@ -158,7 +158,7 @@ class TestScheduler:
     def test_max_iterations(self):
         """Scheduler stops after max_iterations."""
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=1000),
             subgoal_fn=_noop_subgoal,
@@ -179,7 +179,7 @@ class TestScheduler:
             return call_count[0] > 5
 
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=planner,
             subgoal_fn=_noop_subgoal,
@@ -193,7 +193,7 @@ class TestScheduler:
     def test_subgoal_none_causes_plan_failure(self):
         """If subgoal_fn returns None, planning fails."""
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(),
             subgoal_fn=lambda _scene, _state: None,
@@ -213,7 +213,7 @@ class TestScheduler:
             return call_count[0] > 2
 
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=scene,
             planner=MockPlanner(),
             subgoal_fn=_noop_subgoal,
@@ -235,7 +235,7 @@ class TestScheduler:
             return call_count[0] > 1
 
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=scene,
             planner=MockPlanner(),
             subgoal_fn=_noop_subgoal,
@@ -260,7 +260,7 @@ class TestScheduler:
             return call_count[0] > 2
 
         scheduler = Scheduler(
-            env=MockEnv(),
+            robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=5),
             subgoal_fn=_noop_subgoal,

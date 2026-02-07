@@ -1,5 +1,5 @@
-"""Scene representation — the world model / belief state."""
+"""Scene — the world model / belief state."""
 
-from TyGrit.scene.representation import SceneRepresentation
+from TyGrit.scene.scene import Scene
 
-__all__ = ["SceneRepresentation"]
+__all__ = ["Scene"]

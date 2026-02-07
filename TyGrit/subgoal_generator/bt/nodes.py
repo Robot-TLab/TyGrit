@@ -6,7 +6,7 @@ Nodes communicate via the py_trees blackboard.
 Blackboard keys
 ---------------
 - ``robot_state``  : RobotState (written by Observe)
-- ``scene``        : SceneRepresentation (read/write by Observe, read by others)
+- ``scene``        : Scene (read/write by Observe, read by others)
 - ``trajectory``   : Trajectory | None (written by PlanMotion)
 - ``subgoal``      : NDArray | None (written by GenerateSubGoal)
 - ``goal_predicate``: Callable[[RobotState], bool] (set at tree init)

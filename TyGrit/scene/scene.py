@@ -1,9 +1,8 @@
-"""Protocol for scene representations.
+"""Protocol for the scene — the central world model / belief state.
 
-The scene representation is the central world model — the belief state.
-Today it is point-cloud based; it will evolve into an object-centric scene
-graph.  All filtering (ground, robot self-filter) happens inside the
-representation so consumers get clean geometry.
+Today the scene is point-cloud based; it will evolve into an object-centric
+scene graph.  All filtering (ground, robot self-filter) happens inside the
+scene so consumers get clean geometry.
 """
 
 from __future__ import annotations
@@ -16,7 +15,7 @@ import numpy.typing as npt
 from TyGrit.types.sensor import SensorSnapshot
 
 
-class SceneRepresentation(Protocol):
+class Scene(Protocol):
     """Abstract world model that maintains the current belief state.
 
     Implementations own the data, handle updates from sensors, and provide
