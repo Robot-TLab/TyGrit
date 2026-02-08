@@ -329,6 +329,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/netifaces-0.11.0-py311h49ec1c0_4.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nlohmann_json-3.12.0-h54a6638_1.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.10.0-py311h944b582_3.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.10.0-pyhd8ed1ab_0.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nsight-compute-2025.1.1.2-hb5ebaad_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/nspr-4.38-h29cc59b_0.conda
@@ -5893,6 +5894,21 @@ packages:
   purls: []
   size: 136216
   timestamp: 1758194284857
+- conda: https://conda.anaconda.org/conda-forge/linux-64/nlopt-2.10.0-py311h944b582_3.conda
+  sha256: 04900a70d09966fa782865d5604b898716ec1a7d614459d192f3b0d0db02d964
+  md5: b89c1a9a2ed0d14521a0e92219d3f36a
+  depends:
+  - __glibc >=2.17,<3.0.a0
+  - libgcc >=14
+  - libstdcxx >=14
+  - numpy >=1.23,<3
+  - python >=3.11,<3.12.0a0
+  - python_abi 3.11.* *_cp311
+  license: LGPL-2.1-or-later
+  purls:
+  - pkg:pypi/nlopt?source=hash-mapping
+  size: 413556
+  timestamp: 1768584803563
 - conda: https://conda.anaconda.org/conda-forge/noarch/nodeenv-1.10.0-pyhd8ed1ab_0.conda
   sha256: 4fa40e3e13fc6ea0a93f67dfc76c96190afd7ea4ffc1bac2612d954b42cdc3ee
   md5: eb52d14a901e23c39e9e7b4a1a5c015f
@@ -13912,7 +13928,7 @@ packages:
 - pypi: ./
   name: tygrit
   version: 0.1.0
-  sha256: 9296ed6e9a8d7dc230cd50361caaf6190751d09c11ff613c8f46e909c6f38011
+  sha256: 3dd03c004d7c4c5decc96ac96a894b5fd3aa0c1213f3c8f45d31c54cbbd82a38
   requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/1b/a9/e3aee762739c1d7528da1c3e06d518503f8b6c439c35549b53735ba52ead/typeguard-4.4.4-py3-none-any.whl
   name: typeguard

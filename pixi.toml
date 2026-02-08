@@ -16,6 +16,10 @@ scipy = ">=1.11,<2"
 numpy = ">=1.26,<2"
 loguru = ">=0.7,<1"
 cuda-toolkit = "12.8.*"
+eigen = ">=3.4.0,<4"
+nlopt = ">=2.10.0,<3"
+orocos-kdl = ">=1.5.3,<2"
+pybind11 = ">=3.0.1,<4"
 
 [feature.dev.dependencies]
 pre-commit = "*"

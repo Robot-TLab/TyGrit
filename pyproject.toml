@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools", "wheel", "pybind11>=2.10"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "TyGrit"
@@ -11,5 +11,5 @@ authors = [{ name = "Hu Tianrun", email = "tianrunhu@gmail.com" }]
 requires-python = ">=3.11"
 dependencies = []
 
-[tool.hatch.build.targets.wheel]
-packages = ["TyGrit"]
+[tool.setuptools.packages.find]
+include = ["TyGrit*"]
