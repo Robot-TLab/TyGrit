@@ -22,6 +22,7 @@ from TyGrit.utils.pointcloud import (
     points_in_frustum_mask,
     voxel_downsample,
 )
+from TyGrit.utils.tensor import to_numpy
 from TyGrit.utils.transforms import (
     create_pose_matrix,
     create_transform_matrix,
@@ -48,6 +49,8 @@ __all__ = [
     "crop_sphere",
     "filter_ground",
     "points_in_frustum_mask",
+    # tensor
+    "to_numpy",
     # depth
     "depth_to_pointcloud",
     "depth_to_world_pointcloud",

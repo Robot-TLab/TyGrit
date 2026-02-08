@@ -2,10 +2,10 @@
 
 import numpy as np
 
+from TyGrit.controller.fetch.gripper import GRIPPER_CLOSED, GRIPPER_OPEN
+from TyGrit.controller.fetch.mpc import MPCConfig, compute_mpc_action
 from TyGrit.gaze import compute_gaze_target
 from TyGrit.gaze.gaze import GazeConfig
-from TyGrit.robot.fetch.controller.gripper import GRIPPER_CLOSED, GRIPPER_OPEN
-from TyGrit.robot.fetch.controller.mpc import MPCConfig, compute_mpc_action
 
 # ── MPC ──────────────────────────────────────────────────────────────────
 

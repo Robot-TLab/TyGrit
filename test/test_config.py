@@ -11,7 +11,8 @@ from TyGrit.scene.config import SceneConfig
 class TestSystemConfig:
     def test_defaults(self):
         cfg = SystemConfig()
-        assert cfg.robot.name == "fetch"
+        assert cfg.env.robot == "fetch"
+        assert cfg.env.backend == "maniskill"
         assert cfg.scene.ground_z_threshold == 0.3
         assert cfg.gaze.lookahead_window == 80
         assert cfg.planner.timeout == 5.0
@@ -28,9 +29,9 @@ class TestLoadConfig:
     def test_load_full(self, tmp_path: Path):
         toml = tmp_path / "cfg.toml"
         toml.write_text("""\
-[robot]
-name = "panda"
-planning_dof = 7
+[env]
+robot = "fetch"
+backend = "ros"
 
 [scene]
 ground_z_threshold = 0.5
@@ -48,8 +49,8 @@ steps_per_iteration = 20
 timeout = 10.0
 """)
         cfg = load_config(toml)
-        assert cfg.robot.name == "panda"
-        assert cfg.robot.planning_dof == 7
+        assert cfg.env.robot == "fetch"
+        assert cfg.env.backend == "ros"
         assert cfg.scene.ground_z_threshold == 0.5
         assert cfg.gaze.lookahead_window == 40
         assert cfg.mpc.gain == 3.0
@@ -66,7 +67,7 @@ gain = 1.0
         cfg = load_config(toml)
         assert cfg.mpc.gain == 1.0
         # Defaults preserved
-        assert cfg.robot.name == "fetch"
+        assert cfg.env.robot == "fetch"
         assert cfg.scene.ground_z_threshold == 0.3
         assert cfg.scheduler.steps_per_iteration == 10
 
@@ -76,7 +77,7 @@ gain = 1.0
         toml.write_text("")
         cfg = load_config(toml)
         default = SystemConfig()
-        assert cfg.robot == default.robot
+        assert cfg.env == default.env
         assert cfg.scene == default.scene
         assert cfg.gaze == default.gaze
         assert cfg.planner == default.planner

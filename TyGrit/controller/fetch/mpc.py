@@ -23,6 +23,17 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
+from TyGrit.types.robot import RobotState
+
+
+def robot_state_to_mpc_state(state: RobotState) -> npt.NDArray[np.float64]:
+    """Pack *state* into the (11,) MPC state vector [x, y, θ, torso, 7 arm]."""
+    bp = state.base_pose
+    return np.array(
+        [bp.x, bp.y, bp.theta, *state.planning_joints],
+        dtype=np.float64,
+    )
+
 
 @dataclass(frozen=True)
 class MPCConfig:

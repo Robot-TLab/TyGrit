@@ -43,6 +43,13 @@ PLANNING_JOINT_NAMES: tuple[str, ...] = (
     "wrist_roll_joint",
 )
 
+# ── Head joint names (2-DOF: pan + tilt) ──────────────────────────────────────
+
+HEAD_JOINT_NAMES: tuple[str, ...] = (
+    "head_pan_joint",
+    "head_tilt_joint",
+)
+
 # ── Joint limits (8-DOF) ────────────────────────────────────────────────────
 
 JOINT_LIMITS_LOWER: npt.NDArray[np.float64] = np.array(
