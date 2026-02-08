@@ -1,0 +1,197 @@
+"""Fetch robot static data: kinematic offsets, collision spheres, joint names/limits.
+
+Extracted from:
+- grasp_anywhere/robot/kinematics.py (kinematic offsets)
+- grasp_anywhere/observation/gaze_optimizer.py (collision spheres)
+- grasp_anywhere/robot/fetch.py (planning joint names)
+- grasp_anywhere/robot/ik/ikfast_api.py (joint limits)
+"""
+
+from __future__ import annotations
+
+import numpy as np
+import numpy.typing as npt
+
+# ── Kinematic offsets (from URDF, metres) ────────────────────────────────────
+
+TORSO_BASE_OFFSET: npt.NDArray[np.float64] = np.array([-0.086875, 0.0, 0.37743])
+SHOULDER_PAN_OFFSET: npt.NDArray[np.float64] = np.array([0.119525, 0.0, 0.34858])
+SHOULDER_LIFT_OFFSET: npt.NDArray[np.float64] = np.array([0.117, 0.0, 0.06])
+UPPERARM_ROLL_OFFSET: npt.NDArray[np.float64] = np.array([0.219, 0.0, 0.0])
+ELBOW_FLEX_OFFSET: npt.NDArray[np.float64] = np.array([0.133, 0.0, 0.0])
+FOREARM_ROLL_OFFSET: npt.NDArray[np.float64] = np.array([0.197, 0.0, 0.0])
+WRIST_FLEX_OFFSET: npt.NDArray[np.float64] = np.array([0.1245, 0.0, 0.0])
+WRIST_ROLL_OFFSET: npt.NDArray[np.float64] = np.array([0.1385, 0.0, 0.0])
+GRIPPER_OFFSET: npt.NDArray[np.float64] = np.array([0.16645, 0.0, 0.0])
+
+TORSO_FIXED_OFFSET: npt.NDArray[np.float64] = np.array([-0.086875, 0.0, 0.377425])
+HEAD_PAN_OFFSET: npt.NDArray[np.float64] = np.array([0.053125, 0.0, 0.603001])
+HEAD_TILT_OFFSET: npt.NDArray[np.float64] = np.array([0.14253, 0.0, 0.057999])
+R_GRIPPER_FINGER_OFFSET: npt.NDArray[np.float64] = np.array([0.0, 0.065425, 0.0])
+L_GRIPPER_FINGER_OFFSET: npt.NDArray[np.float64] = np.array([0.0, -0.065425, 0.0])
+
+# ── Planning joint names (8-DOF: torso + 7 arm) ─────────────────────────────
+
+PLANNING_JOINT_NAMES: tuple[str, ...] = (
+    "torso_lift_joint",
+    "shoulder_pan_joint",
+    "shoulder_lift_joint",
+    "upperarm_roll_joint",
+    "elbow_flex_joint",
+    "forearm_roll_joint",
+    "wrist_flex_joint",
+    "wrist_roll_joint",
+)
+
+# ── Joint limits (8-DOF) ────────────────────────────────────────────────────
+
+JOINT_LIMITS_LOWER: npt.NDArray[np.float64] = np.array(
+    [0.0, -1.6056, -1.221, -np.pi, -2.251, -np.pi, -2.16, -np.pi]
+)
+JOINT_LIMITS_UPPER: npt.NDArray[np.float64] = np.array(
+    [0.38615, 1.6056, 1.518, np.pi, 2.251, np.pi, 2.16, np.pi]
+)
+
+# ── Collision spheres (from fetch_spherized.urdf) ───────────────────────────
+# dict[link_name, list[list[float]]]  —  each entry is [x, y, z] in link frame
+
+FETCH_SPHERES: dict[str, list[list[float]]] = {
+    "base_link": [
+        [-0.12, 0.0, 0.182],
+        [0.225, 0.0, 0.31],
+        [0.08, -0.06, 0.16],
+        [0.215, -0.07, 0.31],
+        [0.185, -0.135, 0.31],
+        [0.13, -0.185, 0.31],
+        [0.065, -0.2, 0.31],
+        [0.01, -0.2, 0.31],
+        [0.08, 0.06, 0.16],
+        [0.215, 0.07, 0.31],
+        [0.185, 0.135, 0.31],
+        [0.13, 0.185, 0.31],
+        [0.065, 0.2, 0.31],
+        [0.01, 0.2, 0.31],
+    ],
+    "torso_lift_link": [
+        [-0.1, -0.05, 0.15],
+        [-0.1, 0.05, 0.15],
+        [-0.1, 0.05, 0.3],
+        [-0.1, 0.05, 0.45],
+        [-0.1, -0.05, 0.45],
+        [-0.1, -0.05, 0.3],
+    ],
+    "torso_fixed_link": [
+        [-0.1, -0.07, 0.35],
+        [-0.1, 0.07, 0.35],
+        [-0.1, -0.07, 0.2],
+        [-0.1, 0.07, 0.2],
+        [-0.1, 0.07, 0.07],
+        [-0.1, -0.07, 0.07],
+    ],
+    "head_pan_link": [
+        [0.0, 0.0, 0.06],
+        [0.145, 0.0, 0.058],
+        [0.145, -0.0425, 0.058],
+        [0.145, 0.0425, 0.058],
+        [0.145, 0.085, 0.058],
+        [0.145, -0.085, 0.058],
+        [0.0625, -0.115, 0.03],
+        [0.088, -0.115, 0.03],
+        [0.1135, -0.115, 0.03],
+        [0.139, -0.115, 0.03],
+        [0.0625, -0.115, 0.085],
+        [0.088, -0.115, 0.085],
+        [0.1135, -0.115, 0.085],
+        [0.139, -0.115, 0.085],
+        [0.16, -0.115, 0.075],
+        [0.168, -0.115, 0.0575],
+        [0.16, -0.115, 0.04],
+        [0.0625, 0.115, 0.03],
+        [0.088, 0.115, 0.03],
+        [0.1135, 0.115, 0.03],
+        [0.139, 0.115, 0.03],
+        [0.0625, 0.115, 0.085],
+        [0.088, 0.115, 0.085],
+        [0.1135, 0.115, 0.085],
+        [0.139, 0.115, 0.085],
+        [0.16, 0.115, 0.075],
+        [0.168, 0.115, 0.0575],
+        [0.16, 0.115, 0.04],
+    ],
+    "shoulder_pan_link": [
+        [0.0, 0.0, 0.0],
+        [0.025, -0.015, 0.035],
+        [0.05, -0.03, 0.06],
+        [0.12, -0.03, 0.06],
+    ],
+    "shoulder_lift_link": [
+        [0.025, 0.04, 0.025],
+        [-0.025, 0.04, -0.025],
+        [0.025, 0.04, -0.025],
+        [-0.025, 0.04, 0.025],
+        [0.08, 0.0, 0.0],
+        [0.11, 0.0, 0.0],
+        [0.14, 0.0, 0.0],
+    ],
+    "upperarm_roll_link": [
+        [-0.02, 0.0, 0.0],
+        [0.03, 0.0, 0.0],
+        [0.08, 0.0, 0.0],
+        [0.11, -0.045, 0.02],
+        [0.11, -0.045, -0.02],
+        [0.155, -0.045, 0.02],
+        [0.155, -0.045, -0.02],
+        [0.13, 0.0, 0.0],
+    ],
+    "elbow_flex_link": [
+        [0.02, 0.045, 0.02],
+        [0.02, 0.045, -0.02],
+        [-0.02, 0.045, 0.02],
+        [-0.02, 0.045, -0.02],
+        [0.08, 0.0, 0.0],
+        [0.14, 0.0, 0.0],
+    ],
+    "forearm_roll_link": [
+        [0.0, 0.0, 0.0],
+        [0.05, -0.06, 0.02],
+        [0.05, -0.06, -0.02],
+        [0.1, -0.06, 0.02],
+        [0.1, -0.06, -0.02],
+        [0.15, -0.06, 0.02],
+        [0.15, -0.06, -0.02],
+    ],
+    "wrist_flex_link": [
+        [0.0, 0.0, 0.0],
+        [0.06, 0.0, 0.0],
+        [0.02, 0.045, 0.02],
+        [0.02, 0.045, -0.02],
+        [-0.02, 0.045, 0.02],
+        [-0.02, 0.045, -0.02],
+    ],
+    "wrist_roll_link": [
+        [-0.03, 0.0, 0.0],
+        [0.0, 0.0, 0.0],
+    ],
+    "gripper_link": [
+        [-0.07, 0.02, 0.0],
+        [-0.07, -0.02, 0.0],
+        [-0.1, 0.02, 0.0],
+        [-0.1, -0.02, 0.0],
+    ],
+    "r_gripper_finger_link": [
+        [0.017, -0.0085, -0.005],
+        [0.017, -0.0085, 0.005],
+        [0.0, -0.0085, -0.005],
+        [0.0, -0.0085, 0.005],
+        [-0.017, -0.0085, -0.005],
+        [-0.017, -0.0085, 0.005],
+    ],
+    "l_gripper_finger_link": [
+        [0.017, 0.0085, -0.005],
+        [0.017, 0.0085, 0.005],
+        [0.0, 0.0085, -0.005],
+        [0.0, 0.0085, 0.005],
+        [-0.017, 0.0085, -0.005],
+        [-0.017, 0.0085, 0.005],
+    ],
+}
