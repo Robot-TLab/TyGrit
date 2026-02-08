@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from TyGrit.kinematics.fetch.constants import FETCH_SPHERES
-from TyGrit.kinematics.fetch.fk import forward_kinematics
+from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
 from TyGrit.kinematics.robot_filter import filter_robot_points
 from TyGrit.utils.transforms import se2_to_matrix
 

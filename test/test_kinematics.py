@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from TyGrit.kinematics.fetch.fk import forward_kinematics
+from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
 
 torch = pytest.importorskip("torch")
 

@@ -23,7 +23,7 @@ from TyGrit.controller.fetch.mpc import (
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.fetch import FetchRobot
 from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
-from TyGrit.kinematics.fetch.fk import forward_kinematics
+from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.robot import RobotState

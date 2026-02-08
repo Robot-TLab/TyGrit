@@ -36,6 +36,7 @@ from TyGrit.kinematics.fetch.constants import (
     WRIST_FLEX_OFFSET,
     WRIST_ROLL_OFFSET,
 )
+from TyGrit.kinematics.fk import BatchFKSolver
 
 # ── Module-level offset cache keyed by device ────────────────────────────────
 
@@ -281,3 +282,21 @@ def batch_forward_kinematics(
     )
 
     return link_poses
+
+
+# ── Solver wrapper ───────────────────────────────────────────────────────────
+
+
+class FetchBatchFK(BatchFKSolver):
+    """Batched all-link FK via PyTorch.
+
+    Input: ``(B, 10)`` tensor of joints (torso + 7 arm + 2 head).
+    Output: dict of ``(B, 4, 4)`` pose tensors in **base_link** frame.
+    """
+
+    @property
+    def base_frame(self) -> str:
+        return "base_link"
+
+    def solve(self, joint_angles: Tensor) -> Dict[str, Tensor]:
+        return batch_forward_kinematics(joint_angles)
