@@ -10,6 +10,15 @@ The project is managed by [pixi](https://prefix.dev/). Ensure you have `pixi` in
 pixi install
 ```
 
+## ManiSkill Assets
+
+After installation, download the required ManiSkill scene and object assets:
+
+```bash
+pixi run python -m mani_skill.utils.download_asset ReplicaCAD
+pixi run python -m mani_skill.utils.download_asset ycb
+```
+
 ## Usage
 
 This project is installed as an editable package. You can import it in python:
