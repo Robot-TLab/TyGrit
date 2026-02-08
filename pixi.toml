@@ -29,6 +29,7 @@ tomli-w = ">=1.2.0,<2"
 tygrit = { path = ".", editable = true }
 py-trees = ">=2.2,<3"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
+mani-skill = ">=3.0.0b0, <4"
 
 [environments]
 default = ["dev"]
