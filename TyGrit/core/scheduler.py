@@ -30,7 +30,7 @@ import numpy.typing as npt
 
 from TyGrit.envs.base import RobotBase
 from TyGrit.logging import log
-from TyGrit.protocols.motion_planner import MotionPlanner
+from TyGrit.planning.motion_planner import MotionPlanner
 from TyGrit.scene.scene import Scene
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.results import SchedulerOutcome, SchedulerResult

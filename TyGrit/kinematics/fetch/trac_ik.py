@@ -7,9 +7,9 @@ from __future__ import annotations
 
 import numpy as np
 import numpy.typing as npt
-import pytracik
 from scipy.spatial.transform import Rotation as R
 
+import pytracik
 from TyGrit.kinematics.ik import IKSolverBase
 
 

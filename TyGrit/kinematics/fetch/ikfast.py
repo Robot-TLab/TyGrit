@@ -5,10 +5,10 @@ Wraps the vendored ``ikfast_fetch`` C extension (``ext/ikfast_fetch/``).
 
 from __future__ import annotations
 
-import ikfast_fetch
 import numpy as np
 import numpy.typing as npt
 
+import ikfast_fetch
 from TyGrit.kinematics.fetch.constants import JOINT_LIMITS_LOWER, JOINT_LIMITS_UPPER
 from TyGrit.kinematics.ik import IKSolverBase
 
