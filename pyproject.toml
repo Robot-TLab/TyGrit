@@ -15,5 +15,9 @@ dependencies = []
 profile = "black"
 known_first_party = ["TyGrit", "ikfast_fetch", "pytracik"]
 
+[tool.pytest.ini_options]
+testpaths = ["test"]
+norecursedirs = ["thirdparty"]
+
 [tool.setuptools.packages.find]
 include = ["TyGrit*"]

@@ -1,0 +1,3 @@
+[submodule "thirdparty/vamp_preview"]
+	path = thirdparty/vamp_preview
+	url = https://github.com/AdaCompNUS/vamp.git

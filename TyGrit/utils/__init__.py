@@ -15,6 +15,7 @@ from TyGrit.utils.math import (
     quaternion_to_matrix,
     translation_from_matrix,
 )
+from TyGrit.utils.planning import lists_to_trajectory, vamp_path_to_lists
 from TyGrit.utils.pointcloud import (
     crop_sphere,
     filter_ground,
@@ -56,4 +57,7 @@ __all__ = [
     "depth_to_world_pointcloud",
     "pointcloud_from_mask",
     "project_points_to_image",
+    # planning
+    "vamp_path_to_lists",
+    "lists_to_trajectory",
 ]
