@@ -1,3 +1,6 @@
 [submodule "thirdparty/vamp_preview"]
 	path = thirdparty/vamp_preview
 	url = https://github.com/AdaCompNUS/vamp.git
+[submodule "thirdparty/GraspGen"]
+	path = thirdparty/GraspGen
+	url = https://github.com/Robot-TLab/GraspGen.git

@@ -24,6 +24,17 @@ elbow = 1.1
 wrist_flex = 1.0
 gripper = 1.0
 
+[grasping]
+checkpoint_config_path = "resources/weights/graspgen/graspgen_franka_panda.yml"
+num_grasps = 200
+topk_num_grasps = 100
+min_grasps = 40
+max_tries = 6
+remove_outliers = true
+score_threshold = 0.0
+max_grasps = 50
+device = "cuda"
+
 [planner]
 timeout = 5.0
 point_radius = 0.03

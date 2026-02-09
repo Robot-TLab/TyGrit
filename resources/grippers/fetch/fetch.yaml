@@ -1,0 +1,21 @@
+
+_target_: graspsampling.hands.URDFHand
+
+# Fetch robot parallel-jaw gripper.
+# Width  = max opening between finger contact surfaces.
+# Depth  = finger-pad length along the approach direction.
+# Measured from the Fetch URDF (fetch_description).
+
+width: 0.10
+depth: 0.07
+
+contact_points:
+  - link_name: r_gripper_finger_link
+    location: [0.0, -0.065425, 0.0]
+    normal: [0., 1., 0.]
+  - link_name: l_gripper_finger_link
+    location: [0.0, 0.065425, 0.0]
+    normal: [0., -1., 0.]
+
+transform_offset_from_asset_to_graspgen_convention: [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
+symmetric_antipodal: True

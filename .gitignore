@@ -205,6 +205,12 @@ cython_debug/
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 
+# Thirdparty build artifacts
+thirdparty/GraspGen/pointnet2_ops/build/
+
+# GraspGen weights (downloaded, not checked in)
+resources/weights/
+
 # Ruff stuff:
 .ruff_cache/
 

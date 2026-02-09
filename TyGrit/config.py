@@ -10,6 +10,7 @@ from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.core.scheduler import SchedulerConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.gaze.gaze import GazeConfig
+from TyGrit.perception.grasping.config import GraspGenConfig
 from TyGrit.planning.config import PlannerConfig
 from TyGrit.scene.config import SceneConfig
 
@@ -21,6 +22,7 @@ class SystemConfig:
     env: FetchEnvConfig = field(default_factory=FetchEnvConfig)
     scene: SceneConfig = field(default_factory=SceneConfig)
     gaze: GazeConfig = field(default_factory=GazeConfig)
+    grasping: GraspGenConfig = field(default_factory=GraspGenConfig)
     planner: PlannerConfig = field(default_factory=PlannerConfig)
     mpc: MPCConfig = field(default_factory=MPCConfig)
     scheduler: SchedulerConfig = field(default_factory=SchedulerConfig)
@@ -30,7 +32,7 @@ def load_config(path: str | Path) -> SystemConfig:
     """Load a SystemConfig from a TOML file.
 
     Sections in the TOML file correspond to sub-config names (``env``,
-    ``scene``, ``gaze``, ``planner``, ``mpc``, ``scheduler``).  Only the
+    ``scene``, ``gaze``, ``grasping``, ``planner``, ``mpc``, ``scheduler``).  Only the
     sections present are overridden; missing sections use defaults.
 
     Parameters
@@ -50,6 +52,7 @@ def load_config(path: str | Path) -> SystemConfig:
         "env": FetchEnvConfig,
         "scene": SceneConfig,
         "gaze": GazeConfig,
+        "grasping": GraspGenConfig,
         "planner": PlannerConfig,
         "mpc": MPCConfig,
         "scheduler": SchedulerConfig,
