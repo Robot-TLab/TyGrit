@@ -22,7 +22,7 @@ def ee_forward_kinematics(
     """
     import ikfast_fetch
 
-    rotation, position = ikfast_fetch.get_fk(joint_angles.tolist())
+    position, rotation = ikfast_fetch.get_fk(joint_angles.tolist())
     T = np.eye(4)
     T[:3, :3] = np.array(rotation)
     T[:3, 3] = np.array(position)
