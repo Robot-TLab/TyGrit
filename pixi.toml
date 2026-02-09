@@ -59,6 +59,7 @@ orocos-kdl = ">=1.5.3,<2"
 pybind11 = ">=3.0.1,<4"
 pytest = "*"
 matplotlib-base = "*"
+boost = ">=1.85.0,<2"
 
 [feature.ci.pypi-dependencies]
 tygrit = { path = ".", editable = true }
