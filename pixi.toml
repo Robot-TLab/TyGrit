@@ -41,6 +41,27 @@ pre-commit = "*"
 black = "*"
 ruff = "*"
 
+[feature.ci.dependencies]
+python = "3.11.*"
+pip = ">=25.3,<26"
+numpy = ">=1.26,<2"
+scipy = ">=1.11,<2"
+loguru = ">=0.7,<1"
+eigen = ">=3.4.0,<4"
+nlopt = ">=2.10.0,<3"
+orocos-kdl = ">=1.5.3,<2"
+pybind11 = ">=3.0.1,<4"
+pytest = "*"
+matplotlib-base = "*"
+
+[feature.ci.pypi-dependencies]
+tygrit = { path = ".", editable = true }
+py-trees = ">=2.2,<3"
+
+[feature.ci.tasks]
+test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
+
 [environments]
 default = ["dev"]
 lint = ["lint"]
+ci = ["ci"]
