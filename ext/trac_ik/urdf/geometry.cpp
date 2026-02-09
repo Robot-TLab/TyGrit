@@ -8,7 +8,7 @@
 
 using namespace urdf;
 
-std::shared_ptr<Sphere> Sphere::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Sphere> Sphere::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Sphere> s = std::make_shared<Sphere>();
 
   if (xml->Attribute("radius") != nullptr) {
@@ -16,7 +16,7 @@ std::shared_ptr<Sphere> Sphere::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("radius");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       s->radius = boost::lexical_cast<double>(r);
-    } catch (boost::bad_lexical_cast &e) {
+    } catch (boost::bad_lexical_cast& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': sphere radius [" << xml->Attribute("radius")
@@ -33,7 +33,7 @@ std::shared_ptr<Sphere> Sphere::fromXml(TiXmlElement *xml) {
   return s;
 }
 
-std::shared_ptr<Box> Box::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Box> Box::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Box> b = std::make_shared<Box>();
 
   if (xml->Attribute("size") != nullptr) {
@@ -41,7 +41,7 @@ std::shared_ptr<Box> Box::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("size");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       b->dim = Vector3::fromVecStr(r);
-    } catch (URDFParseError &e) {
+    } catch (URDFParseError& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': box size [" << xml->Attribute("size")
@@ -58,7 +58,7 @@ std::shared_ptr<Box> Box::fromXml(TiXmlElement *xml) {
   return b;
 }
 
-std::shared_ptr<Cylinder> Cylinder::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Cylinder> Cylinder::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Cylinder> y = std::make_shared<Cylinder>();
 
   if (xml->Attribute("length") != nullptr &&
@@ -67,7 +67,7 @@ std::shared_ptr<Cylinder> Cylinder::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("length");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       y->length = boost::lexical_cast<double>(r);
-    } catch (boost::bad_lexical_cast &e) {
+    } catch (boost::bad_lexical_cast& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': cylinder length [" << xml->Attribute("length")
@@ -79,7 +79,7 @@ std::shared_ptr<Cylinder> Cylinder::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("radius");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       y->radius = boost::lexical_cast<double>(r);
-    } catch (boost::bad_lexical_cast &e) {
+    } catch (boost::bad_lexical_cast& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': cylinder radius [" << xml->Attribute("radius")
@@ -97,7 +97,7 @@ std::shared_ptr<Cylinder> Cylinder::fromXml(TiXmlElement *xml) {
   return y;
 }
 
-std::shared_ptr<Capsule> Capsule::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Capsule> Capsule::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Capsule> y = std::make_shared<Capsule>();
 
   if (xml->Attribute("length") != nullptr &&
@@ -106,7 +106,7 @@ std::shared_ptr<Capsule> Capsule::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("length");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       y->length = boost::lexical_cast<double>(r);
-    } catch (boost::bad_lexical_cast &e) {
+    } catch (boost::bad_lexical_cast& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': capsule length [" << xml->Attribute("length")
@@ -118,7 +118,7 @@ std::shared_ptr<Capsule> Capsule::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("radius");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       y->radius = boost::lexical_cast<double>(r);
-    } catch (boost::bad_lexical_cast &e) {
+    } catch (boost::bad_lexical_cast& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': capsule radius [" << xml->Attribute("radius")
@@ -136,7 +136,7 @@ std::shared_ptr<Capsule> Capsule::fromXml(TiXmlElement *xml) {
   return y;
 }
 
-std::shared_ptr<Mesh> Mesh::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Mesh> Mesh::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Mesh> m = std::make_shared<Mesh>();
 
   if (xml->Attribute("filename") != nullptr) {
@@ -153,7 +153,7 @@ std::shared_ptr<Mesh> Mesh::fromXml(TiXmlElement *xml) {
       string r = xml->Attribute("scale");
       boost::algorithm::trim(r);  // get rid of surrounding whitespace
       m->scale = Vector3::fromVecStr(r);
-    } catch (URDFParseError &e) {
+    } catch (URDFParseError& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': mesh scale [" << xml->Attribute("scale")
@@ -164,7 +164,7 @@ std::shared_ptr<Mesh> Mesh::fromXml(TiXmlElement *xml) {
   return m;
 }
 
-std::shared_ptr<Geometry> Geometry::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Geometry> Geometry::fromXml(TiXmlElement* xml) {
   if (xml == nullptr) {
     std::ostringstream error_msg;
     error_msg << "Error while parsing link '" << getParentLinkName(xml)
@@ -172,7 +172,7 @@ std::shared_ptr<Geometry> Geometry::fromXml(TiXmlElement *xml) {
     throw URDFParseError(error_msg.str());
   }
 
-  TiXmlElement *shape = xml->FirstChildElement();
+  TiXmlElement* shape = xml->FirstChildElement();
   if (shape == nullptr) {
     std::ostringstream error_msg;
     error_msg << "Error while parsing link '" << getParentLinkName(xml)

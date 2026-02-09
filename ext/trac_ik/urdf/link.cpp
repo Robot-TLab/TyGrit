@@ -7,7 +7,7 @@
 
 namespace urdf {
 
-std::shared_ptr<Material> Material::fromXml(TiXmlElement *xml,
+std::shared_ptr<Material> Material::fromXml(TiXmlElement* xml,
                                             bool only_name_is_ok) {
   bool has_rgb = false;
   bool has_filename = false;
@@ -37,7 +37,7 @@ std::shared_ptr<Material> Material::fromXml(TiXmlElement *xml,
       try {
         m->color = Color::fromColorStr(c->Attribute("rgba"));
         has_rgb = true;
-      } catch (URDFParseError &e) {
+      } catch (URDFParseError& e) {
         std::ostringstream error_msg;
         error_msg << "Material [" << m->name
                   << "] has malformed color rgba values: " << e.what() << "!";
@@ -59,8 +59,8 @@ std::shared_ptr<Material> Material::fromXml(TiXmlElement *xml,
   return m;
 }
 
-const char *getParentLinkName(TiXmlElement *c) {
-  TiXmlElement *e = c->Parent()->ToElement();
+const char* getParentLinkName(TiXmlElement* c) {
+  TiXmlElement* e = c->Parent()->ToElement();
   while (e->Parent() != nullptr) {
     if (e->ValueStr() == "link") {
       break;
@@ -70,20 +70,20 @@ const char *getParentLinkName(TiXmlElement *c) {
   return e->Attribute("name");
 }
 
-Inertial Inertial::fromXml(TiXmlElement *xml) {
+Inertial Inertial::fromXml(TiXmlElement* xml) {
   Inertial i;
 
-  TiXmlElement *o = xml->FirstChildElement("origin");
+  TiXmlElement* o = xml->FirstChildElement("origin");
   if (o != nullptr) {
     i.origin = Transform::fromXml(o);
   }
 
-  TiXmlElement *mass_xml = xml->FirstChildElement("mass");
+  TiXmlElement* mass_xml = xml->FirstChildElement("mass");
   if (mass_xml != nullptr) {
     if (mass_xml->Attribute("value") != nullptr) {
       try {
         i.mass = boost::lexical_cast<double>(mass_xml->Attribute("value"));
-      } catch (boost::bad_lexical_cast &e) {
+      } catch (boost::bad_lexical_cast& e) {
         std::ostringstream error_msg;
         error_msg << "Error while parsing link '" << getParentLinkName(xml)
                   << "': inertial mass [" << mass_xml->Attribute("value")
@@ -103,7 +103,7 @@ Inertial Inertial::fromXml(TiXmlElement *xml) {
     throw URDFParseError(error_msg.str());
   }
 
-  TiXmlElement *inertia_xml = xml->FirstChildElement("inertia");
+  TiXmlElement* inertia_xml = xml->FirstChildElement("inertia");
   if (inertia_xml != nullptr) {
     if (inertia_xml->Attribute("ixx") && inertia_xml->Attribute("ixy") &&
         inertia_xml->Attribute("ixz") && inertia_xml->Attribute("iyy") &&
@@ -115,7 +115,7 @@ Inertial Inertial::fromXml(TiXmlElement *xml) {
         i.iyy = boost::lexical_cast<double>(inertia_xml->Attribute("iyy"));
         i.iyz = boost::lexical_cast<double>(inertia_xml->Attribute("iyz"));
         i.izz = boost::lexical_cast<double>(inertia_xml->Attribute("izz"));
-      } catch (boost::bad_lexical_cast &e) {
+      } catch (boost::bad_lexical_cast& e) {
         std::ostringstream error_msg;
         error_msg
             << "Error while parsing link '" << getParentLinkName(xml)
@@ -146,14 +146,14 @@ Inertial Inertial::fromXml(TiXmlElement *xml) {
   return i;
 }
 
-std::shared_ptr<Visual> Visual::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Visual> Visual::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Visual> vis = std::make_shared<Visual>();
 
-  TiXmlElement *o = xml->FirstChildElement("origin");
+  TiXmlElement* o = xml->FirstChildElement("origin");
   if (o != nullptr) {
     try {
       vis->origin = Transform::fromXml(o);
-    } catch (URDFParseError &e) {
+    } catch (URDFParseError& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': visual origin is not valid: " << e.what() << "!";
@@ -161,17 +161,17 @@ std::shared_ptr<Visual> Visual::fromXml(TiXmlElement *xml) {
     }
   }
 
-  TiXmlElement *geom = xml->FirstChildElement("geometry");
+  TiXmlElement* geom = xml->FirstChildElement("geometry");
   if (geom != nullptr) {
     vis->geometry = Geometry::fromXml(geom);
   }
 
-  const char *name_char = xml->Attribute("name");
+  const char* name_char = xml->Attribute("name");
   if (name_char != nullptr) {
     vis->name = name_char;
   }
 
-  TiXmlElement *mat = xml->FirstChildElement("material");
+  TiXmlElement* mat = xml->FirstChildElement("material");
   if (mat != nullptr) {
     if (mat->Attribute("name") != nullptr) {
       vis->material_name = mat->Attribute("name");
@@ -188,14 +188,14 @@ std::shared_ptr<Visual> Visual::fromXml(TiXmlElement *xml) {
   return vis;
 }
 
-std::shared_ptr<Collision> Collision::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Collision> Collision::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Collision> col = std::make_shared<Collision>();
 
-  TiXmlElement *o = xml->FirstChildElement("origin");
+  TiXmlElement* o = xml->FirstChildElement("origin");
   if (o != nullptr) {
     try {
       col->origin = Transform::fromXml(o);
-    } catch (URDFParseError &e) {
+    } catch (URDFParseError& e) {
       std::ostringstream error_msg;
       error_msg << "Error while parsing link '" << getParentLinkName(xml)
                 << "': collision origin is not a valid: " << e.what() << "!";
@@ -203,12 +203,12 @@ std::shared_ptr<Collision> Collision::fromXml(TiXmlElement *xml) {
     }
   }
 
-  TiXmlElement *geom = xml->FirstChildElement("geometry");
+  TiXmlElement* geom = xml->FirstChildElement("geometry");
   if (geom != nullptr) {
     col->geometry = Geometry::fromXml(geom);
   }
 
-  const char *name_char = xml->Attribute("name");
+  const char* name_char = xml->Attribute("name");
   if (name_char != nullptr) {
     col->name = name_char;
   }
@@ -216,10 +216,10 @@ std::shared_ptr<Collision> Collision::fromXml(TiXmlElement *xml) {
   return col;
 }
 
-std::shared_ptr<Link> Link::fromXml(TiXmlElement *xml) {
+std::shared_ptr<Link> Link::fromXml(TiXmlElement* xml) {
   std::shared_ptr<Link> link = std::make_shared<Link>();
 
-  const char *name_char = xml->Attribute("name");
+  const char* name_char = xml->Attribute("name");
   if (name_char != nullptr) {
     link->name = std::string(name_char);
   } else {
@@ -228,18 +228,18 @@ std::shared_ptr<Link> Link::fromXml(TiXmlElement *xml) {
     throw URDFParseError(error_msg.str());
   }
 
-  TiXmlElement *i = xml->FirstChildElement("inertial");
+  TiXmlElement* i = xml->FirstChildElement("inertial");
   if (i != nullptr) {
     link->inertial = Inertial::fromXml(i);
   }
 
-  for (TiXmlElement *vis_xml = xml->FirstChildElement("visual");
+  for (TiXmlElement* vis_xml = xml->FirstChildElement("visual");
        vis_xml != nullptr; vis_xml = vis_xml->NextSiblingElement("visual")) {
     auto vis = Visual::fromXml(vis_xml);
     link->visuals.push_back(vis);
   }
 
-  for (TiXmlElement *col_xml = xml->FirstChildElement("collision");
+  for (TiXmlElement* col_xml = xml->FirstChildElement("collision");
        col_xml != nullptr; col_xml = col_xml->NextSiblingElement("collision")) {
     auto col = Collision::fromXml(col_xml);
     link->collisions.push_back(col);

@@ -29,13 +29,13 @@ struct Vector3 {
     z = 0.;
   }
 
-  Vector3 operator+(const Vector3 &other);
+  Vector3 operator+(const Vector3& other);
 
   Vector3(double x, double y, double z) : x(x), y(y), z(z) {}
-  Vector3(const Vector3 &other) : x(other.x), y(other.y), z(other.z) {}
+  Vector3(const Vector3& other) : x(other.x), y(other.y), z(other.z) {}
   Vector3() : x(0.), y(0.), z(0.) {}
 
-  static Vector3 fromVecStr(const string &vector_str);
+  static Vector3 fromVecStr(const string& vector_str);
 };
 
 struct Rotation {
@@ -51,20 +51,20 @@ struct Rotation {
     w = 1.;
   }
 
-  void getRpy(double &roll, double &pitch, double &yaw) const;
+  void getRpy(double& roll, double& pitch, double& yaw) const;
   void normalize();
   Rotation getInverse() const;
 
-  Rotation operator*(const Rotation &other) const;
-  Vector3 operator*(const Vector3 &vec) const;
+  Rotation operator*(const Rotation& other) const;
+  Vector3 operator*(const Vector3& vec) const;
 
   Rotation(double x, double y, double z, double w) : x(x), y(y), z(z), w(w) {}
-  Rotation(const Rotation &other)
+  Rotation(const Rotation& other)
       : x(other.x), y(other.y), z(other.z), w(other.w) {}
   Rotation() : x(0.), y(0.), z(0.), w(1.) {}
 
   static Rotation fromRpy(double roll, double pitch, double yaw);
-  static Rotation fromRpyStr(const string &rotation_str);
+  static Rotation fromRpyStr(const string& rotation_str);
 };
 
 struct Color {
@@ -82,9 +82,9 @@ struct Color {
 
   Color() : r(0.), g(0.), b(0.), a(1.) {}
   Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a) {}
-  Color(const Color &other) : r(other.r), g(other.g), b(other.b), a(other.a) {}
+  Color(const Color& other) : r(other.r), g(other.g), b(other.b), a(other.a) {}
 
-  static Color fromColorStr(const std::string &vector_str);
+  static Color fromColorStr(const std::string& vector_str);
 };
 
 struct Transform {
@@ -97,10 +97,10 @@ struct Transform {
   };
 
   Transform() : position(Vector3()), rotation(Rotation()) {}
-  Transform(const Transform &other)
+  Transform(const Transform& other)
       : position(other.position), rotation(other.rotation) {}
 
-  static Transform fromXml(TiXmlElement *xml);
+  static Transform fromXml(TiXmlElement* xml);
 };
 
 struct Twist {
@@ -113,7 +113,7 @@ struct Twist {
   }
 
   Twist() : linear(Vector3()), angular(Vector3()) {}
-  Twist(const Twist &other) : linear(other.linear), angular(other.angular) {}
+  Twist(const Twist& other) : linear(other.linear), angular(other.angular) {}
 };
 }  // namespace urdf
 

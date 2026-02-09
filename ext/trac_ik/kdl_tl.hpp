@@ -50,15 +50,15 @@ class ChainIkSolverPos_TL {
   friend class TRAC_IK::TRAC_IK;
 
  public:
-  ChainIkSolverPos_TL(const Chain &chain, const JntArray &q_min,
-                      const JntArray &q_max, double maxtime = 0.005,
+  ChainIkSolverPos_TL(const Chain& chain, const JntArray& q_min,
+                      const JntArray& q_max, double maxtime = 0.005,
                       double eps = 1e-3, bool random_restart = false,
                       bool try_jl_wrap = false);
 
   ~ChainIkSolverPos_TL();
 
-  int CartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p_in,
-                KDL::JntArray &q_out,
+  int CartToJnt(const KDL::JntArray& q_init, const KDL::Frame& p_in,
+                KDL::JntArray& q_out,
                 const KDL::Twist bounds = KDL::Twist::Zero());
 
   inline void setMaxtime(double t) { maxtime = t; }
@@ -108,7 +108,7 @@ class ChainIkSolverPos_TL {
  * \warning In contrast to standard KDL diff methods, the result of
  * diffRelative is w.r.t. frame b1 instead of frame a.
  */
-IMETHOD Twist diffRelative(const Frame &F_a_b1, const Frame &F_a_b2,
+IMETHOD Twist diffRelative(const Frame& F_a_b1, const Frame& F_a_b2,
                            double dt = 1) {
   return Twist(F_a_b1.M.Inverse() * diff(F_a_b1.p, F_a_b2.p, dt),
                F_a_b1.M.Inverse() * diff(F_a_b1.M, F_a_b2.M, dt));

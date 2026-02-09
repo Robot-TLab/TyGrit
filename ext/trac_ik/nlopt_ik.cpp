@@ -41,25 +41,25 @@ namespace NLOPT_IK {
 
 dual_quaternion targetDQ;
 
-double minfunc(const std::vector<double> &x, std::vector<double> &grad,
-               void *data) {
+double minfunc(const std::vector<double>& x, std::vector<double>& grad,
+               void* data) {
   // Auxilory function to minimize (Sum of Squared joint angle error
   // from the requested configuration).  Because we wanted a Class
   // without static members, but NLOpt library does not support
   // passing methods of Classes, we use these auxilary functions.
 
-  NLOPT_IK *c = (NLOPT_IK *)data;
+  NLOPT_IK* c = (NLOPT_IK*)data;
 
   return c->minJoints(x, grad);
 }
 
-double minfuncDQ(const std::vector<double> &x, std::vector<double> &grad,
-                 void *data) {
+double minfuncDQ(const std::vector<double>& x, std::vector<double>& grad,
+                 void* data) {
   // Auxilory function to minimize (Sum of Squared joint angle error
   // from the requested configuration).  Because we wanted a Class
   // without static members, but NLOpt library does not support
   // passing methods of Classes, we use these auxilary functions.
-  NLOPT_IK *c = (NLOPT_IK *)data;
+  NLOPT_IK* c = (NLOPT_IK*)data;
 
   std::vector<double> vals(x);
 
@@ -83,14 +83,14 @@ double minfuncDQ(const std::vector<double> &x, std::vector<double> &grad,
   return result[0];
 }
 
-double minfuncSumSquared(const std::vector<double> &x,
-                         std::vector<double> &grad, void *data) {
+double minfuncSumSquared(const std::vector<double>& x,
+                         std::vector<double>& grad, void* data) {
   // Auxilory function to minimize (Sum of Squared joint angle error
   // from the requested configuration).  Because we wanted a Class
   // without static members, but NLOpt library does not support
   // passing methods of Classes, we use these auxilary functions.
 
-  NLOPT_IK *c = (NLOPT_IK *)data;
+  NLOPT_IK* c = (NLOPT_IK*)data;
 
   std::vector<double> vals(x);
 
@@ -114,14 +114,14 @@ double minfuncSumSquared(const std::vector<double> &x,
   return result[0];
 }
 
-double minfuncL2(const std::vector<double> &x, std::vector<double> &grad,
-                 void *data) {
+double minfuncL2(const std::vector<double>& x, std::vector<double>& grad,
+                 void* data) {
   // Auxilory function to minimize (Sum of Squared joint angle error
   // from the requested configuration).  Because we wanted a Class
   // without static members, but NLOpt library does not support
   // passing methods of Classes, we use these auxilary functions.
 
-  NLOPT_IK *c = (NLOPT_IK *)data;
+  NLOPT_IK* c = (NLOPT_IK*)data;
 
   std::vector<double> vals(x);
 
@@ -145,13 +145,13 @@ double minfuncL2(const std::vector<double> &x, std::vector<double> &grad,
   return result[0];
 }
 
-void constrainfuncm(unsigned int m, double *result, unsigned int n,
-                    const double *x, double *grad, void *data) {
+void constrainfuncm(unsigned int m, double* result, unsigned int n,
+                    const double* x, double* grad, void* data) {
   // Equality constraint auxilary function for Euclidean distance .
   // This also uses a small walk to approximate the gradient of the
   // constraint function at the current joint angles.
 
-  NLOPT_IK *c = (NLOPT_IK *)data;
+  NLOPT_IK* c = (NLOPT_IK*)data;
 
   std::vector<double> vals(n);
 
@@ -177,8 +177,8 @@ void constrainfuncm(unsigned int m, double *result, unsigned int n,
   }
 }
 
-NLOPT_IK::NLOPT_IK(const KDL::Chain &_chain, const KDL::JntArray &_q_min,
-                   const KDL::JntArray &_q_max, double _maxtime, double _eps,
+NLOPT_IK::NLOPT_IK(const KDL::Chain& _chain, const KDL::JntArray& _q_min,
+                   const KDL::JntArray& _q_max, double _maxtime, double _eps,
                    OptType _type)
     : chain(_chain),
       fksolver(chain),
@@ -239,8 +239,8 @@ NLOPT_IK::NLOPT_IK(const KDL::Chain &_chain, const KDL::JntArray &_q_min,
   }
 }
 
-double NLOPT_IK::minJoints(const std::vector<double> &x,
-                           std::vector<double> &grad) {
+double NLOPT_IK::minJoints(const std::vector<double>& x,
+                           std::vector<double>& grad) {
   // Actual function to compute the error between the current joint
   // configuration and the desired.  The SSE is easy to provide a
   // closed form gradient for.
@@ -256,7 +256,7 @@ double NLOPT_IK::minJoints(const std::vector<double> &x,
   return err;
 }
 
-void NLOPT_IK::cartSumSquaredError(const std::vector<double> &x,
+void NLOPT_IK::cartSumSquaredError(const std::vector<double>& x,
                                    double error[]) {
   // Actual function to compute Euclidean distance error.  This uses
   // the KDL Forward Kinematics solver to compute the Cartesian pose
@@ -299,7 +299,7 @@ void NLOPT_IK::cartSumSquaredError(const std::vector<double> &x,
   }
 }
 
-void NLOPT_IK::cartL2NormError(const std::vector<double> &x, double error[]) {
+void NLOPT_IK::cartL2NormError(const std::vector<double>& x, double error[]) {
   // Actual function to compute Euclidean distance error.  This uses
   // the KDL Forward Kinematics solver to compute the Cartesian pose
   // of the current joint configuration and compares that to the
@@ -341,7 +341,7 @@ void NLOPT_IK::cartL2NormError(const std::vector<double> &x, double error[]) {
   }
 }
 
-void NLOPT_IK::cartDQError(const std::vector<double> &x, double error[]) {
+void NLOPT_IK::cartDQError(const std::vector<double>& x, double error[]) {
   // Actual function to compute Euclidean distance error.  This uses
   // the KDL Forward Kinematics solver to compute the Cartesian pose
   // of the current joint configuration and compares that to the
@@ -392,9 +392,9 @@ void NLOPT_IK::cartDQError(const std::vector<double> &x, double error[]) {
   }
 }
 
-int NLOPT_IK::CartToJnt(const KDL::JntArray &q_init, const KDL::Frame &p_in,
-                        KDL::JntArray &q_out, const KDL::Twist _bounds,
-                        const KDL::JntArray &q_desired) {
+int NLOPT_IK::CartToJnt(const KDL::JntArray& q_init, const KDL::Frame& p_in,
+                        KDL::JntArray& q_out, const KDL::Twist _bounds,
+                        const KDL::JntArray& q_desired) {
   // User command to start an IK solve.  Takes in a seed
   // configuration, a Cartesian pose, and (optional) a desired
   // configuration.  If the desired is not provided, the seed is

@@ -8,7 +8,7 @@ using namespace std;
 
 // ------------------- Vector Implementation -------------------
 
-Vector3 Vector3::fromVecStr(const string &vector_str) {
+Vector3 Vector3::fromVecStr(const string& vector_str) {
   Vector3 vec;
 
   vector<string> pieces;
@@ -19,7 +19,7 @@ Vector3 Vector3::fromVecStr(const string &vector_str) {
     if (pieces[i] != "") {
       try {
         values.push_back(boost::lexical_cast<double>(pieces[i].c_str()));
-      } catch (boost::bad_lexical_cast &e) {
+      } catch (boost::bad_lexical_cast& e) {
         throw URDFParseError("Error not able to parse component (" + pieces[i] +
                              ") to a double (while parsing a vector value)");
       }
@@ -41,13 +41,13 @@ Vector3 Vector3::fromVecStr(const string &vector_str) {
   return vec;
 }
 
-Vector3 Vector3::operator+(const Vector3 &other) {
+Vector3 Vector3::operator+(const Vector3& other) {
   return Vector3(x + other.x, y + other.y, z + other.z);
 }
 
 // ------------------- Quaternion Implementation -------------------
 
-void Rotation::getRpy(double &roll, double &pitch, double &yaw) const {
+void Rotation::getRpy(double& roll, double& pitch, double& yaw) const {
   double sqw;
   double sqx;
   double sqy;
@@ -100,7 +100,7 @@ Rotation Rotation::getInverse() const {
   return result;
 }
 
-Rotation Rotation::operator*(const Rotation &other) const {
+Rotation Rotation::operator*(const Rotation& other) const {
   Rotation result;
 
   result.x = (w * other.x) + (x * other.w) + (y * other.z) - (z * other.y);
@@ -111,7 +111,7 @@ Rotation Rotation::operator*(const Rotation &other) const {
   return result;
 }
 
-Vector3 Rotation::operator*(const Vector3 &vec) const {
+Vector3 Rotation::operator*(const Vector3& vec) const {
   Rotation t;
   Vector3 result;
 
@@ -147,14 +147,14 @@ Rotation Rotation::fromRpy(double roll, double pitch, double yaw) {
   return rot;
 };
 
-Rotation Rotation::fromRpyStr(const string &rotation_str) {
+Rotation Rotation::fromRpyStr(const string& rotation_str) {
   Vector3 rpy = Vector3::fromVecStr(rotation_str);
   return Rotation::fromRpy(rpy.x, rpy.y, rpy.z);
 }
 
 // ------------------- Color Implementation -------------------
 
-Color Color::fromColorStr(const std::string &vector_str) {
+Color Color::fromColorStr(const std::string& vector_str) {
   std::vector<std::string> pieces;
   std::vector<float> values;
 
@@ -163,7 +163,7 @@ Color Color::fromColorStr(const std::string &vector_str) {
     if (!pieces[i].empty()) {
       try {
         values.push_back(boost::lexical_cast<double>(pieces[i].c_str()));
-      } catch (boost::bad_lexical_cast &e) {
+      } catch (boost::bad_lexical_cast& e) {
         std::ostringstream error_msg;
         error_msg << "Error parsing Color value " << i
                   << " in color value string (" << vector_str
@@ -185,15 +185,15 @@ Color Color::fromColorStr(const std::string &vector_str) {
 
 // ------------------- Transform Implementation -------------------
 
-Transform Transform::fromXml(TiXmlElement *xml) {
+Transform Transform::fromXml(TiXmlElement* xml) {
   Transform t;
   if (xml) {
-    const char *xyz_str = xml->Attribute("xyz");
+    const char* xyz_str = xml->Attribute("xyz");
     if (xyz_str != NULL) {
       t.position = Vector3::fromVecStr(xyz_str);
     }
 
-    const char *rpy_str = xml->Attribute("rpy");
+    const char* rpy_str = xml->Attribute("rpy");
     if (rpy_str != NULL) {
       t.rotation = Rotation::fromRpyStr(rpy_str);
     }
