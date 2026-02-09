@@ -16,7 +16,11 @@ pixi install
 echo "Building and installing vamp_preview..."
 pixi run install-vamp
 
-# ── 4. GraspGen gripper registration ──────────────────────────────
+# ── 4. MomaViz ────────────────────────────────────────────────────
+echo "Installing MomaViz..."
+pixi run install-momaviz
+
+# ── 5. GraspGen gripper registration ──────────────────────────────
 # GraspGen discovers grippers from thirdparty/GraspGen/config/grippers/.
 # Symlink the Fetch gripper definition so GraspGen can find it.
 GRIPPER_DST="thirdparty/GraspGen/config/grippers"
@@ -28,11 +32,11 @@ for ext in py yaml; do
     fi
 done
 
-# ── 5. GraspGen (pointnet2_ops + package) ─────────────────────────
+# ── 6. GraspGen (pointnet2_ops + package) ─────────────────────────
 echo "Building and installing GraspGen..."
 pixi run install-graspgen
 
-# ── 6. GraspGen weights ───────────────────────────────────────────
+# ── 7. GraspGen weights ───────────────────────────────────────────
 echo "Downloading GraspGen weights..."
 pixi run download-graspgen-weights
 

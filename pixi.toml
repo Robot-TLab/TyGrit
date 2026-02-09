@@ -9,6 +9,7 @@ version = "0.1.0"
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
 install-vamp = "pip install --no-build-isolation -e thirdparty/vamp_preview"
 install-graspgen = "pip install --no-build-isolation thirdparty/GraspGen/pointnet2_ops && pip install --no-build-isolation --no-deps -e thirdparty/GraspGen"
+install-momaviz = "pip install --no-deps -e thirdparty/MomaViz"
 download-graspgen-weights = "scripts/download_graspgen_weights.sh"
 
 [dependencies]
