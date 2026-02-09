@@ -36,5 +36,11 @@ torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" 
 mani-skill = ">=3.0.0b0, <4"
 torchvision = "==0.22.0"
 
+[feature.lint.dependencies]
+pre-commit = "*"
+black = "*"
+ruff = "*"
+
 [environments]
 default = ["dev"]
+lint = ["lint"]

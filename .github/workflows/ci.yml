@@ -17,7 +17,7 @@ jobs:
       with:
         pixi-version: v0.63.2
         cache: true
-        environments: default
+        environments: lint
 
     - name: Run pre-commit
-      run: pixi run pre-commit run --all-files
+      run: pixi run -e lint pre-commit run --all-files
