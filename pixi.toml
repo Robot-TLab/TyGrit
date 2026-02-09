@@ -38,6 +38,8 @@ py-trees = ">=2.2,<3"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
 mani-skill = ">=3.0.0b0, <4"
 torchvision = "==0.22.0"
+
+[feature.vamp.pypi-dependencies]
 vamp-preview = { path = "thirdparty/vamp_preview", editable = true }
 
 [feature.lint.dependencies]
@@ -68,6 +70,6 @@ opencv-python-headless = ">=4.8,<5"
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
 
 [environments]
-default = ["dev"]
+default = ["dev", "vamp"]
 lint = { features = ["lint"], no-default-feature = true }
 ci = { features = ["ci"], no-default-feature = true }
