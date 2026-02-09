@@ -9,10 +9,12 @@ Robotics playground for mobile manipulator.
 
 ## Installation
 
-The project is managed by [pixi](https://prefix.dev/). Ensure you have `pixi` installed. Clone the repository and run:
+The project is managed by [pixi](https://prefix.dev/). Ensure you have `pixi` installed, then clone with submodules and run the setup script:
 
 ```bash
-pixi install
+git clone --recurse-submodules git@github.com:Robot-TLab/TyGrit.git
+cd TyGrit
+bash scripts/setup.sh
 ```
 
 ## ManiSkill Assets

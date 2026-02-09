@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [tasks]
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
+install-vamp = "pip install --no-build-isolation -e thirdparty/vamp_preview"
 
 [dependencies]
 python = "3.11.*"
@@ -23,6 +24,7 @@ pybind11 = ">=3.0.1,<4"
 cmake = ">=3.28,<4"
 scikit-build-core = ">=0.11,<1"
 nanobind = ">=2.4,<3"
+ninja = ">=1.13.2,<2"
 
 [feature.dev.dependencies]
 pre-commit = "*"
@@ -38,9 +40,6 @@ py-trees = ">=2.2,<3"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
 mani-skill = ">=3.0.0b0, <4"
 torchvision = "==0.22.0"
-
-[feature.vamp.pypi-dependencies]
-vamp-preview = { path = "thirdparty/vamp_preview", editable = true }
 
 [feature.lint.dependencies]
 python = "3.11.*"
@@ -70,6 +69,6 @@ opencv-python-headless = ">=4.8,<5"
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
 
 [environments]
-default = ["dev", "vamp"]
+default = ["dev"]
 lint = { features = ["lint"], no-default-feature = true }
 ci = { features = ["ci"], no-default-feature = true }
