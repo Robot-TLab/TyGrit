@@ -1,17 +1,10 @@
 """Public re-exports for TyGrit perception."""
 
-from TyGrit.perception.grasping import (
-    GraspGenConfig,
-    GraspGenPredictor,
-    filter_by_score,
-    select_diverse_grasps,
-)
+from TyGrit.perception.grasping import GraspGenConfig, GraspGenPredictor
 from TyGrit.perception.segmenter import Segmenter
 
 __all__ = [
     "GraspGenConfig",
     "GraspGenPredictor",
     "Segmenter",
-    "filter_by_score",
-    "select_diverse_grasps",
 ]

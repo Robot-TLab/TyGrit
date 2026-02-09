@@ -1,15 +1,9 @@
-"""Grasp prediction: backends and utilities."""
+"""Grasp prediction backends."""
 
 from TyGrit.perception.grasping.config import GraspGenConfig
-from TyGrit.perception.grasping.graspgen import (
-    GraspGenPredictor,
-    filter_by_score,
-    select_diverse_grasps,
-)
+from TyGrit.perception.grasping.graspgen import GraspGenPredictor
 
 __all__ = [
     "GraspGenConfig",
     "GraspGenPredictor",
-    "filter_by_score",
-    "select_diverse_grasps",
 ]

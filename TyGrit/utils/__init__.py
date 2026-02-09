@@ -9,6 +9,7 @@ from TyGrit.utils.depth import (
     pointcloud_from_mask,
     project_points_to_image,
 )
+from TyGrit.utils.grasping import filter_by_score, select_diverse_grasps
 from TyGrit.utils.math import (
     angle_wrap,
     matrix_to_quaternion,
@@ -60,4 +61,7 @@ __all__ = [
     # planning
     "vamp_path_to_lists",
     "lists_to_trajectory",
+    # grasping
+    "select_diverse_grasps",
+    "filter_by_score",
 ]
