@@ -1,43 +1,57 @@
+<div align="center">
+
 # TyGrit
 
+**Autonomous Mobile Manipulation for the Fetch Robot**
+
 [![CI](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml/badge.svg)](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml)
-[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/release/python-3110/)
-[![Pixi](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/prefix-dev/pixi/main/assets/badge/v0.json)](https://pixi.sh)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![pixi](https://img.shields.io/badge/env-pixi-orange.svg)](https://pixi.sh/)
 
-Robotics playground for mobile manipulator.
+Whole-body planning, grasping, and reactive control on the Fetch mobile manipulator — with ManiSkill 3 simulation and ROS deployment backends.
 
-## Installation
+</div>
 
-The project is managed by [pixi](https://prefix.dev/). Ensure you have `pixi` installed, then clone with submodules and run the setup script:
+---
+
+## Quick start
 
 ```bash
-git clone --recurse-submodules git@github.com:Robot-TLab/TyGrit.git
+git clone --recursive git@github.com:Robot-TLab/TyGrit.git
 cd TyGrit
 bash scripts/setup.sh
+pixi run test
 ```
 
-## ManiSkill Assets
-
-After installation, download the required ManiSkill scene and object assets:
+After setup, download ManiSkill assets:
 
 ```bash
 pixi run python -m mani_skill.utils.download_asset ReplicaCAD
 pixi run python -m mani_skill.utils.download_asset ycb
 ```
 
-## Usage
+## Overview
 
-This project is installed as an editable package. You can import it in python:
+| Module | What it does |
+|--------|-------------|
+| `envs/` | ManiSkill 3 + ROS backends for the Fetch robot |
+| `planning/` | VAMP-based whole-body motion planning (base + torso + 7-DOF arm) |
+| `perception/` | GraspGen 6-DOF neural grasp prediction |
+| `kinematics/` | IKFast (analytical) + TRAC-IK (numerical) solvers |
+| `controller/` | MPC trajectory tracking + gripper control |
+| `gaze/` | Lookahead-based head tracking |
+| `core/` | Receding-horizon scheduler (observe → plan → control → step) |
 
-```python
-import TyGrit
-```
+## Documentation
 
-## Development
+| | |
+|-|-|
+| [**Architecture**](doc/architecture.md) | Module design, data flow, key decisions |
+| [**Setup**](doc/setup.md) | Prerequisites, installation, environment details |
+| [**Configuration**](doc/configuration.md) | All TOML sections and parameters |
+| [**Visualization**](doc/visualization.md) | MomaViz: Blender renders, ManiSkill replays, video |
 
-Run tests using the defined task:
+## License
 
-```bash
-pixi run test
-```
+[MIT](LICENSE)
