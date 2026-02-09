@@ -4,3 +4,6 @@
 [submodule "thirdparty/GraspGen"]
 	path = thirdparty/GraspGen
 	url = https://github.com/Robot-TLab/GraspGen.git
+[submodule "thirdparty/MomaViz"]
+	path = thirdparty/MomaViz
+	url = git@github.com:Robot-TLab/MomaViz.git
