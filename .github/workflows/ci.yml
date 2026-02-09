@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: true
 
     - name: Set up Pixi
       uses: prefix-dev/setup-pixi@v0.5.1
@@ -27,8 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-      with:
-        submodules: true
 
     - name: Set up Pixi
       uses: prefix-dev/setup-pixi@v0.5.1
