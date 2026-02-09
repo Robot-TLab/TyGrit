@@ -41,6 +41,7 @@ torchvision = "==0.22.0"
 vamp-preview = { path = "thirdparty/vamp_preview", editable = true }
 
 [feature.lint.dependencies]
+python = "3.11.*"
 pre-commit = "*"
 black = "*"
 ruff = "*"
@@ -61,11 +62,12 @@ matplotlib-base = "*"
 [feature.ci.pypi-dependencies]
 tygrit = { path = ".", editable = true }
 py-trees = ">=2.2,<3"
+opencv-python-headless = ">=4.8,<5"
 
 [feature.ci.tasks]
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
 
 [environments]
 default = ["dev"]
-lint = ["lint"]
-ci = ["ci"]
+lint = { features = ["lint"], no-default-feature = true }
+ci = { features = ["ci"], no-default-feature = true }

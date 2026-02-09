@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 import numpy.typing as npt
-import torch
+
+if TYPE_CHECKING:
+    import torch
 
 
 def to_numpy(x: torch.Tensor | npt.NDArray) -> np.ndarray:
@@ -13,6 +17,8 @@ def to_numpy(x: torch.Tensor | npt.NDArray) -> np.ndarray:
     ManiSkill3 returns batched GPU tensors with shape ``(1, N)``.
     This helper detaches, moves to CPU, and squeezes the batch dimension.
     """
+    import torch
+
     if isinstance(x, torch.Tensor):
         x = x.detach().cpu().numpy()
     if x.ndim == 2:
