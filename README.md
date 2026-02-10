@@ -5,6 +5,7 @@
 **Autonomous Mobile Manipulation for the Fetch Robot**
 
 [![CI](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml/badge.svg)](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-live-brightgreen?logo=readthedocs&logoColor=white)](https://robot-tlab.github.io/TyGrit/)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![pixi](https://img.shields.io/badge/env-pixi-orange.svg)](https://pixi.sh/)
@@ -45,12 +46,20 @@ pixi run python -m mani_skill.utils.download_asset ycb
 
 ## Documentation
 
+<div align="center">
+<h3>
+<a href="https://robot-tlab.github.io/TyGrit/">
+📖 robot-tlab.github.io/TyGrit
+</a>
+</h3>
+</div>
+
 | | |
 |-|-|
-| [**Architecture**](doc/architecture.md) | Module design, data flow, key decisions |
-| [**Setup**](doc/setup.md) | Prerequisites, installation, environment details |
-| [**Configuration**](doc/configuration.md) | All TOML sections and parameters |
-| [**Visualization**](doc/visualization.md) | MomaViz: Blender renders, ManiSkill replays, video |
+| [**Architecture**](docs/architecture.md) | Module design, data flow, key decisions |
+| [**Setup**](docs/setup.md) | Prerequisites, installation, environment details |
+| [**Configuration**](docs/configuration.md) | All TOML sections and parameters |
+| [**Visualization**](docs/visualization.md) | MomaViz: Blender renders, ManiSkill replays, video |
 
 ## License
 

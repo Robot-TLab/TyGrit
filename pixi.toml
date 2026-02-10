@@ -28,6 +28,7 @@ cmake = ">=3.28,<4"
 scikit-build-core = ">=0.11,<1"
 nanobind = ">=2.4,<3"
 ninja = ">=1.13.2,<2"
+gh = ">=2.86.0,<3"
 
 [feature.dev.dependencies]
 pre-commit = "*"
@@ -63,6 +64,24 @@ spconv-cu120 = ">=2.3.6, <3"
 torch-scatter = ">=2.1.2, <3"
 diffusers = ">=0.25, <1"
 
+[feature.docs.dependencies]
+python = "3.11.*"
+pip = ">=25.3,<26"
+numpy = ">=1.26,<2"
+scipy = ">=1.11,<2"
+loguru = ">=0.7,<1"
+
+[feature.docs.pypi-dependencies]
+tygrit = { path = ".", editable = true }
+sphinx = ">=7,<9"
+furo = ">=2024"
+myst-parser = ">=3,<5"
+sphinx-copybutton = ">=0.5"
+sphinx-design = ">=0.6"
+
+[feature.docs.tasks]
+docs = { cmd = "sphinx-build docs docs/_build/html", env = { PYTHONPATH = "${workspace}" } }
+
 [feature.lint.dependencies]
 python = "3.11.*"
 pre-commit = "*"
@@ -95,3 +114,4 @@ test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}" } }
 default = ["dev"]
 lint = { features = ["lint"], no-default-feature = true }
 ci = { features = ["ci"], no-default-feature = true }
+docs = { features = ["docs"], no-default-feature = true }
