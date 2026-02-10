@@ -1,4 +1,7 @@
-"""Build script for C++ extensions (IKFast + TRAC-IK)."""
+"""Build script for C++ extensions (IKFast + TRAC-IK).
+
+Extensions are skipped when build dependencies are missing (e.g. docs env).
+"""
 
 import glob
 import os
@@ -10,40 +13,40 @@ conda_prefix = os.environ.get("CONDA_PREFIX", "")
 conda_include = os.path.join(conda_prefix, "include") if conda_prefix else ""
 conda_lib = os.path.join(conda_prefix, "lib") if conda_prefix else ""
 
-# Collect all .cpp files under ext/trac_ik/ (including urdf/)
-trac_ik_sources = sorted(glob.glob("ext/trac_ik/**/*.cpp", recursive=True))
+ext_modules = []
 
-# pybind11 include path
-try:
-    import pybind11
+# IKFast: CPython C API, no extra deps — always buildable
+ext_modules.append(
+    Extension(
+        "ikfast_fetch",
+        sources=["ext/ikfast_fetch/ikfast_robot.cpp"],
+        include_dirs=["ext/ikfast_fetch"],
+        language="c++",
+    )
+)
 
-    pybind11_include = pybind11.get_include()
-except ImportError:
-    pybind11_include = ""
+# TRAC-IK: pybind11, needs KDL/NLopt/Eigen — skip when headers are missing
+_kdl_header = os.path.join(conda_include, "kdl", "tree.hpp") if conda_include else ""
+if _kdl_header and os.path.isfile(_kdl_header):
+    trac_ik_sources = sorted(glob.glob("ext/trac_ik/**/*.cpp", recursive=True))
 
-trac_ik_include_dirs = [
-    "ext/trac_ik",
-    "ext/trac_ik/urdf",
-    pybind11_include,
-]
-trac_ik_library_dirs = []
+    try:
+        import pybind11
 
-if conda_include:
-    trac_ik_include_dirs.append(conda_include)
-    trac_ik_include_dirs.append(os.path.join(conda_include, "eigen3"))
-if conda_lib:
-    trac_ik_library_dirs.append(conda_lib)
+        pybind11_include = pybind11.get_include()
+    except ImportError:
+        pybind11_include = ""
 
-setup(
-    ext_modules=[
-        # IKFast: CPython C API, no extra deps
-        Extension(
-            "ikfast_fetch",
-            sources=["ext/ikfast_fetch/ikfast_robot.cpp"],
-            include_dirs=["ext/ikfast_fetch"],
-            language="c++",
-        ),
-        # TRAC-IK: pybind11, needs KDL/NLopt/Eigen
+    trac_ik_include_dirs = [
+        "ext/trac_ik",
+        "ext/trac_ik/urdf",
+        pybind11_include,
+        conda_include,
+        os.path.join(conda_include, "eigen3"),
+    ]
+    trac_ik_library_dirs = [conda_lib] if conda_lib else []
+
+    ext_modules.append(
         Extension(
             "pytracik",
             sources=trac_ik_sources,
@@ -52,6 +55,7 @@ setup(
             libraries=["orocos-kdl", "nlopt"],
             language="c++",
             extra_compile_args=["-std=c++17"],
-        ),
-    ],
-)
+        )
+    )
+
+setup(ext_modules=ext_modules)
