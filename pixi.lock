@@ -15525,7 +15525,7 @@ packages:
 - pypi: ./
   name: tygrit
   version: 0.1.0
-  sha256: b7795cd47bb24565f7f4ff4a60fe0770cb70368ea2ad54376a07792dea7108cf
+  sha256: ae3bb8c3df6e4123c8a084a62781a2cf3f81b1133311a54fd228436dcccf226e
   requires_python: '>=3.11'
 - pypi: https://files.pythonhosted.org/packages/1b/a9/e3aee762739c1d7528da1c3e06d518503f8b6c439c35549b53735ba52ead/typeguard-4.4.4-py3-none-any.whl
   name: typeguard
