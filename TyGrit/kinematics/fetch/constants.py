@@ -30,6 +30,25 @@ HEAD_TILT_OFFSET: npt.NDArray[np.float64] = np.array([0.14253, 0.0, 0.057999])
 R_GRIPPER_FINGER_OFFSET: npt.NDArray[np.float64] = np.array([0.0, 0.065425, 0.0])
 L_GRIPPER_FINGER_OFFSET: npt.NDArray[np.float64] = np.array([0.0, -0.065425, 0.0])
 
+# head_tilt_link → head_camera_link (from Fetch URDF, verified against SAPIEN)
+HEAD_CAMERA_OFFSET: npt.NDArray[np.float64] = np.array([0.055, 0.0, 0.0225])
+
+# Rotation from OpenCV camera coords → head_camera_link coords.
+# SAPIEN mounts the camera at head_camera_link with its own convention:
+#   forward = +X_link,  right = -Y_link,  up = +Z_link
+# OpenCV camera convention:
+#   forward = +Z_cv,  right = +X_cv,  down = +Y_cv
+# Mapping: +Z_cv (fwd) → +X_link,  +X_cv (right) → -Y_link,  +Y_cv (down) → -Z_link
+R_CV_TO_CAMERA_LINK: npt.NDArray[np.float64] = np.array(
+    [
+        [0.0, 0.0, 1.0, 0.0],
+        [-1.0, 0.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ],
+    dtype=np.float64,
+)
+
 # ── Planning joint names (8-DOF: torso + 7 arm) ─────────────────────────────
 
 PLANNING_JOINT_NAMES: tuple[str, ...] = (

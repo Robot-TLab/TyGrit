@@ -2,9 +2,25 @@
 
 from __future__ import annotations
 
+import numpy as np
+import numpy.typing as npt
 from scipy.spatial.transform import Rotation as R
 
 from TyGrit.types.grasp import GraspPose
+
+# ── GraspGen → Fetch gripper convention ──────────────────────────────────────
+# GraspGen outputs: Z = approach, Y = closing, X = normal.
+# Fetch gripper_link: X = approach, Y = closing, Z = normal.
+# So: X_ee = Z_grasp, Y_ee = Y_grasp, Z_ee = X_grasp.
+T_GRASPGEN_TO_FETCH_EE: npt.NDArray[np.float64] = np.array(
+    [
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [-1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ],
+    dtype=np.float64,
+)
 
 
 def select_diverse_grasps(

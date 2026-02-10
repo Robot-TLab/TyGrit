@@ -16,30 +16,10 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
+from TyGrit.kinematics.fetch.constants import HEAD_CAMERA_OFFSET, R_CV_TO_CAMERA_LINK
 from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
 from TyGrit.types.robot import RobotState
 from TyGrit.utils.transforms import se2_to_matrix
-
-# head_tilt_link → head_camera_link (from Fetch URDF, verified against SAPIEN)
-_CAMERA_OFFSET = np.array([0.055, 0.0, 0.0225], dtype=np.float64)
-
-# SAPIEN mounts the camera at head_camera_link with its own convention:
-#   forward = +X_link,  right = -Y_link,  up = +Z_link
-#
-# OpenCV camera convention:
-#   forward = +Z_cv,  right = +X_cv,  down = +Y_cv
-#
-# This rotation maps OpenCV camera coords → link coords:
-#   +Z_cv (fwd) → +X_link,   +X_cv (right) → -Y_link,   +Y_cv (down) → -Z_link
-_R_CV_TO_LINK: npt.NDArray[np.float64] = np.array(
-    [
-        [0.0, 0.0, 1.0, 0.0],
-        [-1.0, 0.0, 0.0, 0.0],
-        [0.0, -1.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0],
-    ],
-    dtype=np.float64,
-)
 
 
 def compute_camera_pose(state: RobotState) -> npt.NDArray[np.float64]:
@@ -68,11 +48,11 @@ def compute_camera_pose(state: RobotState) -> npt.NDArray[np.float64]:
 
     # head_tilt_link → head_camera_link (pure translation, same orientation)
     T_tilt_to_camera = np.eye(4, dtype=np.float64)
-    T_tilt_to_camera[:3, 3] = _CAMERA_OFFSET
+    T_tilt_to_camera[:3, 3] = HEAD_CAMERA_OFFSET
     T_base_camera = T_base_tilt @ T_tilt_to_camera
 
     # base_link → world
     T_world_base = se2_to_matrix(bp.x, bp.y, bp.theta)
 
     # cam2world (OpenCV): world ← base ← camera_link ← cv_frame
-    return T_world_base @ T_base_camera @ _R_CV_TO_LINK
+    return T_world_base @ T_base_camera @ R_CV_TO_CAMERA_LINK
