@@ -1,8 +1,9 @@
 # TyGrit
 
-**Autonomous Mobile Manipulation for the Fetch Robot**
+**A Unified Platform for Mobile Manipulation Research**
 
-Whole-body planning, grasping, and reactive control on the Fetch mobile manipulator — with ManiSkill 3 simulation and ROS deployment backends.
+One platform. Multiple robots, simulators, and control frameworks.
+Standardized benchmarks for comparing classical, learning-based, and foundation-model approaches to mobile manipulation.
 
 ::::{grid} 2
 :gutter: 3
@@ -18,7 +19,7 @@ Prerequisites, installation, and environment setup.
 :link: architecture
 :link-type: doc
 
-Module design, data flow, and key decisions.
+Extensible multi-robot, multi-sim design and data flow.
 :::
 
 :::{grid-item-card} Configuration
