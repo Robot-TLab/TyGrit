@@ -72,7 +72,6 @@ scipy = ">=1.11,<2"
 loguru = ">=0.7,<1"
 
 [feature.docs.pypi-dependencies]
-tygrit = { path = ".", editable = true }
 sphinx = ">=7,<9"
 furo = ">=2024"
 myst-parser = ">=3,<5"
