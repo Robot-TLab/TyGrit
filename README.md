@@ -17,16 +17,6 @@ Standardized benchmarks for comparing classical, learning-based, and foundation-
 
 ---
 
-## Why this project
-
-Mobile manipulation is one of the hardest open problems in robotics — and one of the most exciting. A robot that can navigate a home, understand a scene, and grasp what it needs would be transformative. But research in this space is deeply fragmented: every group uses a different robot, a different simulator, and a different evaluation setup. Results don't compare. Insights don't transfer.
-
-TyGrit exists to fix that.
-
-It's a single research platform where you can run the same tasks across multiple robots (Fetch today, AutoLife next), multiple simulators (ManiSkill 3 now, Isaac Sim planned), and multiple control frameworks (receding-horizon, plan-to-goal, purely reactive) — all sharing the same perception, planning, and evaluation interfaces. Swap in a learned policy for a classical planner and measure the difference on identical benchmarks.
-
-The goal is simple: build the infrastructure so researchers can stop reinventing the glue code and start answering the questions that matter — what actually works, where the real gaps are, and how different paradigms (classical planning, RL, VLAs, world models) compare when the task and the metrics are held constant.
-
 ## Quick start
 
 ```bash
@@ -46,7 +36,7 @@ pixi run python -m mani_skill.utils.download_asset ycb
 ## Overview
 
 | Module | What it does |
-|--------|-------------|
+| ------ | ----------- |
 | `envs/` | Robot environment layer — ManiSkill 3 + ROS (Fetch); Isaac Sim & more robots planned |
 | `planning/` | Motion planning — currently VAMP whole-body; `MotionPlanner` protocol supports any planner |
 | `perception/` | GraspGen 6-DOF neural grasp prediction |
@@ -55,31 +45,14 @@ pixi run python -m mani_skill.utils.download_asset ycb
 | `gaze/` | Robot-agnostic head tracking |
 | `core/` | System frameworks — receding-horizon (implemented); plan-to-goal & reactive (planned) |
 
-## Roadmap
-
-| Area | Current | Planned |
-|------|---------|---------|
-| Robots | Fetch | AutoLife |
-| Simulators | ManiSkill 3 | Isaac Sim |
-| Deployment | ROS (Fetch) | — |
-| Frameworks | Receding-horizon | Plan-to-goal, purely reactive |
-| Paradigms | Classical planning + neural grasping | Learned policies, VLAs, world models |
-| Evaluation | Per-run metrics | Standardized benchmarks across difficulty levels & approaches |
-
 ## Documentation
 
-<div align="center">
-<h3>
-<a href="https://robot-tlab.github.io/TyGrit/">
-robot-tlab.github.io/TyGrit
-</a>
-</h3>
-</div>
+See the [documentation](https://robot-tlab.github.io/TyGrit/) for the full vision, architecture, and roadmap.
 
 | | |
-|-|-|
-| [**Architecture**](docs/architecture.md) | Module design, data flow, key decisions |
+| - | - |
 | [**Setup**](docs/setup.md) | Prerequisites, installation, environment details |
+| [**Architecture**](docs/architecture.md) | Module design, data flow, key decisions |
 | [**Configuration**](docs/configuration.md) | All TOML sections and parameters |
 | [**Visualization**](docs/visualization.md) | MomaViz: Blender renders, ManiSkill replays, video |
 
