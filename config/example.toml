@@ -25,6 +25,7 @@ wrist_flex = 1.0
 gripper = 1.0
 
 [grasping]
+backend = "graspgen"
 checkpoint_config_path = "resources/weights/graspgen/graspgen_franka_panda.yml"
 num_grasps = 200
 topk_num_grasps = 100
@@ -34,6 +35,9 @@ remove_outliers = true
 score_threshold = 0.0
 max_grasps = 50
 device = "cuda"
+
+[segmentation]
+backend = "sim"
 
 [planner]
 timeout = 5.0

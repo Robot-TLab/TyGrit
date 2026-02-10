@@ -63,6 +63,7 @@ tensorboard = ">=2.20.0, <3"
 spconv-cu120 = ">=2.3.6, <3"
 torch-scatter = ">=2.1.2, <3"
 diffusers = ">=0.25, <1"
+sam3 = { git = "https://github.com/facebookresearch/sam3.git" }
 
 [feature.docs.dependencies]
 python = "3.11.*"
