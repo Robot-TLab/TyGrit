@@ -1,4 +1,4 @@
-"""GraspGen predictor — wraps GraspGen's GraspGenSampler."""
+"""GraspGen predictor — satisfies the ``GraspPredictor`` protocol."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from TyGrit.types.grasp import GraspPose
 
 
 class GraspGenPredictor:
-    """Concrete GraspPredictor wrapping GraspGen's GraspGenSampler.
+    """GraspGen diffusion-based grasp predictor.
 
     Lazy-loads the model on first ``predict()`` call so module-level
     import works without torch / GraspGen deps installed.

@@ -10,10 +10,9 @@ import numpy.typing as npt
 from scipy.spatial.transform import Rotation as R
 
 import pytracik
-from TyGrit.kinematics.ik import IKSolverBase
 
 
-class TracIKSolver(IKSolverBase):
+class TracIKSolver:
     """Numerical IK solver using TRAC-IK (dual Newton-Raphson + SQP).
 
     Target pose must be in the frame of ``base_link`` passed to the constructor

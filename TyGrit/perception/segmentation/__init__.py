@@ -3,19 +3,21 @@
 from __future__ import annotations
 
 from TyGrit.perception.segmentation.config import SAM3SegmenterConfig, SegmenterConfig
+from TyGrit.perception.segmentation.protocol import Segmenter
 from TyGrit.perception.segmentation.sam3 import SAM3Segmenter
 from TyGrit.perception.segmentation.sim import SimSegmenter
 
 __all__ = [
     "SAM3Segmenter",
     "SAM3SegmenterConfig",
+    "Segmenter",
     "SegmenterConfig",
     "SimSegmenter",
     "create_segmenter",
 ]
 
 
-def create_segmenter(config: SegmenterConfig) -> SimSegmenter | SAM3Segmenter:
+def create_segmenter(config: SegmenterConfig) -> Segmenter:
     """Create a segmenter from *config*.
 
     Dispatches on ``config.backend``:

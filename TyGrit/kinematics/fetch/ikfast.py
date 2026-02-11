@@ -10,7 +10,6 @@ import numpy.typing as npt
 
 import ikfast_fetch
 from TyGrit.kinematics.fetch.constants import JOINT_LIMITS_LOWER, JOINT_LIMITS_UPPER
-from TyGrit.kinematics.ik import IKSolverBase
 
 
 def _is_valid(solution: list[float]) -> bool:
@@ -18,7 +17,7 @@ def _is_valid(solution: list[float]) -> bool:
     return bool(np.all(sol >= JOINT_LIMITS_LOWER) and np.all(sol <= JOINT_LIMITS_UPPER))
 
 
-class IKFastSolver(IKSolverBase):
+class IKFastSolver:
     """Analytical IK for the Fetch arm (8-DOF: torso + 7 arm joints).
 
     Target pose must be in **base_link frame** (4x4 homogeneous transform).

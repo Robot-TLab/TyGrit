@@ -10,13 +10,13 @@ frames are internally consistent regardless of the simulation backend.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 from loguru import logger
 
+from TyGrit.subgoal_generator.samplers.config import GraspSamplerConfig
 from TyGrit.types.robot import RobotState, WholeBodyConfig
 from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.utils.depth import pointcloud_from_mask
@@ -24,19 +24,9 @@ from TyGrit.utils.grasping import T_GRASPGEN_TO_FETCH_EE
 from TyGrit.utils.transforms import se2_to_matrix
 
 if TYPE_CHECKING:
+    from TyGrit.checker.collision import CollisionCheckFn
     from TyGrit.kinematics.ik import IKSolverBase
-    from TyGrit.perception.grasping.graspgen import GraspGenPredictor
-    from TyGrit.planning.fetch.vamp_preview import VampPreviewPlanner
-
-
-@dataclass(frozen=True)
-class GraspSamplerConfig:
-    """Parameters for the grasp sampler."""
-
-    target_object_id: int = 1
-    grasp_depth_offset: float = 0.11  # retract along approach axis (metres)
-    max_ik_attempts: int = 20  # per grasp pose
-    max_grasps_to_try: int = 10
+    from TyGrit.perception.grasping.protocol import GraspPredictor
 
 
 class GraspSampler:
@@ -49,13 +39,13 @@ class GraspSampler:
     def __init__(
         self,
         ik_solver: IKSolverBase,
-        grasp_predictor: GraspGenPredictor,
-        planner: VampPreviewPlanner,
+        grasp_predictor: GraspPredictor,
+        collision_check: CollisionCheckFn,
         config: GraspSamplerConfig | None = None,
     ) -> None:
         self._ik = ik_solver
         self._grasps = grasp_predictor
-        self._planner = planner
+        self._check = collision_check
         self._cfg = config or GraspSamplerConfig()
 
     def sample(
@@ -136,9 +126,9 @@ class GraspSampler:
                 except ValueError:
                     continue
 
-                # Validate with planner (collision check)
+                # Validate against environment (maintained by the scheduler)
                 wb = WholeBodyConfig(arm_joints=joints, base_pose=bp)
-                if self._planner.validate_config(wb):
+                if self._check(wb):
                     logger.info(
                         "GraspSampler: valid grasp found (candidate {}, score={:.3f})",
                         i,

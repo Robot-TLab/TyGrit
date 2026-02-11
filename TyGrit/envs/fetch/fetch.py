@@ -7,14 +7,13 @@ to get the right backend (ManiSkill, ROS, etc.) based on ``config.backend``.
 from __future__ import annotations
 
 from TyGrit.controller.fetch.mpc import MPCConfig
-from TyGrit.envs.base import RobotBase
 from TyGrit.envs.fetch.config import FetchEnvConfig
 
 
-class FetchRobot(RobotBase):
+class FetchRobot:
     """Fetch mobile manipulator.
 
-    This is the abstract parent that all backends inherit from.
+    Satisfies the :class:`~TyGrit.envs.base.RobotBase` protocol.
     Use ``FetchRobot.create(config)`` to instantiate the correct backend.
     Fetch-specific controllers live in ``controller.fetch``.
     """

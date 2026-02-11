@@ -1,13 +1,8 @@
-"""Concrete Scene implementation backed by point clouds.
+"""Point-cloud scene — satisfies the ``Scene`` protocol.
 
-Ported from ``grasp_anywhere/observation/scene.py``.
-
-Changes from the original:
-- No Open3D dependency — uses TyGrit pointcloud/depth utils.
-- No threading / locks — scheduler is single-threaded.
-- Inherits from the ``Scene`` ABC defined in ``TyGrit.scene.scene``.
-- Constructor accepts an optional *robot_filter_fn* callback instead of
-  coupling to a specific robot class.
+Maintains three clouds (static map, dynamic observations, goal spec) and
+supports five update modes (static, latest, accumulated, combine,
+ray_casting).
 """
 
 from __future__ import annotations
@@ -18,7 +13,6 @@ import numpy as np
 import numpy.typing as npt
 
 from TyGrit.scene.config import PointCloudSceneConfig
-from TyGrit.scene.scene import Scene
 from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.utils.depth import depth_to_world_pointcloud
 from TyGrit.utils.pointcloud import (
@@ -39,7 +33,7 @@ RobotFilterFn = Callable[
 _VALID_MODES = frozenset({"static", "latest", "accumulated", "combine", "ray_casting"})
 
 
-class PointCloudScene(Scene):
+class PointCloudScene:
     """Point-cloud world model with 5 update modes.
 
     Maintains three clouds:

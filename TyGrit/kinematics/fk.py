@@ -22,8 +22,7 @@ Usage::
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Protocol, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -32,7 +31,7 @@ if TYPE_CHECKING:
     from torch import Tensor
 
 
-class SkeletonFKSolver(ABC):
+class SkeletonFKSolver(Protocol):
     """All link poses via forward kinematics.
 
     ``solve()`` returns a dict mapping link names to 4×4 homogeneous
@@ -40,12 +39,10 @@ class SkeletonFKSolver(ABC):
     """
 
     @property
-    @abstractmethod
     def base_frame(self) -> str:
         """Frame ID that output poses are expressed in."""
         ...
 
-    @abstractmethod
     def solve(
         self, joint_angles: npt.NDArray[np.float64]
     ) -> dict[str, npt.NDArray[np.float64]]:
@@ -60,7 +57,7 @@ class SkeletonFKSolver(ABC):
         ...
 
 
-class EEFKSolver(ABC):
+class EEFKSolver(Protocol):
     """End-effector-only forward kinematics.
 
     ``solve()`` returns a single 4×4 homogeneous transform for the
@@ -68,12 +65,10 @@ class EEFKSolver(ABC):
     """
 
     @property
-    @abstractmethod
     def base_frame(self) -> str:
         """Frame ID that the output pose is expressed in."""
         ...
 
-    @abstractmethod
     def solve(self, joint_angles: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         """Return the end-effector pose for *joint_angles*.
 
@@ -86,7 +81,7 @@ class EEFKSolver(ABC):
         ...
 
 
-class BatchFKSolver(ABC):
+class BatchFKSolver(Protocol):
     """Batched forward kinematics (GPU-ready, torch tensors).
 
     ``solve()`` returns a dict mapping link names to ``(B, 4, 4)`` pose
@@ -94,12 +89,10 @@ class BatchFKSolver(ABC):
     """
 
     @property
-    @abstractmethod
     def base_frame(self) -> str:
         """Frame ID that output poses are expressed in."""
         ...
 
-    @abstractmethod
     def solve(self, joint_angles: Tensor) -> dict[str, Tensor]:
         """Return all link poses for a batch of joint configurations.
 

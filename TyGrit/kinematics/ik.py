@@ -10,14 +10,14 @@ Usage::
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
 
 
-class IKSolverBase(ABC):
-    """Base class for all IK solvers.
+class IKSolverBase(Protocol):
+    """Protocol for all IK solvers.
 
     ``solve()`` takes a 4x4 homogeneous target pose expressed in the
     solver's base frame (determined at construction time) and returns
@@ -25,12 +25,10 @@ class IKSolverBase(ABC):
     """
 
     @property
-    @abstractmethod
     def base_frame(self) -> str:
         """Frame ID that target poses must be expressed in."""
         ...
 
-    @abstractmethod
     def solve(
         self,
         target_pose: npt.NDArray[np.float64],

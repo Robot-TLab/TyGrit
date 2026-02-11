@@ -16,22 +16,12 @@ The goal: stop reinventing the glue code and start answering the questions that 
 ## Key Features
 
 - **Whole-body motion planning** — VAMP-based planner with an extensible `MotionPlanner` protocol
-- **Neural grasp prediction** — GraspGen 6-DOF grasp synthesis
-- **Multi-backend environments** — ManiSkill 3 and ROS today; Isaac Sim planned
-- **Receding-horizon control loop** — plan-to-goal and purely reactive frameworks planned
+- **Neural grasp prediction** — GraspGen 6-DOF grasp synthesis with `GraspPredictor` protocol
+- **Segmentation** — Ground-truth (sim) and SAM 3 backends with `Segmenter` protocol
+- **Multi-backend environments** — ManiSkill 3 simulation via `RobotBase` protocol
+- **Receding-horizon control loop** — scheduler with config-driven subgoal generation
 - **Vendored C++ IK solvers** — IKFast (analytical) + TRAC-IK (numerical)
 - **Visualization toolkit** — MomaViz: Blender renders, ManiSkill replays, video
-
-## Roadmap
-
-| Area | Current | Planned |
-|------|---------|---------|
-| Robots | Fetch | AutoLife |
-| Simulators | ManiSkill 3 | Isaac Sim |
-| Deployment | ROS (Fetch) | — |
-| Frameworks | Receding-horizon | Plan-to-goal, purely reactive |
-| Paradigms | Classical planning + neural grasping | Learned policies, VLAs, world models |
-| Evaluation | Per-run metrics | Standardized benchmarks across difficulty levels & approaches |
 
 ::::{grid} 2
 :gutter: 3

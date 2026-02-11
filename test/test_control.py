@@ -5,7 +5,7 @@ import numpy as np
 from TyGrit.controller.fetch.gripper import GRIPPER_CLOSED, GRIPPER_OPEN
 from TyGrit.controller.fetch.mpc import MPCConfig, compute_mpc_action
 from TyGrit.gaze import compute_gaze_target
-from TyGrit.gaze.gaze import GazeConfig
+from TyGrit.gaze.config import GazeConfig
 
 # ── MPC ──────────────────────────────────────────────────────────────────
 

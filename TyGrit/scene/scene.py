@@ -1,13 +1,12 @@
-"""Abstract base class for the scene — the central world model / belief state.
+"""Protocol for the scene — the central world model / belief state.
 
-Today the scene is point-cloud based; it will evolve into an object-centric
-scene graph.  All filtering (ground, robot self-filter) happens inside the
-scene so consumers get clean geometry.
+All filtering (ground, robot self-filter) happens inside the scene so
+consumers get clean geometry.
 """
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from typing import Protocol
 
 import numpy as np
 import numpy.typing as npt
@@ -15,15 +14,14 @@ import numpy.typing as npt
 from TyGrit.types.sensor import SensorSnapshot
 
 
-class Scene(ABC):
-    """Abstract world model that maintains the current belief state.
+class Scene(Protocol):
+    """World model that maintains the current belief state.
 
     Implementations own the data, handle updates from sensors, and provide
     query methods for downstream consumers (collision checking, grasp
     planning, visualization).
     """
 
-    @abstractmethod
     def update(
         self,
         snapshot: SensorSnapshot,
@@ -37,7 +35,6 @@ class Scene(ABC):
         """
         ...
 
-    @abstractmethod
     def get_pointcloud(self) -> npt.NDArray[np.float32]:
         """Return the current belief as a world-frame point cloud (N, 3).
 
@@ -46,7 +43,6 @@ class Scene(ABC):
         """
         ...
 
-    @abstractmethod
     def clear(self) -> None:
         """Reset the dynamic observations, keeping any static map."""
         ...

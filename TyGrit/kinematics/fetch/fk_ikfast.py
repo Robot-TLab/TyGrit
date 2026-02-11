@@ -5,8 +5,6 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.kinematics.fk import EEFKSolver
-
 
 def ee_forward_kinematics(
     joint_angles: npt.NDArray[np.float64],
@@ -29,7 +27,7 @@ def ee_forward_kinematics(
     return T
 
 
-class FetchIKFastFK(EEFKSolver):
+class FetchIKFastFK:
     """Gripper-only pose via IKFast C FK.
 
     Input: 8 joints (torso + 7 arm).

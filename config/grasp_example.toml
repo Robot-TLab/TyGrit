@@ -1,0 +1,33 @@
+# Configuration for the grasp example.
+#
+# Usage:
+#   pixi run python examples/grasp_example.py --config examples/grasp_example.toml
+
+[env]
+robot = "fetch"
+backend = "maniskill"
+render_mode = "human"
+
+[scene]
+mode = "latest"
+ground_z_threshold = 0.3
+depth_range = [0.2, 3.0]
+
+[planner]
+algorithm = "rrtc"
+timeout = 5.0
+
+[grasping]
+backend = "graspgen"
+num_grasps = 200
+topk_num_grasps = 100
+device = "cuda"
+
+[subgoal]
+task = "grasp"
+
+[mpc]
+gain = 2.5
+
+[scheduler]
+steps_per_iteration = 10

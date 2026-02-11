@@ -1,6 +1,6 @@
 # Configuration
 
-TyGrit uses a single TOML file to configure all subsystems. See [`config/example.toml`](../config/example.toml) for a complete example.
+TyGrit uses a single TOML file to configure all subsystems. See [`config/grasp_example.toml`](../config/grasp_example.toml) for an example.
 
 ## Loading
 
@@ -9,7 +9,8 @@ from TyGrit.config import load_config
 
 config = load_config("config/my_config.toml")
 # config.env, config.scene, config.gaze, config.grasping,
-# config.planner, config.mpc, config.scheduler
+# config.segmentation, config.planner, config.subgoal,
+# config.mpc, config.scheduler
 ```
 
 Only sections present in the TOML are overridden; missing sections use defaults.
@@ -61,6 +62,36 @@ Per-joint attention weights:
 | `score_threshold` | float | 0.0 | Minimum grasp score |
 | `max_grasps` | int | 50 | Final output cap |
 | `device` | str | "cuda" | Torch device |
+
+### `[segmentation]` — Segmentation backend
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `backend` | str | "sim" | Backend: `"sim"` (ground-truth) or `"sam3"` (SAM 3) |
+
+Additional parameters when `backend = "sam3"`:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `model_name` | str | "sam3_hiera_large" | SAM 3 model variant |
+| `text_prompt` | str | "object" | Text prompt for segmentation |
+| `threshold` | float | 0.5 | Score threshold |
+| `mask_threshold` | float | 0.5 | Mask binarization threshold |
+| `device` | str | "cuda" | Torch device |
+
+### `[subgoal]` — Subgoal generator
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `task` | str | "grasp" | Task type: `"grasp"` |
+
+Additional parameters when `task = "grasp"`:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `approach_threshold` | float | 0.15 | Joint-space distance to consider approach complete |
+| `lift_height` | float | 0.15 | Torso raise for lift phase |
+| `lift_threshold` | float | 0.15 | Joint-space distance to consider lift complete |
 
 ### `[planner]` — VAMP motion planner
 

@@ -2,10 +2,12 @@
 
 from TyGrit.perception.grasping.config import GraspGenConfig, GraspPredictorConfig
 from TyGrit.perception.grasping.graspgen import GraspGenPredictor
+from TyGrit.perception.grasping.protocol import GraspPredictor
 
 __all__ = [
     "GraspGenConfig",
     "GraspGenPredictor",
+    "GraspPredictor",
     "GraspPredictorConfig",
     "create_grasp_predictor",
 ]
@@ -13,7 +15,7 @@ __all__ = [
 
 def create_grasp_predictor(
     config: GraspPredictorConfig,
-) -> GraspGenPredictor:
+) -> GraspPredictor:
     """Create a grasp predictor from *config*.
 
     Dispatches on ``config.backend``:

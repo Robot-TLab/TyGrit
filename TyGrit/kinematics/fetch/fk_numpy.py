@@ -26,7 +26,6 @@ from TyGrit.kinematics.fetch.constants import (
     WRIST_FLEX_OFFSET,
     WRIST_ROLL_OFFSET,
 )
-from TyGrit.kinematics.fk import SkeletonFKSolver
 from TyGrit.utils.transforms import create_transform_matrix
 
 
@@ -158,7 +157,7 @@ def forward_kinematics(
     return link_poses
 
 
-class FetchSkeletonFK(SkeletonFKSolver):
+class FetchSkeletonFK:
     """All link poses via pure-NumPy FK.
 
     Input: 10 joints (torso + 7 arm + 2 head).
