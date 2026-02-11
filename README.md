@@ -1,6 +1,6 @@
 <div align="center">
 
-# TyGrit
+# TyGrit — Tying Grit
 
 **A Research Platform for Mobile Manipulation in Unknown Environments**
 
