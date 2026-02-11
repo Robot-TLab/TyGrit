@@ -34,6 +34,13 @@ TyGrit enables researchers to:
 ::::{grid} 2
 :gutter: 3
 
+:::{grid-item-card} Why a New Framework
+:link: why-new-framework
+:link-type: doc
+
+Why standard frameworks fail and what makes this problem fundamentally different.
+:::
+
 :::{grid-item-card} Getting Started
 :link: setup
 :link-type: doc
@@ -68,6 +75,7 @@ MomaViz: Blender renders, ManiSkill replays, video.
 :hidden:
 :maxdepth: 2
 
+why-new-framework
 setup
 architecture
 configuration

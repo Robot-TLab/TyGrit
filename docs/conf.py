@@ -17,7 +17,9 @@ extensions = [
 myst_enable_extensions = [
     "colon_fence",
     "fieldlist",
+    "html_image",
 ]
+myst_raw_html = True
 
 # Theme
 html_theme = "furo"

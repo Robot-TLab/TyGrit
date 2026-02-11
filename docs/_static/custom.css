@@ -2,3 +2,87 @@
 .sd-card-title {
     font-size: 1.1rem;
 }
+
+/* --- Why a New Framework page --- */
+
+/* Known/unknown tuple comparison */
+.tuple-compare {
+    font-family: var(--font-stack--monospace);
+    font-size: 0.95rem;
+    line-height: 2;
+    padding: 1rem 1.5rem;
+    border-radius: 0.5rem;
+    background: var(--color-background-secondary);
+    overflow-x: auto;
+}
+.tuple-compare .known {
+    color: var(--color-foreground-primary);
+    opacity: 0.55;
+}
+.tuple-compare .unknown {
+    color: #e74c3c;
+    font-weight: 700;
+}
+.tuple-compare .label {
+    display: inline-block;
+    min-width: 11ch;
+    font-weight: 600;
+    color: var(--color-foreground-primary);
+}
+.tuple-compare .note {
+    opacity: 0.7;
+    font-size: 0.85em;
+    margin-left: 1ch;
+}
+
+/* Framework comparison cards */
+.framework-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+.framework-cards .card {
+    border: 1px solid var(--color-background-border);
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    background: var(--color-background-secondary);
+}
+.framework-cards .card h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+}
+.framework-cards .card p {
+    margin: 0.3rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+.framework-cards .card .verdict {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--color-background-border);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.framework-cards .card .verdict.fail {
+    color: #e74c3c;
+}
+
+/* Circular dependency diagram */
+.circular-dep {
+    text-align: center;
+    font-family: var(--font-stack--monospace);
+    font-size: 0.95rem;
+    line-height: 2.2;
+    padding: 1.5rem;
+    border: 2px solid #e74c3c;
+    border-radius: 0.5rem;
+    background: var(--color-background-secondary);
+    margin: 1.5rem 0;
+}
+
+/* Summary table: strikethrough for failures */
+.summary-table td.fail {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
