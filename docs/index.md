@@ -1,17 +1,25 @@
 # TyGrit
 
-**A Unified Platform for Mobile Manipulation Research**
+**A Research Platform for Mobile Manipulation in Unknown Environments**
 
-One platform. Multiple robots, simulators, and control frameworks.
-Standardized benchmarks for comparing classical, learning-based, and foundation-model approaches to mobile manipulation.
+## The problem
+
+Mobile manipulation in unknown, dynamic environments is one of the most important unsolved problems in robotics. A robot that can enter an unfamiliar room, understand what it sees, and physically interact with objects would be transformative. Yet there is not even a clear formulation for this problem — let alone a solution.
+
+Existing mobile manipulation environments are mostly known and static: the robot knows the scene layout, the object positions, and the goal specification upfront. Navigation benchmarks introduce uncertainty but lack the complex physical interaction that manipulation demands. Neither captures the real challenge: acting under partial observability, in a world that changes as the robot interacts with it.
 
 ## What is TyGrit?
 
-Mobile manipulation is one of the hardest open problems in robotics — a robot that can navigate a home, understand a scene, and grasp what it needs would be transformative. But research in this space is deeply fragmented: every group uses a different robot, a different simulator, and a different evaluation setup. Results don't compare. Insights don't transfer.
+TyGrit is a research platform built around this problem. It provides the infrastructure to study mobile manipulation under uncertainty — from classical model-based approaches to reinforcement learning, from data generation for policy training to systematic comparison of different architectures.
 
-TyGrit is a single research platform where you can run the same tasks across multiple robots, multiple simulators, and multiple control frameworks — all sharing the same perception, planning, and evaluation interfaces. Swap in a learned policy for a classical planner and measure the difference on identical benchmarks.
+This is not just an engineering assembly of known components. The hierarchical structure (high-level subgoal generation + low-level policy) is designed specifically for the unknown: the robot observes, commits to the most ambitious feasible goal, executes, and re-decides when the world model changes. Progression is emergent, not scripted.
 
-The goal: stop reinventing the glue code and start answering the questions that matter — what actually works, where the real gaps are, and how different paradigms (classical planning, RL, VLAs, world models) compare when the task and the metrics are held constant.
+TyGrit enables researchers to:
+
+- **Study model-based approaches** — classical planning and control under partial observability
+- **Train and evaluate learned policies** — RL, VLAs, world models on realistic manipulation tasks
+- **Generate data** — produce diverse trajectories for offline policy learning
+- **Compare architectures** — measure how different paradigms perform on identical tasks and metrics
 
 ## Key Features
 
@@ -37,7 +45,7 @@ Prerequisites, installation, and environment setup.
 :link: architecture
 :link-type: doc
 
-Extensible multi-robot, multi-sim design and data flow.
+Hierarchical policy design and module overview.
 :::
 
 :::{grid-item-card} Configuration
