@@ -9,7 +9,7 @@ from TyGrit.types.failures import (
 )
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.grasp import GraspPose
-from TyGrit.types.planning import Trajectory
+from TyGrit.types.planning import PlanningMode, SchedulerFeedback, Subgoal, Trajectory
 from TyGrit.types.results import (
     PlanResult,
     SchedulerOutcome,
@@ -36,6 +36,9 @@ __all__ = [
     "PerceptionFailure",
     "ExecutionFailure",
     # planning
+    "PlanningMode",
+    "SchedulerFeedback",
+    "Subgoal",
     "Trajectory",
     # grasp
     "GraspPose",

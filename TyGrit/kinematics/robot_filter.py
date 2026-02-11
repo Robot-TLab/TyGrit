@@ -21,8 +21,8 @@ def filter_robot_points(
     Args:
         points: (N, 3) world-frame point cloud.
         link_poses: Dict mapping link names to 4x4 world-frame poses.
-        spheres: Dict mapping link names to lists of [x, y, z] sphere
-            centres in the link's local frame.
+        spheres: Dict mapping link names to lists of [x, y, z, ...] sphere
+            centres in the link's local frame (extra columns are ignored).
         sphere_radius: Collision sphere radius in metres.
 
     Returns:
@@ -39,7 +39,7 @@ def filter_robot_points(
         T_world_link = link_poses[link_name]
         rot = T_world_link[:3, :3]
         t = T_world_link[:3, 3]
-        local_arr = np.asarray(local_spheres, dtype=np.float64)  # (K, 3)
+        local_arr = np.asarray(local_spheres, dtype=np.float64)[:, :3]  # (K, 3)
         world_spheres = (local_arr @ rot.T) + t  # (K, 3)
         centres.append(world_spheres)
 

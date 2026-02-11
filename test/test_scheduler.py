@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from TyGrit.core.scheduler import Scheduler, SchedulerConfig
+from TyGrit.core.config import SchedulerConfig
+from TyGrit.core.scheduler import Scheduler
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import Trajectory
+from TyGrit.types.planning import PlanningMode, Subgoal, Trajectory
 from TyGrit.types.results import PlanResult, SchedulerOutcome
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
@@ -39,8 +40,22 @@ def _make_trajectory(n_waypoints: int = 5) -> Trajectory:
     return Trajectory(arm_path=arm_path, base_configs=base_configs)
 
 
-def _noop_subgoal(_scene, _state):
-    return np.zeros(8)
+class MockGenerator:
+    """Mock subgoal generator wrapping callables."""
+
+    def __init__(self, subgoal_fn, goal_pred):
+        self._fn = subgoal_fn
+        self._pred = goal_pred
+
+    def generate(self, scene, state, feedback):
+        return self._fn(scene, state, feedback)
+
+    def goal_predicate(self, state):
+        return self._pred(state)
+
+
+def _noop_subgoal(_scene, _state, _feedback):
+    return Subgoal(PlanningMode.ARM, np.zeros(8))
 
 
 def _noop_controller(_state, _traj, _idx):
@@ -73,6 +88,9 @@ class MockScene:
     ) -> None:  # noqa: ARG002
         self.update_count += 1
 
+    def get_pointcloud(self) -> np.ndarray:
+        return np.empty((0, 3), dtype=np.float32)
+
 
 class MockPlanner:
     """Mock planner that returns a straight-line trajectory."""
@@ -81,20 +99,35 @@ class MockPlanner:
         self.n_waypoints = n_waypoints
         self.plan_count = 0
 
-    def plan_arm(
-        self, start: np.ndarray, goal: np.ndarray
-    ) -> PlanResult:  # noqa: ARG002
+    def update_environment(self, points: np.ndarray, base_pose) -> None:  # noqa: ARG002
+        pass
+
+    def plan_arm(self, start, goal) -> PlanResult:  # noqa: ARG002
         self.plan_count += 1
-        traj = _make_trajectory(self.n_waypoints)
-        return PlanResult(success=True, trajectory=traj)
+        return PlanResult(success=True, trajectory=_make_trajectory(self.n_waypoints))
+
+    def plan_whole_body(self, start, goal) -> PlanResult:  # noqa: ARG002
+        self.plan_count += 1
+        return PlanResult(success=True, trajectory=_make_trajectory(self.n_waypoints))
+
+    def plan_interpolation(self, start, goal, base_pose) -> PlanResult:  # noqa: ARG002
+        self.plan_count += 1
+        return PlanResult(success=True, trajectory=_make_trajectory(self.n_waypoints))
 
 
 class FailPlanner:
     """Mock planner that always fails."""
 
-    def plan_arm(
-        self, start: np.ndarray, goal: np.ndarray
-    ) -> PlanResult:  # noqa: ARG002
+    def update_environment(self, points: np.ndarray, base_pose) -> None:  # noqa: ARG002
+        pass
+
+    def plan_arm(self, start, goal) -> PlanResult:  # noqa: ARG002
+        return PlanResult(success=False)
+
+    def plan_whole_body(self, start, goal) -> PlanResult:  # noqa: ARG002
+        return PlanResult(success=False)
+
+    def plan_interpolation(self, start, goal, base_pose) -> PlanResult:  # noqa: ARG002
         return PlanResult(success=False)
 
 
@@ -108,9 +141,8 @@ class TestScheduler:
             robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, lambda _state: True),
             controller_fn=_noop_controller,
-            goal_predicate=lambda _state: True,
         )
         result = scheduler.run(max_iterations=100)
         assert result.outcome == SchedulerOutcome.SUCCESS
@@ -133,9 +165,8 @@ class TestScheduler:
             robot=robot,
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=n_waypoints),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, goal_after_n),
             controller_fn=_noop_controller,
-            goal_predicate=goal_after_n,
             config=config,
         )
         result = scheduler.run(max_iterations=100)
@@ -148,9 +179,8 @@ class TestScheduler:
             robot=MockRobot(),
             scene=MockScene(),
             planner=FailPlanner(),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, lambda _state: False),
             controller_fn=_noop_controller,
-            goal_predicate=lambda _state: False,
         )
         result = scheduler.run(max_iterations=100)
         assert result.outcome == SchedulerOutcome.PLAN_FAILURE
@@ -161,9 +191,8 @@ class TestScheduler:
             robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=1000),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, lambda _state: False),
             controller_fn=_noop_controller,
-            goal_predicate=lambda _state: False,
         )
         result = scheduler.run(max_iterations=5)
         assert result.outcome == SchedulerOutcome.MAX_ITERATIONS
@@ -182,23 +211,24 @@ class TestScheduler:
             robot=MockRobot(),
             scene=MockScene(),
             planner=planner,
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, goal_after_5),
             controller_fn=_noop_controller,
-            goal_predicate=goal_after_5,
         )
         result = scheduler.run(max_iterations=100)
         assert result.outcome == SchedulerOutcome.SUCCESS
         assert planner.plan_count >= 2
 
     def test_subgoal_none_causes_plan_failure(self):
-        """If subgoal_fn returns None, planning fails."""
+        """If generator returns None, planning fails."""
         scheduler = Scheduler(
             robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(),
-            subgoal_fn=lambda _scene, _state: None,
+            generator=MockGenerator(
+                lambda _scene, _state, _feedback: None,
+                lambda _state: False,
+            ),
             controller_fn=_noop_controller,
-            goal_predicate=lambda _state: False,
         )
         result = scheduler.run(max_iterations=100)
         assert result.outcome == SchedulerOutcome.PLAN_FAILURE
@@ -216,9 +246,8 @@ class TestScheduler:
             robot=MockRobot(),
             scene=scene,
             planner=MockPlanner(),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, goal_after_2),
             controller_fn=_noop_controller,
-            goal_predicate=goal_after_2,
             camera_pose_fn=lambda _state: np.eye(4),
         )
         result = scheduler.run()
@@ -238,9 +267,8 @@ class TestScheduler:
             robot=MockRobot(),
             scene=scene,
             planner=MockPlanner(),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, goal_after_1),
             controller_fn=_noop_controller,
-            goal_predicate=goal_after_1,
         )
         result = scheduler.run()
         assert result.outcome == SchedulerOutcome.SUCCESS
@@ -263,12 +291,103 @@ class TestScheduler:
             robot=MockRobot(),
             scene=MockScene(),
             planner=MockPlanner(n_waypoints=5),
-            subgoal_fn=_noop_subgoal,
+            generator=MockGenerator(_noop_subgoal, goal_after_2),
             controller_fn=record_controller,
-            goal_predicate=goal_after_2,
         )
         result = scheduler.run()
         assert result.outcome == SchedulerOutcome.SUCCESS
         assert len(trajectories_seen) >= 2
         for traj in trajectories_seen:
             assert traj is not None
+
+    def test_feedback_trajectory_exhausted(self):
+        """Subgoal receives trajectory_exhausted=True when trajectory is done."""
+        feedbacks = []
+
+        def record_subgoal(_scene, _state, feedback):
+            feedbacks.append(feedback)
+            return Subgoal(PlanningMode.ARM, np.zeros(8))
+
+        call_count = [0]
+
+        def goal_after_2(_state):
+            call_count[0] += 1
+            return call_count[0] > 2
+
+        scheduler = Scheduler(
+            robot=MockRobot(),
+            scene=MockScene(),
+            planner=MockPlanner(n_waypoints=1),
+            generator=MockGenerator(record_subgoal, goal_after_2),
+            controller_fn=_noop_controller,
+        )
+        scheduler.run(max_iterations=10)
+        assert len(feedbacks) >= 1
+        assert feedbacks[0].trajectory_exhausted is True
+
+    def test_feedback_check_fn_path_invalid(self):
+        """Subgoal receives is_path_valid=False when check_fn says path is bad."""
+        feedbacks = []
+
+        def record_subgoal(_scene, _state, feedback):
+            feedbacks.append(feedback)
+            return Subgoal(PlanningMode.ARM, np.zeros(8))
+
+        call_count = [0]
+
+        def goal_after_3(_state):
+            call_count[0] += 1
+            return call_count[0] > 3
+
+        # check_fn returns path_invalid on second call (first iteration uses exhausted path)
+        check_count = [0]
+
+        def check_path_invalid(_traj, _scene):
+            check_count[0] += 1
+            return (False, True)  # path invalid, goal valid
+
+        scheduler = Scheduler(
+            robot=MockRobot(),
+            scene=MockScene(),
+            planner=MockPlanner(n_waypoints=10),
+            generator=MockGenerator(record_subgoal, goal_after_3),
+            controller_fn=_noop_controller,
+            check_fn=check_path_invalid,
+        )
+        scheduler.run(max_iterations=10)
+        # First feedback is trajectory_exhausted, subsequent are from check_fn
+        check_feedbacks = [f for f in feedbacks if not f.trajectory_exhausted]
+        assert len(check_feedbacks) >= 1
+        assert check_feedbacks[0].is_path_valid is False
+        assert check_feedbacks[0].is_goal_valid is True
+
+    def test_feedback_check_fn_goal_invalid(self):
+        """Subgoal receives is_goal_valid=False when check_fn says goal is bad."""
+        feedbacks = []
+
+        def record_subgoal(_scene, _state, feedback):
+            feedbacks.append(feedback)
+            return Subgoal(PlanningMode.ARM, np.zeros(8))
+
+        call_count = [0]
+
+        def goal_after_3(_state):
+            call_count[0] += 1
+            return call_count[0] > 3
+
+        def check_goal_invalid(_traj, _scene):
+            return (True, False)  # path valid, goal invalid
+
+        scheduler = Scheduler(
+            robot=MockRobot(),
+            scene=MockScene(),
+            planner=MockPlanner(n_waypoints=10),
+            generator=MockGenerator(record_subgoal, goal_after_3),
+            controller_fn=_noop_controller,
+            check_fn=check_goal_invalid,
+        )
+        scheduler.run(max_iterations=10)
+        check_feedbacks = [f for f in feedbacks if not f.trajectory_exhausted]
+        assert len(check_feedbacks) >= 1
+        assert check_feedbacks[0].is_path_valid is True
+        assert check_feedbacks[0].is_goal_valid is False

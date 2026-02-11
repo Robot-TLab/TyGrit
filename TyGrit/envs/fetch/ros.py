@@ -55,5 +55,8 @@ class ROSFetchRobot(FetchRobot):
     def control_gripper(self, position: float) -> None:
         raise NotImplementedError
 
+    def reset(self) -> SensorSnapshot:
+        raise NotImplementedError
+
     def close(self) -> None:
         raise NotImplementedError

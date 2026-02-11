@@ -26,6 +26,7 @@ from TyGrit.types.failures import PlannerFailure
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.results import PlanResult
 from TyGrit.types.robot import WholeBodyConfig
+from TyGrit.utils.planning import lists_to_trajectory
 
 
 class VampPreviewPlanner:
@@ -160,6 +161,35 @@ class VampPreviewPlanner:
         arm = list(config.arm_joints)
         base = [config.base_pose.x, config.base_pose.y, config.base_pose.theta]
         return not self._is_in_collision(arm, base)
+
+    def plan_interpolation(
+        self,
+        start: npt.NDArray[np.float64],
+        goal: npt.NDArray[np.float64],
+        base_pose: SE2Pose,
+    ) -> PlanResult:
+        """Linear joint-space interpolation (no collision checking)."""
+        start = np.asarray(start, dtype=np.float64)
+        goal = np.asarray(goal, dtype=np.float64)
+        n = max(2, self._config.interpolation_steps)
+        alphas = np.linspace(0.0, 1.0, n)
+        arm_path = [start + a * (goal - start) for a in alphas]
+        base_list = [[base_pose.x, base_pose.y, base_pose.theta]] * n
+        return PlanResult(
+            success=True,
+            trajectory=lists_to_trajectory([w.tolist() for w in arm_path], base_list),
+        )
+
+    def update_environment(
+        self,
+        points: npt.NDArray[np.float32],
+        base_pose: SE2Pose,
+    ) -> None:
+        """Sync collision world: set base pose and replace the point cloud."""
+        self.set_base_params(base_pose)
+        self.clear_pointclouds()
+        if points.size > 0:
+            self.add_pointcloud(points.astype(np.float64))
 
     # ------------------------------------------------------------------
     # Environment management (concrete-only, not in protocol)
