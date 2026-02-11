@@ -2,7 +2,7 @@
 
 # TyGrit
 
-**A Unified Platform for Mobile Manipulation Research**
+**A Research Platform for Mobile Manipulation in Unknown Environments**
 
 [![CI](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml/badge.svg)](https://github.com/Robot-TLab/TyGrit/actions/workflows/ci.yml)
 [![Docs](https://img.shields.io/badge/docs-live-brightgreen?logo=readthedocs&logoColor=white)](https://robot-tlab.github.io/TyGrit/)
@@ -10,8 +10,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![pixi](https://img.shields.io/badge/env-pixi-orange.svg)](https://pixi.sh/)
 
-One platform. Multiple robots, simulators, and control frameworks.
-Standardized benchmarks for comparing classical, learning-based, and foundation-model approaches to mobile manipulation.
+Mobile manipulation in unknown, dynamic environments is one of the most important unsolved problems in robotics. TyGrit provides the infrastructure to study this problem — from classical model-based approaches to reinforcement learning, from data generation to systematic comparison of different architectures.
 
 </div>
 
@@ -37,22 +36,23 @@ pixi run python -m mani_skill.utils.download_asset ycb
 
 | Module | What it does |
 | ------ | ----------- |
-| `envs/` | Robot environment layer — ManiSkill 3 + ROS (Fetch); Isaac Sim & more robots planned |
-| `planning/` | Motion planning — currently VAMP whole-body; `MotionPlanner` protocol supports any planner |
-| `perception/` | GraspGen 6-DOF neural grasp prediction |
+| `envs/` | Robot environment layer — ManiSkill 3 (Fetch) via `RobotBase` protocol |
+| `planning/` | Whole-body motion planning — VAMP-based, `MotionPlanner` protocol |
+| `perception/` | Grasp prediction (`GraspPredictor`) and segmentation (`Segmenter`) |
+| `subgoal_generator/` | High-level goal selection — `SubGoalGenerator` protocol |
 | `kinematics/` | IKFast (analytical) + TRAC-IK (numerical) solvers |
 | `controller/` | MPC trajectory tracking + gripper control |
-| `gaze/` | Robot-agnostic head tracking |
-| `core/` | System frameworks — receding-horizon (implemented); plan-to-goal & reactive (planned) |
+| `scene/` | World model / belief state — `Scene` protocol |
+| `core/` | Receding-horizon scheduler |
 
 ## Documentation
 
-See the [documentation](https://robot-tlab.github.io/TyGrit/) for the full vision, architecture, and roadmap.
+See the [documentation](https://robot-tlab.github.io/TyGrit/) for architecture and configuration details.
 
 | | |
 | - | - |
 | [**Setup**](docs/setup.md) | Prerequisites, installation, environment details |
-| [**Architecture**](docs/architecture.md) | Module design, data flow, key decisions |
+| [**Architecture**](docs/architecture.md) | Hierarchical policy design and module overview |
 | [**Configuration**](docs/configuration.md) | All TOML sections and parameters |
 | [**Visualization**](docs/visualization.md) | MomaViz: Blender renders, ManiSkill replays, video |
 
