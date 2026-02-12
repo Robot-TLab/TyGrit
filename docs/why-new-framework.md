@@ -89,69 +89,66 @@ through interaction — under safety constraints — while solving the problem.*
 
 ## What about existing approaches?
 
+### POMDP
+
 ```{raw} html
-<div class="framework-cards">
-
-  <div class="card">
-    <h4>POMDP</h4>
-    <p>We <em>can</em> fold the unknown model parameters into the state:
-    <em>s<sup>+</sup> = (s, &theta;<sub>T</sub>, &theta;<sub>&Omega;</sub>,
-    &theta;<sub>S</sub>)</em>. This gives a Bayes-Adaptive POMDP. Well-defined in
-    principle.</p>
-    <p>But every belief update requires evaluating &Omega;(o | s', a) — the likelihood
-    of a specific image given a world state and camera pose. Inverting this is
-    <strong>the entire problem of computer vision</strong>. The POMDP doesn't solve
-    perception; it buries it inside &Omega; and assumes it's given.</p>
-    <p>The value function V(b) is non-convex, discontinuous at feasibility boundaries,
-    and task-phase-dependent. This breaks all known approximation algorithms.</p>
-    <p>And if we <em>could</em> solve it, the optimal policy would rediscover structure
-    we already know: observe before reaching, maintain line-of-sight, replan after
-    surprises. Intractable computation to <strong>rediscover known structure</strong>.</p>
-    <div class="verdict fail">Structurally intractable. Rediscovers known structure.</div>
-  </div>
-
-  <div class="card">
-    <h4>RL / VLAs</h4>
-    <p>Visuomotor policies learn <em>a = &pi;(o<sub>t-k</sub>, &hellip;,
-    o<sub>t</sub>)</em>. No model needed — sidesteps the specification problem entirely.</p>
-    <p>But a reactive policy has <strong>no concept of information sufficiency</strong>.
-    It cannot represent "I don't know enough to act safely" or decide to stop and look
-    before reaching.</p>
-    <p>Safety is statistical: the policy is safe in states it trained on. In novel
-    configurations, there is no mechanism to guarantee collision avoidance. <strong>The
-    policy doesn't know what it doesn't know.</strong></p>
-    <p>And there is <strong>no lookahead</strong> — it cannot anticipate that a planned
-    arm motion will occlude the camera three steps from now.</p>
-    <div class="verdict fail">No information reasoning. No safety guarantees. No lookahead.</div>
-  </div>
-
-  <div class="card">
-    <h4>Model Predictive Control</h4>
-    <p>MPC solves a finite-horizon optimization at each step. It assumes the state
-    <em>x<sub>t</sub></em> is known, the dynamics <em>f</em> are known, and the
-    constraint set <em>g</em> can be evaluated.</p>
-    <p>In our problem, none hold with certainty. MPC plans through a
-    <strong>known</strong> feasibility set. Ours is discovered through observation.</p>
-    <p>MPC has no concept of information: it cannot reason about what the robot can or
-    cannot see, and cannot take actions to improve future observability.</p>
-    <div class="verdict fail">Assumes full observability. No information model.</div>
-  </div>
-
-  <div class="card">
-    <h4>What we need</h4>
-    <p>A framework that:</p>
-    <p>&bull;&ensp;Plans over a <strong>finite horizon</strong> — the world is only locally known</p>
-    <p>&bull;&ensp;Treats <strong>information as a first-class quantity</strong> — not buried in belief, not ignored</p>
-    <p>&bull;&ensp;Handles <strong>unknown, evolving models</strong> — not given upfront</p>
-    <p>&bull;&ensp;Provides <strong>verifiable safety</strong> — not statistical</p>
-    <p>&bull;&ensp;Exploits <strong>known task structure</strong> — not rediscovering it through search</p>
-    <div class="verdict" style="color: var(--color-foreground-primary);">
-      &#8594; See <a href="architecture.html">Architecture</a> for how TyGrit addresses this.
-    </div>
-  </div>
-
-</div>
+<video controls width="100%" style="margin: 1em 0;">
+  <source src="_static/videos/pomdp.mp4" type="video/mp4">
+</video>
 ```
+
+The standard POMDP graphical model assumes $T$ and $\Omega$ are **given** — the
+transition and observation models are inputs to the solver. In our problem, both are
+unknown and must be discovered through interaction.
+
+We *can* fold the unknown parameters into the state:
+$s^+ = (s, \theta_T, \theta_\Omega, \theta_S)$. This gives a Bayes-Adaptive POMDP.
+But every belief update requires evaluating $\Omega(o \mid s', a)$ — the likelihood of a
+specific image given a world state and camera pose. This is **the entire problem of
+computer vision**. The POMDP doesn't solve perception; it buries it inside $\Omega$ and
+assumes it's given.
+
+Even if tractable, the optimal policy would rediscover structure we already know: observe
+before reaching, maintain line-of-sight, replan after surprises. Intractable computation
+to **rediscover known structure**.
+
+### RL / VLAs
+
+Visuomotor policies learn $a = \pi(o_{t-k}, \ldots, o_t)$. No model needed — sidesteps
+the specification problem entirely.
+
+But a reactive policy has **no concept of information sufficiency**. It cannot represent
+"I don't know enough to act safely" or decide to stop and look before reaching.
+
+Safety is statistical: the policy is safe in states it trained on. In novel
+configurations, there is no mechanism to guarantee collision avoidance. **The policy
+doesn't know what it doesn't know.**
+
+And there is **no lookahead** — it cannot anticipate that a planned arm motion will
+occlude the camera three steps from now.
+
+### Model Predictive Control
+
+MPC solves a finite-horizon optimization at each step. It assumes the state $x_t$ is
+known, the dynamics $f$ are known, and the constraint set $g$ can be evaluated.
+
+In our problem, none hold with certainty. MPC plans through a **known** feasibility set.
+Ours is discovered through observation.
+
+MPC has no concept of information: it cannot reason about what the robot can or cannot
+see, and cannot take actions to improve future observability.
+
+### What we need
+
+A framework that:
+
+- Plans over a **finite horizon** — the world is only locally known
+- Treats **information as a first-class quantity** — not buried in belief, not ignored
+- Handles **unknown, evolving models** — not given upfront
+- Provides **verifiable safety** — not statistical
+- Exploits **known task structure** — not rediscovering it through search
+
+See {doc}`architecture` for how TyGrit addresses this.
 
 
 ## The core difficulty
