@@ -2,24 +2,7 @@
 
 **A Research Platform for Mobile Manipulation in Unknown Environments**
 
-## The problem
-
-Mobile manipulation in unknown, dynamic environments is one of the most important unsolved problems in robotics. A robot that can enter an unfamiliar room, understand what it sees, and physically interact with objects would be transformative. Yet there is not even a clear formulation for this problem — let alone a solution.
-
-Existing mobile manipulation environments are mostly known and static: the robot knows the scene layout, the object positions, and the goal specification upfront. Navigation benchmarks introduce uncertainty but lack the complex physical interaction that manipulation demands. Neither captures the real challenge: acting under partial observability, in a world that changes as the robot interacts with it.
-
-## What is TyGrit?
-
-TyGrit is a research platform built around this problem. It provides the infrastructure to study mobile manipulation under uncertainty — from classical model-based approaches to reinforcement learning, from data generation for policy training to systematic comparison of different architectures.
-
-This is not just an engineering assembly of known components. The hierarchical structure (high-level subgoal generation + low-level policy) is designed specifically for the unknown: the robot observes, commits to the most ambitious feasible goal, executes, and re-decides when the world model changes. Progression is emergent, not scripted.
-
-TyGrit enables researchers to:
-
-- **Study model-based approaches** — classical planning and control under partial observability
-- **Train and evaluate learned policies** — RL, VLAs, world models on realistic manipulation tasks
-- **Generate data** — produce diverse trajectories for offline policy learning
-- **Compare architectures** — measure how different paradigms perform on identical tasks and metrics
+TyGrit provides infrastructure to study mobile manipulation under uncertainty — where the robot discovers the world through interaction rather than receiving a complete model upfront. See {doc}`why-new-framework` for the problem formulation.
 
 ## Key Features
 

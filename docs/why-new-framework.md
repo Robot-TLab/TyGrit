@@ -83,8 +83,7 @@ Four unknowns instead of one:
 A POMDP solver takes $\langle S, A, O, T, \Omega, R, \gamma \rangle$ as **input**.
 If three of those components are missing, the solver cannot be invoked.
 
-The difficulty is not that the search space is large.
-It is that **the problem specification itself is incomplete, and must be completed
+**The problem specification itself is incomplete, and must be completed
 through interaction — under safety constraints — while solving the problem.**
 
 
