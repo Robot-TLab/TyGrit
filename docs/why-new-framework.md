@@ -114,6 +114,12 @@ to **rediscover known structure**.
 
 ### RL / VLAs
 
+```{raw} html
+<video controls width="100%" style="margin: 1em 0;">
+  <source src="_static/videos/reactive_policy.mp4" type="video/mp4">
+</video>
+```
+
 Visuomotor policies learn $a = \pi(o_{t-k}, \ldots, o_t)$. No model needed — sidesteps
 the specification problem entirely.
 
