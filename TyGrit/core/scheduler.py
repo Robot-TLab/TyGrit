@@ -228,11 +228,9 @@ class Scheduler:
             return self.planner.plan_arm(start_arm, subgoal.arm_joints)
 
         if subgoal.mode == PlanningMode.WHOLE_BODY:
-            start_wb = WholeBodyConfig(
-                arm_joints=tuple(start_arm), base_pose=state.base_pose
-            )
+            start_wb = WholeBodyConfig(arm_joints=start_arm, base_pose=state.base_pose)
             goal_wb = WholeBodyConfig(
-                arm_joints=tuple(subgoal.arm_joints),
+                arm_joints=np.asarray(subgoal.arm_joints, dtype=np.float64),
                 base_pose=subgoal.base_pose or state.base_pose,
             )
             return self.planner.plan_whole_body(start_wb, goal_wb)
