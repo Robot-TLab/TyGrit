@@ -1,9 +1,16 @@
 """Tests for RL policy, value network, and causal discovery."""
 
-import torch
+import pytest
 
-from TyGrit.rl.config import TrainConfig, default_causal_matrix
-from TyGrit.rl.policy import FactoredPolicy, MultiChannelValue, NatureCNN, layer_init
+torch = pytest.importorskip("torch")
+
+from TyGrit.rl.config import TrainConfig, default_causal_matrix  # noqa: E402
+from TyGrit.rl.policy import (  # noqa: E402
+    FactoredPolicy,
+    MultiChannelValue,
+    NatureCNN,
+    layer_init,
+)
 
 
 def _make_sample_obs(batch: int = 4, h: int = 128, w: int = 128):

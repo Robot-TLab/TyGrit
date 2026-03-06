@@ -1,9 +1,10 @@
 """Tests for CausalMoMa 8-channel RL reward functions."""
 
 import pytest
-import torch
 
-from TyGrit.rl.rewards import (
+torch = pytest.importorskip("torch")
+
+from TyGrit.rl.rewards import (  # noqa: E402
     collision_reward,
     ee_local_position_reward,
     ee_orientation_reward,
