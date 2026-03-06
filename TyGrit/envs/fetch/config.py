@@ -31,3 +31,4 @@ class FetchEnvConfig(EnvConfig):
     obs_mode: str = "rgb+depth+state+segmentation"
     control_mode: str = "pd_joint_vel"
     render_mode: str | None = "human"
+    num_envs: int = 1
