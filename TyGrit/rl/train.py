@@ -1,7 +1,8 @@
 """FPPO (Factored PPO) training — CausalMoMa baseline reproduction.
 
 All rollout buffers, GAE, and training computation stay on GPU.
-Uses sim-native poses (TCP, camera, link) instead of custom FK.
+Uses the ManiSkill obs dict directly for qpos/qvel/camera, with one
+TCP pose read for ee_pos/ee_forward — no redundant sim queries.
 
 Reward channels (8, CausalMoMa):
     reach, ee_orient, ee_local_pos, base_col, arm_col, self_col, gaze, grasp
@@ -98,40 +99,24 @@ def _detect_collision_group(
     return (torch.linalg.norm(forces, dim=-1) > force_threshold).any(dim=0)
 
 
-# ── Sim-native pose extraction ────────────────────────────────────────────────
+# ── Sim-pose extraction from step/reset result ────────────────────────────────
 
 
-def _get_sim_poses(robot: ManiSkillFetchRobotVec) -> dict[str, Tensor]:
-    """Extract all needed poses from the sim in one shot. All on GPU."""
-    agent = robot._env.unwrapped.agent
+def _sim_poses_from_result(result: dict) -> dict[str, Tensor]:
+    """Build sim_poses dict from a step/reset result.
 
-    # EE (TCP) world pose
-    tcp_pose = agent.tcp.pose
-    ee_pos = tcp_pose.p.float()  # (N, 3)
-    # EE forward direction from TCP quaternion
-    q = tcp_pose.q.float()  # (N, 4) [w,x,y,z] in Sapien convention
-    # Rotation matrix 3rd column (z-axis = approach direction for Fetch gripper)
-    w, x, y, z = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
-    ee_forward = torch.stack(
-        [
-            2 * (x * z + w * y),
-            2 * (y * z - w * x),
-            1 - 2 * (x * x + y * y),
-        ],
-        dim=1,
-    )  # (N, 3)
-
-    # Camera pose from sensor model matrix
-    cam = robot._env.unwrapped._sensors["fetch_head"]
-    cam_mat = cam.camera.get_model_matrix().float()  # (N, 4, 4)
-    cam_pos = cam_mat[:, :3, 3]  # (N, 3)
-    cam_forward = cam_mat[:, :3, 2]  # (N, 3) z-column
-
+    Camera pose comes from the ManiSkill obs dict (``sensor_param``).
+    TCP pose comes from the ``ee_pos``/``ee_forward`` keys added by
+    ``ManiSkillFetchRobotVec``.
+    """
+    cam_mat = result["obs"]["sensor_param"]["fetch_head"][
+        "cam2world_gl"
+    ].float()  # (N, 4, 4)
     return {
-        "ee_pos": ee_pos,
-        "ee_forward": ee_forward,
-        "cam_pos": cam_pos,
-        "cam_forward": cam_forward,
+        "ee_pos": result["ee_pos"],
+        "ee_forward": result["ee_forward"],
+        "cam_pos": cam_mat[:, :3, 3],
+        "cam_forward": cam_mat[:, :3, 2],
     }
 
 
@@ -151,17 +136,13 @@ def _make_target_pos(position: tuple, num_envs: int, device: torch.device) -> Te
 
 
 def _compute_factored_reward(
-    robot: ManiSkillFetchRobotVec,
     target_pos: Tensor,
     action: Tensor,
     cfg: TrainConfig,
     link_groups: dict[str, list],
-    sim_poses: dict[str, Tensor] | None = None,
+    sim_poses: dict[str, Tensor],
 ) -> tuple[Tensor, dict[str, Tensor]]:
     """Compute 8-channel CausalMoMa rewards. All tensors stay on GPU."""
-    if sim_poses is None:
-        sim_poses = _get_sim_poses(robot)
-
     dev = sim_poses["ee_pos"].device
     target = target_pos.to(dev)
 
@@ -274,7 +255,8 @@ class FPPOTrainer:
             self.cfg.num_envs,
             self.device,
         )
-        sample_obs = build_obs_dict(self.robot, init_target_pos, self.robot._obs)
+        reset_result = self.robot.reset()
+        sample_obs = build_obs_dict(reset_result, init_target_pos)
         sample_obs_dev = {
             k: v[:1].clone().to(self.device) for k, v in sample_obs.items()
         }
@@ -344,8 +326,7 @@ class FPPOTrainer:
         scene = random.choice(self._suite.scenes)
         task = random.choice(scene.grasp_tasks)
 
-        self.robot.reset()
-        self.robot.settle(self.cfg.settle_steps)
+        reset_result = self.robot.reset(settle_steps=self.cfg.settle_steps)
 
         target_pos = _make_target_pos(
             task.object_pose.position,
@@ -353,7 +334,7 @@ class FPPOTrainer:
             self.device,
         )
         self.robot.look_at_batched(target_pos)
-        obs = build_obs_dict(self.robot, target_pos, self.robot._obs)
+        obs = build_obs_dict(reset_result, target_pos)
         return obs, target_pos
 
     # ── Collect rollout ───────────────────────────────────────────────────
@@ -396,14 +377,13 @@ class FPPOTrainer:
             step_result = self.robot.step(action)
             step_count += 1
 
-            # Get all sim poses once — used by reward + obs + look_at
-            sim_poses = _get_sim_poses(self.robot)
+            # Build sim poses from step result (camera from obs, TCP from extra read)
+            sim_poses = _sim_poses_from_result(step_result)
 
             # Update head targets for gaze tracking
             self.robot.look_at_batched(target_pos)
 
             total_reward, terms = _compute_factored_reward(
-                self.robot,
                 target_pos,
                 action,
                 self.cfg,
@@ -414,7 +394,9 @@ class FPPOTrainer:
             rewards_buf[t] = torch.stack([terms[n] for n in CHANNEL_NAMES], dim=1)
 
             # Episode termination: grasp success
-            ee_dist = torch.linalg.norm(sim_poses["ee_pos"] - target_pos.to(dev), dim=1)
+            ee_dist = torch.linalg.norm(
+                step_result["ee_pos"] - target_pos.to(dev), dim=1
+            )
             gripper_closing = action[:, -1].to(dev) > 0
             terminated = (ee_dist < self.cfg.grasp_dist_threshold) & gripper_closing
             truncated = step_count >= self.cfg.max_episode_steps
@@ -426,7 +408,7 @@ class FPPOTrainer:
             ep_returns += total_reward
             self.total_steps += N
 
-            next_obs = build_obs_dict(self.robot, target_pos, step_result["obs"])
+            next_obs = build_obs_dict(step_result, target_pos)
 
             # Final values bootstrap for truncated envs
             trunc_mask = truncated & ~terminated
@@ -447,9 +429,7 @@ class FPPOTrainer:
                 if self.cfg.partial_reset and not done_mask.all():
                     step_count[done_idx] = 0
                     self.robot.look_at_batched(target_pos)
-                    next_obs = build_obs_dict(
-                        self.robot, target_pos, step_result["obs"]
-                    )
+                    next_obs = build_obs_dict(step_result, target_pos)
                 else:
                     next_obs, target_pos = self._reset_all()
                     step_count.zero_()
@@ -637,10 +617,10 @@ class FPPOTrainer:
         dev = self.device
 
         first_task = self._suite.scenes[0].grasp_tasks[0]
+        reset_result = self.robot.reset()
         sample_obs = build_obs_dict(
-            self.robot,
+            reset_result,
             _make_target_pos(first_task.object_pose.position, N, dev),
-            self.robot._obs,
         )
         obs_buffer = DictArray((T, N), sample_obs)
         del sample_obs

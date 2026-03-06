@@ -25,8 +25,8 @@ from TyGrit.rl.policy import FactoredPolicy
 from TyGrit.rl.train import (
     _cache_link_groups,
     _compute_factored_reward,
-    _get_sim_poses,
     _make_target_pos,
+    _sim_poses_from_result,
 )
 from TyGrit.tasks.loader import load_tasks
 
@@ -38,6 +38,7 @@ def _run_episode(
     config,
     device: str,
     link_groups: dict[str, list],
+    init_result: dict,
 ) -> tuple[bool, int, float]:
     """Run a single evaluation episode. Returns (success, length, reward)."""
     robot.look_at_batched(target_pos)
@@ -46,34 +47,33 @@ def _run_episode(
     ep_len = 0
     done = False
     terminated = False
-    raw_obs = robot._obs
+    current_result = init_result
 
     while not done:
-        obs = build_obs_dict(robot, target_pos, raw_obs)
+        obs = build_obs_dict(current_result, target_pos)
         obs_dev = {k: v.to(device) for k, v in obs.items()}
         with torch.no_grad():
             action, _ = policy.get_action(obs_dev, deterministic=True)
 
         step_result = robot.step(action.cpu())
-        raw_obs = step_result["obs"]
+        current_result = step_result
         ep_len += 1
 
-        sim_poses = _get_sim_poses(robot)
+        sim_poses = _sim_poses_from_result(step_result)
         robot.look_at_batched(target_pos)
 
         total_reward, _terms = _compute_factored_reward(
-            robot,
             target_pos,
             action,
             config,
-            link_groups=link_groups,
+            link_groups,
             sim_poses=sim_poses,
         )
         ep_reward += total_reward.sum().item()
 
         # Success: gripper closing near target
         ee_dist = torch.linalg.norm(
-            sim_poses["ee_pos"] - target_pos.to(sim_poses["ee_pos"].device),
+            step_result["ee_pos"] - target_pos.to(step_result["ee_pos"].device),
             dim=1,
         )
         gripper_closing = action[:, -1] > 0
@@ -129,7 +129,7 @@ def evaluate(
 
     task_pairs = list(suite.iter_tasks())
     for idx, (scene, task) in enumerate(task_pairs):
-        robot.reset(seed=scene.seed)
+        reset_result = robot.reset(seed=scene.seed)
         target_pos = _make_target_pos(
             task.object_pose.position,
             1,
@@ -143,6 +143,7 @@ def evaluate(
             config,
             device,
             link_groups=link_groups,
+            init_result=reset_result,
         )
 
         successes.append(success)

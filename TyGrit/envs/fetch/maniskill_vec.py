@@ -5,8 +5,10 @@ The parent class assumes a single environment (hardcoded ``[0]`` indexing,
 ``float()`` calls, returning single ``SensorSnapshot``).  This override
 keeps observations as batched tensors and returns batched results.
 
-For ``num_envs == 1`` the behaviour is identical to the parent class
-(the batch dimension is simply size 1).
+``step()`` and ``reset()`` return a dict built from the ManiSkill obs
+(which already contains qpos, qvel, rgb, depth, camera matrices) plus
+one lightweight TCP pose read — the only data not in the obs dict.
+No redundant sim queries.
 """
 
 from __future__ import annotations
@@ -51,13 +53,15 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
     Wraps ManiSkill3 with ``num_envs`` parallel environments.  Observations
     and actions are batched along the first dimension ``(N, ...)``.
 
-    The :class:`RobotBase` single-env methods (``get_robot_state``,
-    ``get_sensor_snapshot``, etc.) are **not available** — use the batched
-    properties instead.
+    ``step()`` and ``reset()`` return a dict containing the raw ManiSkill
+    obs (which includes ``agent/qpos``, ``agent/qvel``, ``sensor_data``,
+    ``sensor_param/cam2world_gl``) plus ``ee_pos`` and ``ee_forward``
+    from a single TCP pose read — the only data not in the obs dict.
     """
 
     _gripper_targets: Tensor
     _head_targets: Tensor
+    _qpos: Tensor
 
     def __init__(
         self,
@@ -147,6 +151,9 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         self._trajectory = None
         self._waypoint_idx = 0
 
+        # Cached qpos from obs dict — updated by step() and reset()
+        self._qpos = self._obs["agent"]["qpos"].float()
+
         if cfg.render_mode == "human":
             self._env.render()
 
@@ -154,23 +161,26 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
     def num_envs(self) -> int:
         return self._num_envs
 
-    # ── Obs format helpers ───────────────────────────────────────────────
+    # ── TCP pose (the only data not in the obs dict) ─────────────────────
 
-    def _extract_qpos_from_obs(self, obs: dict | Tensor) -> Tensor:
-        """Extract qpos tensor from any ManiSkill obs format.
+    def _extract_tcp_pose(self) -> tuple[Tensor, Tensor]:
+        """Read TCP pose — the only sim data not in the ManiSkill obs dict.
 
-        Handles:
-        - ``obs_mode="state"``: obs is a flat ``(N, D)`` tensor.
-        - ``obs_mode="state_dict"``: obs is ``{"agent": {"qpos": ...}}``.
-        - ``obs_mode="rgb+..."``: obs is ``{"state": ...}``.
+        Returns ``(ee_pos, ee_forward)`` each ``(N, 3)``.
         """
-        if isinstance(obs, torch.Tensor):
-            return obs
-        if "state" in obs:
-            return obs["state"]
-        if "agent" in obs:
-            return obs["agent"]["qpos"]
-        raise ValueError(f"Cannot extract qpos from obs keys: {list(obs.keys())}")
+        tcp_pose = self._agent.tcp.pose
+        ee_pos = tcp_pose.p.float()  # (N, 3)
+        q = tcp_pose.q.float()  # (N, 4) [w,x,y,z] Sapien convention
+        w, x, y, z = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+        ee_forward = torch.stack(
+            [
+                2 * (x * z + w * y),
+                2 * (y * z - w * x),
+                1 - 2 * (x * x + y * y),
+            ],
+            dim=1,
+        )  # (N, 3)
+        return ee_pos, ee_forward
 
     # ── Base-offset calibration (batched) ─────────────────────────────────
 
@@ -182,7 +192,7 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         ith = self._joint_name_to_idx[base_joint_names[2]]
         self._qpos_base_indices = (ix, iy, ith)
 
-        qpos = self._extract_qpos_from_obs(self._obs).detach().cpu().double()
+        qpos = self._obs["agent"]["qpos"].detach().cpu().double()
         if qpos.ndim == 1:
             qpos = qpos.unsqueeze(0)  # (1, D)
 
@@ -190,7 +200,7 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         qy = qpos[:, iy]
         qth = qpos[:, ith]
 
-        # World-frame base_link pose
+        # World-frame base_link pose (not in obs dict — one-time-per-reset read)
         base_link = next(
             link for link in self._agent.robot.links if link.name == "base_link"
         )
@@ -206,13 +216,6 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         self._qpos_base_offset = torch.stack([wx - qx, wy - qy, dth], dim=1)
 
     # ── Batched state extraction ──────────────────────────────────────────
-
-    def get_batched_qpos(self) -> Tensor:
-        """Return ``(N, D)`` qpos tensor from the current observation."""
-        qpos = self._extract_qpos_from_obs(self._obs)
-        if qpos.ndim == 1:
-            qpos = qpos.unsqueeze(0)
-        return qpos
 
     def get_batched_base_pose(self, qpos: Tensor) -> Tensor:
         """Return ``(N, 3)`` tensor of ``[x, y, theta]`` in world frame."""
@@ -232,25 +235,14 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         """Return ``(N, 2)`` head joint positions."""
         return qpos[:, self._head_indices.to(qpos.device)]
 
-    def get_batched_robot_state(self) -> dict[str, Tensor]:
-        """Return batched robot state as a dict of tensors.
-
-        Keys: ``"base_pose"`` (N, 3), ``"planning_joints"`` (N, 8),
-        ``"head_joints"`` (N, 2).
-        """
-        qpos = self.get_batched_qpos()
-        return {
-            "base_pose": self.get_batched_base_pose(qpos),
-            "planning_joints": self.get_batched_planning_joints(qpos),
-            "head_joints": self.get_batched_head_joints(qpos),
-        }
-
     # ── Batched head PD controller ────────────────────────────────────────
 
     def _compute_head_pd_batched(self) -> Tensor:
-        """Return ``(N, 2)`` head velocities ``[pan_vel, tilt_vel]``."""
-        qpos = self.get_batched_qpos()
-        current = self.get_batched_head_joints(qpos)  # (N, 2)
+        """Return ``(N, 2)`` head velocities ``[pan_vel, tilt_vel]``.
+
+        Uses cached ``_qpos`` (pre-step state) for the current head position.
+        """
+        current = self._qpos[:, self._head_indices.to(self._qpos.device)]
         target = self._head_targets.to(current.device)
 
         kp = self._config.gaze_kp
@@ -307,16 +299,19 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
     # ── Stepping (batched) ────────────────────────────────────────────────
 
     def step(self, action: torch.Tensor | np.ndarray) -> dict:  # type: ignore[override]
-        """Step all envs with batched action ``(N, 10)`` and return raw obs dict.
+        """Step all envs with batched action ``(N, 10|11)`` and return result.
 
-        Unlike the parent class which returns ``SensorSnapshot``, the vec
-        variant returns the raw ManiSkill observation dict with batched
-        ``(N, ...)`` tensors for efficiency.
+        Returns a dict containing the raw ManiSkill obs (with
+        ``agent/qpos``, ``agent/qvel``, ``sensor_data``,
+        ``sensor_param/cam2world_gl``) plus ``ee_pos`` and ``ee_forward``
+        from the one TCP pose read that isn't in the obs dict.
         """
         if isinstance(action, np.ndarray):
             action = torch.as_tensor(action, dtype=torch.float32)
         ms_action = self._assemble_action_batched(action)
         self._obs, reward, terminated, truncated, info = self._env.step(ms_action)
+        self._qpos = self._obs["agent"]["qpos"].float()
+        ee_pos, ee_forward = self._extract_tcp_pose()
         if self._config.render_mode == "human":
             self._env.render()
         return {
@@ -325,10 +320,12 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             "terminated": terminated,
             "truncated": truncated,
             "info": info,
+            "ee_pos": ee_pos,
+            "ee_forward": ee_forward,
         }
 
     def reset(self, settle_steps: int = 0, **kwargs) -> dict:  # type: ignore[override]
-        """Reset all envs and return raw obs dict.
+        """Reset all envs and return result with obs + TCP pose.
 
         Parameters
         ----------
@@ -354,9 +351,16 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             )
             for _ in range(settle_steps):
                 self._obs, *_ = self._env.step(zero_action)
+        self._qpos = self._obs["agent"]["qpos"].float()
+        ee_pos, ee_forward = self._extract_tcp_pose()
         if self._config.render_mode == "human":
             self._env.render()
-        return {"obs": self._obs, "info": info}
+        return {
+            "obs": self._obs,
+            "info": info,
+            "ee_pos": ee_pos,
+            "ee_forward": ee_forward,
+        }
 
     # ── Batched look_at ───────────────────────────────────────────────────
 
@@ -373,7 +377,9 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
 
         Pass pre-computed *link_poses* and *base_pose* to skip redundant FK.
         """
-        qpos = self.get_batched_qpos()
+        qpos = self._qpos
+        if qpos.ndim == 1:
+            qpos = qpos.unsqueeze(0)
         head = self.get_batched_head_joints(qpos)  # (N, 2)
 
         if link_poses is None:
@@ -429,17 +435,13 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         pan = current_pan + pan_rel
         self._head_targets = torch.stack([pan, tilt_abs], dim=1)
 
-    # ── Batched gripper control ───────────────────────────────────────────
-
-    def control_gripper_batched(self, positions: Tensor) -> None:
-        """Set gripper targets for all envs. ``positions``: ``(N,)`` in [0, 1]."""
-        self._gripper_targets = positions.clamp(0.0, 1.0).float()
-
-    # ── Single-env RobotBase methods (delegate to parent for compatibility) ──
+    # ── Single-env RobotBase methods (for eval compatibility) ─────────────
 
     def get_robot_state(self) -> RobotState:
         """Return state for env 0 (for single-env compatibility)."""
-        qpos = self.get_batched_qpos()
+        qpos = self._qpos
+        if qpos.ndim == 1:
+            qpos = qpos.unsqueeze(0)
         bp = self.get_batched_base_pose(qpos)
         pj = self.get_batched_planning_joints(qpos)
         hj = self.get_batched_head_joints(qpos)
@@ -484,19 +486,6 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             robot_state=self.get_robot_state(),
             segmentation=seg,
         )
-
-    def settle(self, steps: int) -> None:
-        """Run zero-action physics steps to let objects settle."""
-        if steps <= 0:
-            return
-        zero = torch.zeros(
-            self._num_envs,
-            self._total_action_dim,
-            dtype=torch.float32,
-            device=self._env.unwrapped.device,  # type: ignore[attr-defined]
-        )
-        for _ in range(steps):
-            self._obs, *_ = self._env.step(zero)
 
     # ── Trajectory execution not supported in vec mode ────────────────────
 

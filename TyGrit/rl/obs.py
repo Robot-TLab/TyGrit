@@ -1,6 +1,7 @@
 """Observation encoding for RL training with RGB-D input.
 
-Uses ManiSkill's native sim poses (TCP, camera, links) — no custom FK.
+Pure function — reads all data from the step/reset result dict,
+no sim re-queries.
 
 The proprioceptive state vector is 36-dim:
     qpos(15) + qvel(15) + ee_pos(3) + target_pos(3)
@@ -18,45 +19,44 @@ STATE_DIM = 36
 
 
 def build_obs_dict(
-    robot,
+    step_result: dict,
     target_pos: Tensor,
-    raw_obs: dict,
 ) -> dict[str, Tensor]:
-    """Build dict observation from robot sensor data + state.
+    """Build dict observation from a step/reset result.
 
-    All returned tensors live on the same device as the ManiSkill sim.
-    Uses sim-native poses — no custom FK needed.
+    All data comes from the result dict returned by
+    ``ManiSkillFetchRobotVec.step()`` or ``.reset()`` — no sim access.
 
     Parameters
     ----------
-    raw_obs : dict
-        Raw ManiSkill observation dict returned by ``step()`` or ``reset()``.
+    step_result : dict
+        Result from ``step()`` or ``reset()``.  Must contain:
+        - ``obs`` with ``sensor_data/fetch_head/{rgb,depth}`` and
+          ``agent/{qpos,qvel}``
+        - ``ee_pos`` ``(N, 3)`` TCP position
+    target_pos : Tensor
+        ``(N, 3)`` target positions.
 
-    Returns:
-        Dict with keys ``"rgb"``, ``"depth"``, ``"state"``.
+    Returns
+    -------
+    dict with keys ``"rgb"``, ``"depth"``, ``"state"``.
     """
+    raw_obs = step_result["obs"]
     sensor_head = raw_obs["sensor_data"]["fetch_head"]
 
     rgb = sensor_head["rgb"]  # (N, H, W, 3)
     depth = sensor_head["depth"]  # (N, H, W, 1)
 
-    # Proprioceptive state — all from sim, on GPU
-    env_unwrapped = robot._env.unwrapped
-    qpos = env_unwrapped.agent.robot.get_qpos().float()
-    qvel = env_unwrapped.agent.robot.get_qvel().float()
+    qpos = raw_obs["agent"]["qpos"].float()
+    qvel = raw_obs["agent"]["qvel"].float()
+    ee_world = step_result["ee_pos"]
 
     n_joints = min(qpos.shape[-1], 15)
-    qpos_cut = qpos[:, :n_joints]
-    qvel_cut = qvel[:, :n_joints]
-
-    # EE position from sim's TCP — already in world frame, on GPU
-    ee_world = env_unwrapped.agent.tcp.pose.p.float()  # (N, 3)
-
     dev = qpos.device
     state = torch.cat(
         [
-            qpos_cut,
-            qvel_cut,
+            qpos[:, :n_joints],
+            qvel[:, :n_joints],
             ee_world,
             target_pos.to(dev).float(),
         ],
