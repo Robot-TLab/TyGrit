@@ -29,6 +29,7 @@ scikit-build-core = ">=0.11,<1"
 nanobind = ">=2.4,<3"
 ninja = ">=1.13.2,<2"
 gh = ">=2.86.0,<3"
+wandb = ">=0.25.0,<0.26"
 
 [feature.dev.dependencies]
 pre-commit = "*"
