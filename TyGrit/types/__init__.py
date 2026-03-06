@@ -18,8 +18,21 @@ from TyGrit.types.results import (
 )
 from TyGrit.types.robot import IKSolution, JointState, RobotState, WholeBodyConfig
 from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.tasks import (
+    DynamicObstacle,
+    GraspTask,
+    ObjectPose,
+    TaskScene,
+    TaskSuite,
+)
 
 __all__ = [
+    # tasks
+    "DynamicObstacle",
+    "GraspTask",
+    "ObjectPose",
+    "TaskScene",
+    "TaskSuite",
     # geometry
     "SE2Pose",
     # robot
