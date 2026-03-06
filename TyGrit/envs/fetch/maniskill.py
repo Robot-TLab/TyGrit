@@ -371,9 +371,9 @@ class ManiSkillFetchRobot(FetchRobot):
 
     # ── Extra: reset ──────────────────────────────────────────────────────
 
-    def reset(self) -> SensorSnapshot:
+    def reset(self, seed: int | None = None) -> SensorSnapshot:
         """Reset the environment and return a fresh observation."""
-        self._obs, _ = self._env.reset()
+        self._obs, _ = self._env.reset(seed=seed)
         self._init_qpos_world_offset()
         self._trajectory = None
         self._waypoint_idx = 0
