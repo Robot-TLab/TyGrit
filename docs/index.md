@@ -52,6 +52,13 @@ All TOML sections and parameters.
 MomaViz: Blender renders, ManiSkill replays, video.
 :::
 
+:::{grid-item-card} RL Baseline
+:link: rl-baseline
+:link-type: doc
+
+FPPO (CausalMoMa) training and evaluation.
+:::
+
 ::::
 
 ```{toctree}
@@ -63,5 +70,6 @@ setup
 architecture
 configuration
 visualization
+rl-baseline
 api/index
 ```
