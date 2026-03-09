@@ -93,7 +93,7 @@ class TestMultiChannelValue:
 class TestCausalMatrix:
     def test_default_shape(self):
         B = default_causal_matrix()
-        assert B.shape == (8, 11)
+        assert B.shape == (8, 13)
 
     def test_binary(self):
         B = default_causal_matrix()
@@ -112,18 +112,22 @@ class TestCausalMatrix:
         assert B[0, 1] == 1  # w
         assert B[0, 3:6].sum() >= 2  # shoulder + upperarm
 
-    def test_gaze_base_only(self):
+    def test_gaze_base_and_head(self):
         B = default_causal_matrix()
-        # Row 6 (gaze): only base v (head is PD-controlled)
+        # Row 6 (gaze): base v + head_pan + head_tilt (free head control)
         assert B[6, 0] == 1  # v
-        assert B[6, 2:].sum() == 0  # no arm or gripper
+        assert B[6, 11] == 1  # head_pan
+        assert B[6, 12] == 1  # head_tilt
+        assert B[6, 2:11].sum() == 0  # no arm or gripper
 
-    def test_base_col_base_only(self):
+    def test_base_col_base_and_head(self):
         B = default_causal_matrix()
-        # Row 3 (base_col): only base dims
-        assert B[3, 0] == 1
-        assert B[3, 1] == 1
-        assert B[3, 2:].sum() == 0
+        # Row 3 (base_col): base v,w + head_pan,head_tilt (head links can collide)
+        assert B[3, 0] == 1  # v
+        assert B[3, 1] == 1  # w
+        assert B[3, 11] == 1  # head_pan
+        assert B[3, 12] == 1  # head_tilt
+        assert B[3, 2:11].sum() == 0  # no arm or gripper
 
 
 class TestCausalAdvantage:
@@ -132,13 +136,13 @@ class TestCausalAdvantage:
         B = default_causal_matrix()
         advantages = torch.randn(32, 8)  # (batch, reward_channels)
         causal_adv = advantages @ B  # (batch, action_dim)
-        assert causal_adv.shape == (32, 11)
+        assert causal_adv.shape == (32, 13)
 
     def test_zero_advantage_zero_output(self):
         B = default_causal_matrix()
         advantages = torch.zeros(1, 8)
         causal_adv = advantages @ B
-        assert torch.allclose(causal_adv, torch.zeros(1, 11))
+        assert torch.allclose(causal_adv, torch.zeros(1, 13))
 
     def test_sparsity_effect(self):
         """Grasp advantage should only affect gripper action."""
@@ -157,7 +161,7 @@ class TestTrainConfig:
         cfg = TrainConfig()
         assert cfg.num_envs == 64
         assert cfg.reward_channels == 8
-        assert cfg.action_dim == 11
+        assert cfg.action_dim == 13
 
     def test_obs_mode_rgbd(self):
         cfg = TrainConfig()
