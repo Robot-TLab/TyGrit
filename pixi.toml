@@ -14,7 +14,6 @@ pip = ">=25.3,<26"
 numpy = ">=1.26,<2"
 scipy = ">=1.11,<2"
 loguru = ">=0.7,<1"
-setuptools = ">=82.0.0,<83"
 
 [pypi-dependencies]
 tygrit = { path = ".", editable = true }
@@ -43,6 +42,7 @@ black = "*"
 ruff = "*"
 tomli = ">=2.4.0,<3"
 tomli-w = ">=1.2.0,<2"
+setuptools = "<81"
 
 [feature.dev.pypi-dependencies]
 py-trees = ">=2.2,<3"
@@ -80,6 +80,7 @@ install-extensions = "pip install torch-scatter -f https://data.pyg.org/whl/torc
 cuda-toolkit = "12.8.*"
 wandb = ">=0.25.0,<0.26"
 pytest = "*"
+setuptools = "<81"
 
 [feature.rl.pypi-dependencies]
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
