@@ -30,6 +30,7 @@ from TyGrit.rl.config import TrainConfig, default_causal_matrix
 from TyGrit.rl.obs import DictArray, build_obs_dict
 from TyGrit.rl.policy import FactoredPolicy, MultiChannelValue
 from TyGrit.rl.rewards import (
+    action_rate_penalty,
     collision_reward,
     ee_local_position_reward,
     ee_orientation_reward,
@@ -69,9 +70,43 @@ ARM_COLLISION_LINKS = frozenset(
         "wrist_flex_link",
         "wrist_roll_link",
         "gripper_link",
+        "l_gripper_finger_link",
+        "r_gripper_finger_link",
     ]
 )
-SELF_COLLISION_LINKS = frozenset(BASE_COLLISION_LINKS | ARM_COLLISION_LINKS)
+
+# Non-adjacent robot link pairs that can physically self-collide.
+# Verified via scene.get_pairwise_contact_forces() in GPU sim.
+SELF_COLLISION_PAIRS: list[tuple[str, str]] = [
+    # Head vs arm (confirmed: head_pan <-> elbow_flex in debug)
+    ("head_pan_link", "upperarm_roll_link"),
+    ("head_pan_link", "elbow_flex_link"),
+    ("head_pan_link", "forearm_roll_link"),
+    ("head_pan_link", "wrist_flex_link"),
+    ("head_pan_link", "wrist_roll_link"),
+    ("head_pan_link", "gripper_link"),
+    ("head_pan_link", "l_gripper_finger_link"),
+    ("head_pan_link", "r_gripper_finger_link"),
+    ("head_tilt_link", "upperarm_roll_link"),
+    ("head_tilt_link", "elbow_flex_link"),
+    ("head_tilt_link", "forearm_roll_link"),
+    ("head_tilt_link", "wrist_flex_link"),
+    ("head_tilt_link", "wrist_roll_link"),
+    ("head_tilt_link", "gripper_link"),
+    ("head_tilt_link", "l_gripper_finger_link"),
+    ("head_tilt_link", "r_gripper_finger_link"),
+    # Base/torso vs distal arm
+    ("base_link", "wrist_flex_link"),
+    ("base_link", "wrist_roll_link"),
+    ("base_link", "gripper_link"),
+    ("base_link", "l_gripper_finger_link"),
+    ("base_link", "r_gripper_finger_link"),
+    ("torso_lift_link", "wrist_flex_link"),
+    ("torso_lift_link", "wrist_roll_link"),
+    ("torso_lift_link", "gripper_link"),
+    ("torso_lift_link", "l_gripper_finger_link"),
+    ("torso_lift_link", "r_gripper_finger_link"),
+]
 
 # Desired EE approach direction for top-down grasps (in world frame)
 _GRASP_APPROACH_DIR = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
@@ -80,23 +115,60 @@ _GRASP_APPROACH_DIR = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
 # ── Collision detection ───────────────────────────────────────────────────────
 
 
-def _cache_link_groups(robot: ManiSkillFetchRobotVec) -> dict[str, list]:
-    """Pre-filter and cache collision link objects by group."""
+def _cache_link_groups(robot: ManiSkillFetchRobotVec) -> dict:
+    """Pre-filter and cache collision link objects by group.
+
+    Also registers self-collision link pairs with
+    ``scene.get_pairwise_contact_forces`` so that the GPU query is
+    ready at training time.
+    """
     all_links = robot._env.unwrapped.agent.robot.get_links()
     link_map = {link.name: link for link in all_links}
+    scene = robot._env.unwrapped.scene
+
+    # Register self-collision pairs (warmup call)
+    self_pairs = []
+    for la, lb in SELF_COLLISION_PAIRS:
+        if la in link_map and lb in link_map:
+            pair = (link_map[la], link_map[lb])
+            scene.get_pairwise_contact_forces(*pair)  # registers the query
+            self_pairs.append(pair)
+
     return {
         "base": [link_map[n] for n in BASE_COLLISION_LINKS if n in link_map],
         "arm": [link_map[n] for n in ARM_COLLISION_LINKS if n in link_map],
+        "self_pairs": self_pairs,
+        "scene": scene,
     }
 
 
-def _detect_collision_group(
-    links: list,
-    force_threshold: float,
-) -> Tensor:
-    """Returns ``(N,)`` bool tensor — True if any link in group has contact."""
-    forces = torch.stack([link.get_net_contact_forces() for link in links])
-    return (torch.linalg.norm(forces, dim=-1) > force_threshold).any(dim=0)
+def _detect_collision_group(links: list) -> Tensor:
+    """Returns ``(N,)`` max contact force norm across links in group."""
+    norms = torch.stack(
+        [torch.linalg.norm(link.get_net_contact_forces(), dim=-1) for link in links]
+    )
+    return norms.max(dim=0).values
+
+
+def _detect_self_collision(link_groups: dict) -> Tensor:
+    """Returns ``(N,)`` max pairwise contact force norm across self-collision pairs.
+
+    Uses ``scene.get_pairwise_contact_forces(link_a, link_b)`` which
+    returns ``(N, 3)`` per-env forces for each registered pair.
+    """
+    scene = link_groups["scene"]
+    if not link_groups["self_pairs"]:
+        base_links = link_groups["base"]
+        N = base_links[0].get_net_contact_forces().shape[0]
+        dev = base_links[0].get_net_contact_forces().device
+        return torch.zeros(N, dtype=torch.float32, device=dev)
+    norms = torch.stack(
+        [
+            torch.linalg.norm(scene.get_pairwise_contact_forces(la, lb), dim=-1)
+            for la, lb in link_groups["self_pairs"]
+        ]
+    )
+    return norms.max(dim=0).values
 
 
 # ── Sim-pose extraction from step/reset result ────────────────────────────────
@@ -139,10 +211,14 @@ def _compute_factored_reward(
     target_pos: Tensor,
     action: Tensor,
     cfg: TrainConfig,
-    link_groups: dict[str, list],
+    link_groups: dict,
     sim_poses: dict[str, Tensor],
-) -> tuple[Tensor, dict[str, Tensor]]:
-    """Compute 8-channel CausalMoMa rewards. All tensors stay on GPU."""
+    prev_dist: Tensor,
+) -> tuple[Tensor, dict[str, Tensor], Tensor]:
+    """Compute 8-channel CausalMoMa rewards. All tensors stay on GPU.
+
+    Returns ``(total_reward, channel_dict, current_dist)``.
+    """
     dev = sim_poses["ee_pos"].device
     target = target_pos.to(dev)
 
@@ -151,8 +227,14 @@ def _compute_factored_reward(
         _GRASP_APPROACH_DIR.to(dev).unsqueeze(0).expand_as(sim_poses["ee_forward"])
     )
 
-    # 0. Reach
-    r_reach = reach_reward(sim_poses["ee_pos"], target)
+    # 0. Reach (potential-based + sparse goal bonus, matching CausalMoMa)
+    r_reach, cur_dist = reach_reward(
+        sim_poses["ee_pos"],
+        target,
+        prev_dist,
+        goal_bonus=cfg.reach_goal_bonus,
+        goal_dist_tol=cfg.reach_goal_dist_tol,
+    )
 
     # 1. EE orientation
     r_ee_orient = ee_orientation_reward(sim_poses["ee_forward"], target_fwd)
@@ -160,28 +242,30 @@ def _compute_factored_reward(
     # 2. EE local position (height)
     r_ee_local_pos = ee_local_position_reward(sim_poses["ee_pos"], target)
 
-    # 3-5. Collision channels
+    # 3. Base collision (binary penalty, matching CausalMoMa)
     r_base_col = collision_reward(
-        _detect_collision_group(link_groups["base"], cfg.collision_force_threshold),
+        _detect_collision_group(link_groups["base"]) > cfg.collision_force_threshold,
     )
+    # 4. Arm collision (binary penalty)
     r_arm_col = collision_reward(
-        _detect_collision_group(link_groups["arm"], cfg.collision_force_threshold),
+        _detect_collision_group(link_groups["arm"]) > cfg.collision_force_threshold,
     )
-    # Self-collision: approximate as any contact on arm links
+    # 5. Self-collision (binary penalty)
     r_self_col = collision_reward(
-        _detect_collision_group(link_groups["arm"], cfg.collision_force_threshold),
+        _detect_self_collision(link_groups) > cfg.collision_force_threshold,
     )
 
-    # 6. Gaze
+    # 6. Gaze (distance-conditioned: only active when EE is near target)
     r_gaze = gaze_reward(
         target,
         sim_poses["cam_pos"],
         sim_poses["cam_forward"],
+        sim_poses["ee_pos"],
         cfg.fov_threshold,
     )
 
-    # 7. Grasp — last action dim is gripper
-    gripper_action = action[:, -1].to(dev)
+    # 7. Grasp — gripper action is dim 10
+    gripper_action = action[:, 10].to(dev)
     r_grasp = grasp_reward(
         gripper_action,
         sim_poses["ee_pos"],
@@ -216,7 +300,7 @@ def _compute_factored_reward(
             ],
         )
     )
-    return total, terms
+    return total, terms, cur_dist
 
 
 # ── FPPO Trainer ──────────────────────────────────────────────────────────────
@@ -246,7 +330,6 @@ class FPPOTrainer:
         )
 
         self.B = (causal_matrix or default_causal_matrix()).to(self.device)
-        logger.debug("Causal matrix ready")
 
         # Use first task's target for sample obs shape inference
         first_task = self._suite.scenes[0].grasp_tasks[0]
@@ -269,16 +352,12 @@ class FPPOTrainer:
             state_feature_dim=self.cfg.state_feature_dim,
         ).to(self.device)
 
-        logger.debug("FactoredPolicy ready")
-
         self.value_net = MultiChannelValue(
             sample_obs=sample_obs_dev,
             reward_channels=self.cfg.reward_channels,
             cnn_feature_dim=self.cfg.cnn_feature_dim,
             state_feature_dim=self.cfg.state_feature_dim,
         ).to(self.device)
-
-        logger.debug("MultiChannelValue ready")
 
         self.policy_optimizer = torch.optim.Adam(
             self.policy.parameters(),
@@ -352,10 +431,17 @@ class FPPOTrainer:
         """Collect one rollout. All buffers and computation stay on GPU."""
         T = self.cfg.rollout_steps
         N = self.cfg.num_envs
+        A = self.cfg.action_dim
         dev = self.device
 
         obs, target_pos = self._reset_all()
         step_count = torch.zeros(N, dtype=torch.long, device=dev)
+        prev_action = torch.zeros(N, A, device=dev)
+        # Initial distance for potential-based reach reward
+        prev_dist = torch.linalg.norm(
+            obs["state"][:, 30:33].to(dev) - target_pos.to(dev),
+            dim=1,
+        )
 
         reward_per_step = torch.zeros(T, device=dev)
         channel_sums = torch.zeros(len(CHANNEL_NAMES), device=dev)
@@ -366,11 +452,18 @@ class FPPOTrainer:
 
         for t in range(T):
             with torch.no_grad():
-                action, log_prob = self.policy.get_action(obs)
+                raw_action, log_prob = self.policy.get_action(obs)
                 value = self.value_net(obs)
 
+            # Action smoothing (EMA)
+            alpha = self.cfg.smoothing_alpha
+            if t == 0:
+                action = raw_action
+            else:
+                action = alpha * raw_action + (1.0 - alpha) * prev_action
+
             obs_buffer[t] = obs
-            actions_buf[t] = action
+            actions_buf[t] = raw_action
             logprobs_buf[t] = log_prob
             values_buf[t] = value
 
@@ -380,24 +473,28 @@ class FPPOTrainer:
             # Build sim poses from step result (camera from obs, TCP from extra read)
             sim_poses = _sim_poses_from_result(step_result)
 
-            # Update head targets for gaze tracking
-            self.robot.look_at_batched(target_pos)
-
-            total_reward, terms = _compute_factored_reward(
+            total_reward, terms, prev_dist = _compute_factored_reward(
                 target_pos,
                 action,
                 self.cfg,
                 link_groups=self._link_groups,
                 sim_poses=sim_poses,
+                prev_dist=prev_dist,
             )
 
+            # Action rate penalty (added to total, not a separate channel)
+            rate_pen = action_rate_penalty(raw_action.to(dev), prev_action.to(dev))
+            total_reward = total_reward + self.cfg.w_action_rate * rate_pen
+
             rewards_buf[t] = torch.stack([terms[n] for n in CHANNEL_NAMES], dim=1)
+
+            prev_action = raw_action.to(dev)
 
             # Episode termination: grasp success
             ee_dist = torch.linalg.norm(
                 step_result["ee_pos"] - target_pos.to(dev), dim=1
             )
-            gripper_closing = action[:, -1].to(dev) > 0
+            gripper_closing = action[:, 10].to(dev) > 0
             terminated = (ee_dist < self.cfg.grasp_dist_threshold) & gripper_closing
             truncated = step_count >= self.cfg.max_episode_steps
             done = (terminated | truncated).float()
@@ -428,11 +525,20 @@ class FPPOTrainer:
 
                 if self.cfg.partial_reset and not done_mask.all():
                     step_count[done_idx] = 0
-                    self.robot.look_at_batched(target_pos)
                     next_obs = build_obs_dict(step_result, target_pos)
+                    # Reset prev_dist for done envs
+                    prev_dist[done_idx] = torch.linalg.norm(
+                        next_obs["state"][done_idx, 30:33].to(dev)
+                        - target_pos[done_idx].to(dev),
+                        dim=1,
+                    )
                 else:
                     next_obs, target_pos = self._reset_all()
                     step_count.zero_()
+                    prev_dist = torch.linalg.norm(
+                        next_obs["state"][:, 30:33].to(dev) - target_pos.to(dev),
+                        dim=1,
+                    )
 
             obs = next_obs
 
