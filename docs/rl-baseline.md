@@ -16,7 +16,7 @@ The policy controls all 13 DOF of the Fetch robot (base, torso, arm, gripper, he
 | `base_col` | Binary base/head collision penalty | 1.0 |
 | `arm_col` | Binary arm collision penalty | 1.0 |
 | `self_col` | Binary self-collision penalty | 1.0 |
-| `gaze` | Target visible in head camera FOV | 1.0 |
+| `gaze` | Target visible in head camera FOV (requires `--encourage-gaze`) | 1.0 |
 | `grasp` | Gripper action reward at target proximity | 1.0 |
 
 ### Action Space (13-dim continuous)
@@ -44,6 +44,19 @@ Requires a CUDA GPU. Set `OMP_NUM_THREADS=1` to prevent LAPACK thread deadlocks 
 ```bash
 OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train
 ```
+
+### CLI Arguments
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--num-envs` | 64 | Number of parallel environments |
+| `--total-timesteps` | 5,000,000 | Total training steps |
+| `--log-dir` | `runs/fppo` | Directory for checkpoints and logs |
+| `--device` | `cuda` | Torch device (`cuda`, `cpu`, `cuda:1`, …) |
+| `--render` | off | Enable GUI rendering |
+| `--resume` | — | Path to checkpoint to resume from |
+| `--no-wandb` | off | Disable Weights & Biases logging |
+| `--encourage-gaze` | off | Enable gaze reward channel (head tracks target) |
 
 ### Common Options
 

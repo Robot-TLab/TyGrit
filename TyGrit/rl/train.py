@@ -873,6 +873,7 @@ def main() -> None:
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--resume", type=str, default=None)
     parser.add_argument("--no-wandb", action="store_true")
+    parser.add_argument("--encourage-gaze", action="store_true")
     args = parser.parse_args()
 
     train_config = TrainConfig(
@@ -881,6 +882,7 @@ def main() -> None:
         log_dir=args.log_dir,
         device=args.device,
         wandb_enabled=not args.no_wandb,
+        encourage_gaze=args.encourage_gaze,
     )
 
     t0 = time.time()
