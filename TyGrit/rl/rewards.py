@@ -91,25 +91,20 @@ def gaze_reward(
     target_pos: Tensor,
     camera_pos: Tensor,
     camera_forward: Tensor,
-    ee_pos: Tensor,
     fov_threshold: float = 0.7,
-    gaze_dist: float = 1.0,
 ) -> Tensor:
-    """Distance-conditioned gaze reward.
+    """Binary gaze reward matching CausalMoMa (Hu et al., RSS 2023).
 
-    Only rewards looking at the target when the EE is close enough to grasp.
-    When far away, the head is free to look forward for navigation.
+    Returns 0.2 when the target is within the camera FOV, 0 otherwise.
 
     Args:
         target_pos: ``(B, 3)`` target positions in world frame.
         camera_pos: ``(B, 3)`` camera positions in world frame.
         camera_forward: ``(B, 3)`` camera forward direction.
-        ee_pos: ``(B, 3)`` end-effector position in world frame.
         fov_threshold: Angular distance threshold in radians.
-        gaze_dist: Distance (m) at which gaze reward fully activates.
 
     Returns:
-        ``(B,)`` reward in ``[0.0, 0.2]``.
+        ``(B,)`` reward: ``0.2`` if in FOV, ``0.0`` otherwise.
     """
     direction = target_pos - camera_pos
     direction = direction / (torch.linalg.norm(direction, dim=1, keepdim=True) + 1e-8)
@@ -119,11 +114,7 @@ def gaze_reward(
     )
     in_fov = (cos_angle > cos_threshold).float()
 
-    # Ramp: 0 when far, 1 when within gaze_dist
-    ee_dist = torch.linalg.norm(ee_pos - target_pos, dim=1)
-    weight = (1.0 - ee_dist / gaze_dist).clamp(0.0, 1.0)
-
-    return 0.2 * weight * in_fov
+    return 0.2 * in_fov
 
 
 def grasp_reward(

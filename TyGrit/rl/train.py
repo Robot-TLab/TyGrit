@@ -255,14 +255,16 @@ def _compute_factored_reward(
         _detect_self_collision(link_groups) > cfg.collision_force_threshold,
     )
 
-    # 6. Gaze (distance-conditioned: only active when EE is near target)
-    r_gaze = gaze_reward(
-        target,
-        sim_poses["cam_pos"],
-        sim_poses["cam_forward"],
-        sim_poses["ee_pos"],
-        cfg.fov_threshold,
-    )
+    # 6. Gaze — binary CausalMoMa reward (target in FOV → 0.2, else 0)
+    if cfg.encourage_gaze:
+        r_gaze = gaze_reward(
+            target,
+            sim_poses["cam_pos"],
+            sim_poses["cam_forward"],
+            cfg.fov_threshold,
+        )
+    else:
+        r_gaze = torch.zeros(sim_poses["ee_pos"].shape[0], device=dev)
 
     # 7. Grasp — gripper action is dim 10
     gripper_action = action[:, 10].to(dev)

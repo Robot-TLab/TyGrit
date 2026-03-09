@@ -123,29 +123,27 @@ class TestCollisionReward:
 
 
 class TestGazeReward:
-    def test_target_ahead_and_close(self):
-        target = torch.tensor([[0.5, 0.0, 0.0]])
+    def test_target_in_fov(self):
+        target = torch.tensor([[1.0, 0.0, 0.0]])
         cam_pos = torch.tensor([[0.0, 0.0, 0.0]])
         cam_fwd = torch.tensor([[1.0, 0.0, 0.0]])
-        ee_pos = torch.tensor([[0.3, 0.0, 0.0]])  # 0.2m from target
-        r = gaze_reward(target, cam_pos, cam_fwd, ee_pos)
-        assert r.item() == pytest.approx(0.2 * 0.8)  # weight = 1 - 0.2/1.0
-
-    def test_target_ahead_but_far(self):
-        target = torch.tensor([[5.0, 0.0, 0.0]])
-        cam_pos = torch.tensor([[0.0, 0.0, 0.0]])
-        cam_fwd = torch.tensor([[1.0, 0.0, 0.0]])
-        ee_pos = torch.tensor([[0.0, 0.0, 0.0]])  # 5m from target
-        r = gaze_reward(target, cam_pos, cam_fwd, ee_pos)
-        assert r.item() == pytest.approx(0.0)  # too far, weight=0
+        r = gaze_reward(target, cam_pos, cam_fwd)
+        assert r.item() == pytest.approx(0.2)
 
     def test_target_behind(self):
         target = torch.tensor([[-1.0, 0.0, 0.0]])
         cam_pos = torch.tensor([[0.0, 0.0, 0.0]])
         cam_fwd = torch.tensor([[1.0, 0.0, 0.0]])
-        ee_pos = torch.tensor([[-0.9, 0.0, 0.0]])  # close but behind camera
-        r = gaze_reward(target, cam_pos, cam_fwd, ee_pos)
-        assert r.item() == pytest.approx(0.0)  # not in FOV
+        r = gaze_reward(target, cam_pos, cam_fwd)
+        assert r.item() == pytest.approx(0.0)
+
+    def test_target_outside_fov_threshold(self):
+        # ~80 degrees off-axis, beyond 0.7 rad (~40 deg) threshold
+        target = torch.tensor([[0.2, 1.0, 0.0]])
+        cam_pos = torch.tensor([[0.0, 0.0, 0.0]])
+        cam_fwd = torch.tensor([[1.0, 0.0, 0.0]])
+        r = gaze_reward(target, cam_pos, cam_fwd)
+        assert r.item() == pytest.approx(0.0)
 
 
 class TestGraspReward:

@@ -38,6 +38,7 @@ class TrainConfig:
     w_self_col: float = 1.0
     w_gaze: float = 1.0
     w_grasp: float = 1.0
+    encourage_gaze: bool = False  # reward head looking at target (active perception)
 
     grasp_dist_threshold: float = 0.05
     fov_threshold: float = 0.7  # radians, angular distance for gaze
