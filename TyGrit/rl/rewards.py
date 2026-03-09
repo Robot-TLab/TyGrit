@@ -18,12 +18,26 @@ import torch
 from torch import Tensor
 
 
-def reach_reward(ee_pos: Tensor, target_pos: Tensor) -> Tensor:
-    """Negative L2 distance from end-effector to target.
+def reach_reward(
+    ee_pos: Tensor,
+    target_pos: Tensor,
+    prev_dist: Tensor,
+    goal_bonus: float = 10.0,
+    goal_dist_tol: float = 0.55,
+) -> tuple[Tensor, Tensor]:
+    """Potential-based reach reward + sparse goal bonus (CausalMoMa).
 
-    Returns ``(B,)`` reward (negative distance, 0 at target).
+    Returns ``(reward, current_dist)`` each ``(B,)``.
+    The potential component is positive when getting closer, negative when
+    moving away.  A one-time bonus of *goal_bonus* is added when the
+    distance drops below *goal_dist_tol*.
     """
-    return -torch.linalg.norm(ee_pos - target_pos, dim=1)
+    dist = torch.linalg.norm(ee_pos - target_pos, dim=1)
+    reward = prev_dist - dist
+    # Sparse goal bonus: triggered when crossing the tolerance threshold
+    newly_reached = (dist < goal_dist_tol) & (prev_dist >= goal_dist_tol)
+    reward = reward + goal_bonus * newly_reached.float()
+    return reward, dist
 
 
 def ee_orientation_reward(
@@ -61,33 +75,41 @@ def ee_local_position_reward(
     return -0.5 * height_dist + 0.2
 
 
-def collision_reward(has_collision: Tensor) -> Tensor:
-    """Binary collision penalty.
+def collision_reward(in_collision: Tensor) -> Tensor:
+    """Binary collision penalty matching CausalMoMa.
 
-    Returns ``(B,)`` penalty: -1.0 where collision, 0.0 otherwise.
+    Args:
+        in_collision: ``(B,)`` boolean tensor — True when collision detected.
+
+    Returns:
+        ``(B,)`` penalty: ``-1.0`` if colliding, ``0.0`` otherwise.
     """
-    return -has_collision.float()
+    return -in_collision.float()
 
 
 def gaze_reward(
     target_pos: Tensor,
     camera_pos: Tensor,
     camera_forward: Tensor,
+    ee_pos: Tensor,
     fov_threshold: float = 0.7,
+    gaze_dist: float = 1.0,
 ) -> Tensor:
-    """Binary reward for target within camera FOV.
+    """Distance-conditioned gaze reward.
 
-    Matches CausalMoMa: returns 0.2 when target is within angular threshold,
-    0.0 otherwise.
+    Only rewards looking at the target when the EE is close enough to grasp.
+    When far away, the head is free to look forward for navigation.
 
     Args:
         target_pos: ``(B, 3)`` target positions in world frame.
         camera_pos: ``(B, 3)`` camera positions in world frame.
         camera_forward: ``(B, 3)`` camera forward direction.
+        ee_pos: ``(B, 3)`` end-effector position in world frame.
         fov_threshold: Angular distance threshold in radians.
+        gaze_dist: Distance (m) at which gaze reward fully activates.
 
     Returns:
-        ``(B,)`` reward: 0.2 or 0.0.
+        ``(B,)`` reward in ``[0.0, 0.2]``.
     """
     direction = target_pos - camera_pos
     direction = direction / (torch.linalg.norm(direction, dim=1, keepdim=True) + 1e-8)
@@ -95,7 +117,13 @@ def gaze_reward(
     cos_threshold = torch.cos(
         torch.tensor(fov_threshold, device=cos_angle.device, dtype=cos_angle.dtype)
     )
-    return torch.where(cos_angle > cos_threshold, 0.2, 0.0)
+    in_fov = (cos_angle > cos_threshold).float()
+
+    # Ramp: 0 when far, 1 when within gaze_dist
+    ee_dist = torch.linalg.norm(ee_pos - target_pos, dim=1)
+    weight = (1.0 - ee_dist / gaze_dist).clamp(0.0, 1.0)
+
+    return 0.2 * weight * in_fov
 
 
 def grasp_reward(
@@ -131,3 +159,14 @@ def grasp_reward(
     reward[~near_target & ~closing] *= -1  # reward opening far from target
 
     return reward
+
+
+def action_rate_penalty(
+    action: Tensor,
+    prev_action: Tensor,
+) -> Tensor:
+    """L2 penalty on action change between consecutive timesteps.
+
+    Returns ``(B,)`` negative squared-norm of the action delta.
+    """
+    return -torch.sum((action - prev_action) ** 2, dim=1)
