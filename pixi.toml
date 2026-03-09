@@ -5,20 +5,26 @@ name = "TyGrit"
 platforms = ["linux-64"]
 version = "0.1.0"
 
-[tasks]
-test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
-install-vamp = "pip install --no-build-isolation -e thirdparty/vamp_preview"
-install-graspgen = "pip install --no-build-isolation thirdparty/GraspGen/pointnet2_ops && pip install --no-build-isolation --no-deps -e thirdparty/GraspGen"
-install-momaviz = "pip install --no-deps -e thirdparty/MomaViz"
-download-graspgen-weights = "scripts/download_graspgen_weights.sh"
+# ── shared base (default feature) ──────────────────────────────────────
+# Inherited by any environment that does NOT set no-default-feature.
 
 [dependencies]
 python = "3.11.*"
 pip = ">=25.3,<26"
-ros-humble-desktop = ">=0.10.0,<0.11"
-scipy = ">=1.11,<2"
 numpy = ">=1.26,<2"
+scipy = ">=1.11,<2"
 loguru = ">=0.7,<1"
+
+[pypi-dependencies]
+tygrit = { path = ".", editable = true }
+
+[tasks]
+test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
+
+# ── dev (full GPU + ROS environment) ───────────────────────────────────
+
+[feature.dev.dependencies]
+ros-humble-desktop = ">=0.10.0,<0.11"
 cuda-toolkit = "12.8.*"
 eigen = ">=3.4.0,<4"
 nlopt = ">=2.10.0,<3"
@@ -29,17 +35,16 @@ scikit-build-core = ">=0.11,<1"
 nanobind = ">=2.4,<3"
 ninja = ">=1.13.2,<2"
 gh = ">=2.86.0,<3"
-
-[feature.dev.dependencies]
+wandb = ">=0.25.0,<0.26"
 pre-commit = "*"
 pytest = "*"
 black = "*"
 ruff = "*"
 tomli = ">=2.4.0,<3"
 tomli-w = ">=1.2.0,<2"
+setuptools = "<81"
 
-[pypi-dependencies]
-tygrit = { path = ".", editable = true }
+[feature.dev.pypi-dependencies]
 py-trees = ">=2.2,<3"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
 mani-skill = ">=3.0.0b0, <4"
@@ -60,17 +65,29 @@ yourdfpy = "==0.0.56"
 yapf = "==0.40.1"
 tensorboardx = ">=2.6.4, <3"
 tensorboard = ">=2.20.0, <3"
-spconv-cu120 = ">=2.3.6, <3"
-torch-scatter = ">=2.1.2, <3"
 diffusers = ">=0.25, <1"
-sam3 = { git = "https://github.com/facebookresearch/sam3.git" }
 
-[feature.docs.dependencies]
-python = "3.11.*"
-pip = ">=25.3,<26"
-numpy = ">=1.26,<2"
-scipy = ">=1.11,<2"
-loguru = ">=0.7,<1"
+[feature.dev.tasks]
+install-vamp = "pip install --no-build-isolation -e thirdparty/vamp_preview"
+install-graspgen = "pip install --no-build-isolation thirdparty/GraspGen/pointnet2_ops && pip install --no-build-isolation --no-deps -e thirdparty/GraspGen"
+install-momaviz = "pip install --no-deps -e thirdparty/MomaViz"
+download-graspgen-weights = "scripts/download_graspgen_weights.sh"
+install-extensions = "pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu128.html && pip install spconv-cu120 && pip install sam3@git+https://github.com/facebookresearch/sam3.git"
+
+# ── rl (lightweight RL training) ───────────────────────────────────────
+
+[feature.rl.dependencies]
+cuda-toolkit = "12.8.*"
+wandb = ">=0.25.0,<0.26"
+pytest = "*"
+setuptools = "<81"
+
+[feature.rl.pypi-dependencies]
+torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
+mani-skill = ">=3.0.0b0, <4"
+tensordict = ">=0.11.0, <0.12"
+
+# ── docs ───────────────────────────────────────────────────────────────
 
 [feature.docs.pypi-dependencies]
 sphinx = ">=7,<9"
@@ -82,18 +99,17 @@ sphinx-design = ">=0.6"
 [feature.docs.tasks]
 docs = { cmd = "sphinx-build docs docs/_build/html", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
 
+# ── lint ───────────────────────────────────────────────────────────────
+
 [feature.lint.dependencies]
 python = "3.11.*"
 pre-commit = "*"
 black = "*"
 ruff = "*"
 
+# ── ci ─────────────────────────────────────────────────────────────────
+
 [feature.ci.dependencies]
-python = "3.11.*"
-pip = ">=25.3,<26"
-numpy = ">=1.26,<2"
-scipy = ">=1.11,<2"
-loguru = ">=0.7,<1"
 eigen = ">=3.4.0,<4"
 nlopt = ">=2.10.0,<3"
 orocos-kdl = ">=1.5.3,<2"
@@ -103,15 +119,15 @@ matplotlib-base = "*"
 boost = ">=1.85.0,<2"
 
 [feature.ci.pypi-dependencies]
-tygrit = { path = ".", editable = true }
 py-trees = ">=2.2,<3"
 opencv-python-headless = ">=4.8,<5"
 
-[feature.ci.tasks]
-test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
+# ── environments ───────────────────────────────────────────────────────
 
 [environments]
-default = ["dev"]
+default = []
+dev = ["dev"]
+rl = ["rl"]
+ci = ["ci"]
+docs = ["docs"]
 lint = { features = ["lint"], no-default-feature = true }
-ci = { features = ["ci"], no-default-feature = true }
-docs = { features = ["docs"], no-default-feature = true }

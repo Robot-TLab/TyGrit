@@ -16,7 +16,7 @@ The policy controls all 13 DOF of the Fetch robot (base, torso, arm, gripper, he
 | `base_col` | Binary base/head collision penalty | 1.0 |
 | `arm_col` | Binary arm collision penalty | 1.0 |
 | `self_col` | Binary self-collision penalty | 1.0 |
-| `gaze` | Target visible in head camera FOV | 1.0 |
+| `gaze` | Target visible in head camera FOV (requires `--encourage-gaze`) | 1.0 |
 | `grasp` | Gripper action reward at target proximity | 1.0 |
 
 ### Action Space (13-dim continuous)
@@ -27,6 +27,14 @@ elbow_flex, forearm_roll, wrist_flex, wrist_roll, gripper,
 head_pan, head_tilt
 ```
 
+## Setup
+
+The RL baseline uses a dedicated `rl` pixi environment that is lighter than the full `default` environment (no ROS, GraspGen, VAMP, `torch-scatter`, or `spconv`):
+
+```bash
+pixi install -e rl
+```
+
 ## Training
 
 Requires a CUDA GPU. Set `OMP_NUM_THREADS=1` to prevent LAPACK thread deadlocks with ManiSkill's GPU workers.
@@ -34,29 +42,26 @@ Requires a CUDA GPU. Set `OMP_NUM_THREADS=1` to prevent LAPACK thread deadlocks 
 ### Quick Start
 
 ```bash
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train
 ```
+
+### CLI Arguments
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--num-envs` | 64 | Number of parallel environments |
+| `--total-timesteps` | 5,000,000 | Total training steps |
+| `--log-dir` | `runs/fppo` | Directory for checkpoints and logs |
+| `--device` | `cuda` | Torch device (`cuda`, `cpu`, `cuda:1`, …) |
+| `--render` | off | Enable GUI rendering |
+| `--resume` | — | Path to checkpoint to resume from |
+| `--no-wandb` | off | Disable Weights & Biases logging |
+| `--encourage-gaze` | off | Enable gaze reward channel (head tracks target) |
 
 ### Common Options
 
 ```bash
-# Adjust number of parallel environments (default: 64)
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --num-envs 32
-
-# Set total training steps (default: 5M)
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --total-timesteps 10000000
-
-# Custom log directory
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --log-dir runs/my_experiment
-
-# Disable wandb logging
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --no-wandb
-
-# Enable live rendering
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --render
-
-# Resume from checkpoint
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --resume runs/fppo/checkpoint_100.pt
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --num-envs 64 --total-timesteps 100000000 --log-dir runs/my_experiment --no-wandb --render --resume runs/fppo/checkpoint_100.pt
 ```
 
 ### Key Hyperparameters
@@ -105,7 +110,7 @@ Checkpoints are saved every 100 rollouts to `runs/fppo/`.
 Load a trained checkpoint and run with `--render` to visualize:
 
 ```bash
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train \
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train \
     --resume runs/fppo/final.pt \
     --render \
     --no-wandb \
