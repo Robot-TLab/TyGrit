@@ -259,11 +259,13 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
     def _assemble_action_batched(self, mpc_action: Tensor) -> Tensor:
         """Map batched RL action to ManiSkill action ``(N, D)``.
 
-        Supports two input formats:
-        - ``(N, 10)``: ``[v, w, torso, arm0..arm6]`` — gripper via ``_gripper_targets``
-        - ``(N, 11)``: ``[v, w, torso, arm0..arm6, gripper]`` — gripper as last dim
+        Supports three input formats:
+        - ``(N, 10)``: ``[v, w, torso, arm0..arm6]`` — gripper via targets, head via PD
+        - ``(N, 11)``: ``[v, w, torso, arm0..arm6, gripper]`` — head via PD
+        - ``(N, 13)``: ``[v, w, torso, arm0..arm6, gripper, head_pan, head_tilt]``
         """
         N = mpc_action.shape[0]
+        ndim = mpc_action.shape[1]
         device = mpc_action.device
         action = torch.zeros(
             N, self._total_action_dim, dtype=torch.float32, device=device
@@ -278,14 +280,18 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             action[:, sl] = mpc_action[:, 3 : 3 + n]
 
         if "body" in self._action_slices:
-            head_vel = self._compute_head_pd_batched().to(device)  # (N, 2)
+            if ndim >= 13:
+                # 13-dim: head velocities from policy (free head control)
+                head_vel = mpc_action[:, 11:13]
+            else:
+                # 10/11-dim: head via PD controller
+                head_vel = self._compute_head_pd_batched().to(device)  # (N, 2)
             torso_vel = mpc_action[:, 2:3]  # (N, 1)
             body = torch.cat([head_vel, torso_vel], dim=1)  # (N, 3)
             action[:, self._action_slices["body"]] = body
 
         if "gripper" in self._action_slices:
-            if mpc_action.shape[1] >= 11:
-                # 11-dim: gripper action from last dim (RL mode)
+            if ndim >= 11:
                 gripper_action = mpc_action[:, 10:11]
             else:
                 # 10-dim: gripper from targets (MPC mode)
