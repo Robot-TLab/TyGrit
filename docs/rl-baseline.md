@@ -48,23 +48,7 @@ OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train
 ### Common Options
 
 ```bash
-# Adjust number of parallel environments (default: 64)
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --num-envs 32
-
-# Set total training steps (default: 5M)
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --total-timesteps 10000000
-
-# Custom log directory
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --log-dir runs/my_experiment
-
-# Disable wandb logging
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --no-wandb
-
-# Enable live rendering
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --render
-
-# Resume from checkpoint
-OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --resume runs/fppo/checkpoint_100.pt
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --num-envs 64 --total-timesteps 100000000 --log-dir runs/my_experiment --no-wandb --render --resume runs/fppo/checkpoint_100.pt
 ```
 
 ### Key Hyperparameters
