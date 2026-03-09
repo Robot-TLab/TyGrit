@@ -111,8 +111,25 @@ opencv-python-headless = ">=4.8,<5"
 [feature.ci.tasks]
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
 
+[feature.rl.dependencies]
+python = "3.11.*"
+pip = ">=25.3,<26"
+numpy = ">=1.26,<2"
+scipy = ">=1.11,<2"
+loguru = ">=0.7,<1"
+cuda-toolkit = "12.8.*"
+wandb = ">=0.25.0,<0.26"
+pytest = "*"
+
+[feature.rl.pypi-dependencies]
+tygrit = { path = ".", editable = true }
+torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
+mani-skill = ">=3.0.0b0, <4"
+tensordict = ">=0.11.0, <0.12"
+
 [environments]
 default = ["dev"]
 lint = { features = ["lint"], no-default-feature = true }
 ci = { features = ["ci"], no-default-feature = true }
 docs = { features = ["docs"], no-default-feature = true }
+rl = { features = ["rl"], no-default-feature = true }

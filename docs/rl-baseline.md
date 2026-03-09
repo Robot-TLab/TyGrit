@@ -27,6 +27,14 @@ elbow_flex, forearm_roll, wrist_flex, wrist_roll, gripper,
 head_pan, head_tilt
 ```
 
+## Setup
+
+The RL baseline uses a dedicated `rl` pixi environment that is lighter than the full `default` environment (no ROS, GraspGen, VAMP, `torch-scatter`, or `spconv`):
+
+```bash
+pixi install -e rl
+```
+
 ## Training
 
 Requires a CUDA GPU. Set `OMP_NUM_THREADS=1` to prevent LAPACK thread deadlocks with ManiSkill's GPU workers.
@@ -34,29 +42,29 @@ Requires a CUDA GPU. Set `OMP_NUM_THREADS=1` to prevent LAPACK thread deadlocks 
 ### Quick Start
 
 ```bash
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train
 ```
 
 ### Common Options
 
 ```bash
 # Adjust number of parallel environments (default: 64)
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --num-envs 32
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --num-envs 32
 
 # Set total training steps (default: 5M)
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --total-timesteps 10000000
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --total-timesteps 10000000
 
 # Custom log directory
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --log-dir runs/my_experiment
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --log-dir runs/my_experiment
 
 # Disable wandb logging
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --no-wandb
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --no-wandb
 
 # Enable live rendering
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --render
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --render
 
 # Resume from checkpoint
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train --resume runs/fppo/checkpoint_100.pt
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train --resume runs/fppo/checkpoint_100.pt
 ```
 
 ### Key Hyperparameters
@@ -105,7 +113,7 @@ Checkpoints are saved every 100 rollouts to `runs/fppo/`.
 Load a trained checkpoint and run with `--render` to visualize:
 
 ```bash
-OMP_NUM_THREADS=1 pixi run python -m TyGrit.rl.train \
+OMP_NUM_THREADS=1 pixi run -e rl python -m TyGrit.rl.train \
     --resume runs/fppo/final.pt \
     --render \
     --no-wandb \
