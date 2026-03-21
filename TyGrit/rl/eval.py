@@ -31,6 +31,29 @@ from TyGrit.rl.train import (
 from TyGrit.tasks.loader import load_tasks
 
 
+def _place_target_marker(
+    robot: ManiSkillFetchRobotVec,
+    position: tuple[float, float, float],
+    radius: float = 0.03,
+    color: tuple[float, float, float, float] = (1.0, 0.2, 0.2, 0.6),
+) -> None:
+    """Add a translucent sphere at *position* in the rendered scene.
+
+    Uses Sapien's actor builder to create a visual-only (no collision)
+    kinematic actor so it doesn't affect physics.
+    """
+    import sapien
+
+    scene = robot._env.unwrapped.scene  # type: ignore[attr-defined]
+    builder = scene.create_actor_builder()
+    builder.add_sphere_visual(
+        radius=radius,
+        material=sapien.render.RenderMaterial(base_color=color),
+    )
+    marker = builder.build_kinematic(name="target_marker")
+    marker.set_pose(sapien.Pose(p=list(position)))
+
+
 def _run_episode(
     robot: ManiSkillFetchRobotVec,
     policy: FactoredPolicy,
@@ -49,6 +72,10 @@ def _run_episode(
     terminated = False
     current_result = init_result
 
+    # Initial distance for potential-based reach reward
+    init_ee = init_result["ee_pos"]
+    prev_dist = torch.linalg.norm(init_ee - target_pos.to(init_ee.device), dim=1)
+
     while not done:
         obs = build_obs_dict(current_result, target_pos)
         obs_dev = {k: v.to(device) for k, v in obs.items()}
@@ -62,12 +89,13 @@ def _run_episode(
         sim_poses = _sim_poses_from_result(step_result)
         robot.look_at_batched(target_pos)
 
-        total_reward, _terms = _compute_factored_reward(
+        total_reward, _terms, prev_dist = _compute_factored_reward(
             target_pos,
             action,
             config,
             link_groups,
             sim_poses=sim_poses,
+            prev_dist=prev_dist,
         )
         ep_reward += total_reward.sum().item()
 
@@ -135,6 +163,9 @@ def evaluate(
             1,
             torch.device(device),
         )
+
+        if render:
+            _place_target_marker(robot, task.object_pose.position)
 
         success, ep_len, ep_reward = _run_episode(
             robot,
