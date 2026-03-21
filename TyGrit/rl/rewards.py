@@ -23,20 +23,21 @@ def reach_reward(
     target_pos: Tensor,
     prev_dist: Tensor,
     goal_bonus: float = 10.0,
-    goal_dist_tol: float = 0.55,
+    goal_dist_tol: float = 0.1,
 ) -> tuple[Tensor, Tensor]:
-    """Potential-based reach reward + sparse goal bonus (CausalMoMa).
+    """Potential-based reach reward + dense goal bonus (CausalMoMa).
 
     Returns ``(reward, current_dist)`` each ``(B,)``.
     The potential component is positive when getting closer, negative when
-    moving away.  A one-time bonus of *goal_bonus* is added when the
-    distance drops below *goal_dist_tol*.
+    moving away.  A bonus of *goal_bonus* is added **every step** while the
+    distance is below *goal_dist_tol* (matching CausalMoMa's
+    ``ReachingGoalReward``).
     """
     dist = torch.linalg.norm(ee_pos - target_pos, dim=1)
     reward = prev_dist - dist
-    # Sparse goal bonus: triggered when crossing the tolerance threshold
-    newly_reached = (dist < goal_dist_tol) & (prev_dist >= goal_dist_tol)
-    reward = reward + goal_bonus * newly_reached.float()
+    # Dense goal bonus: +goal_bonus every step while within tolerance
+    within_goal = (dist < goal_dist_tol).float()
+    reward = reward + goal_bonus * within_goal
     return reward, dist
 
 

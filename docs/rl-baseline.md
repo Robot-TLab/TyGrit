@@ -10,7 +10,7 @@ The policy controls all 13 DOF of the Fetch robot (base, torso, arm, gripper, he
 
 | Channel | Description | Scale |
 |---------|-------------|-------|
-| `reach` | Potential-based L2 distance (EE to target) + sparse goal bonus (+10 at < 0.55 m) | 0.7 |
+| `reach` | Potential-based L2 distance (EE to target) + dense goal bonus (+10/step at < 0.1 m) | 0.7 |
 | `ee_orient` | End-effector orientation error (keep grasp-ready) | 0.5 |
 | `ee_local_pos` | EE height relative to target height | 0.5 |
 | `base_col` | Binary base/head collision penalty | 1.0 |
@@ -81,7 +81,7 @@ All hyperparameters are in `TyGrit/rl/config.py` (`TrainConfig`). The defaults f
 | `gae_lambda` | 0.95 | GAE lambda |
 | `clip_range` | 0.2 | PPO clip range |
 | `target_kl` | 0.15 | KL early stopping threshold |
-| `max_episode_steps` | 2048 | Episode truncation length |
+| `max_episode_steps` | 500 | Episode truncation length |
 
 ### GPU Memory
 

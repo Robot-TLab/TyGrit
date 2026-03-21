@@ -23,10 +23,9 @@ class TrainConfig:
 
     # ── Environment ───────────────────────────────────────────────────────
     num_envs: int = 64
-    max_episode_steps: int = 2048
+    max_episode_steps: int = 500
     obs_mode: str = "rgbd"
     task_suite_path: str = "resources/benchmark/grasp_benchmark.json"
-    partial_reset: bool = True
     settle_steps: int = 10
 
     # ── Reward weights ────────────────────────────────────────────────────
@@ -45,14 +44,13 @@ class TrainConfig:
 
     # ── Reaching goal bonus (CausalMoMa) ──────────────────────────────
     reach_goal_bonus: float = 10.0  # sparse +10 when within dist_tol
-    reach_goal_dist_tol: float = 0.55  # metres
+    reach_goal_dist_tol: float = 0.1  # metres (CausalMoMa ReachingGoalReward)
 
     # ── Collision ─────────────────────────────────────────────────────────
     collision_force_threshold: float = 0.5  # N — used for binary detection
 
     # ── Action smoothing ──────────────────────────────────────────────────
     smoothing_alpha: float = 0.7  # EMA: a_exec = α*a_new + (1-α)*a_prev
-    w_action_rate: float = 0.1  # penalty weight on ||a_t - a_{t-1}||²
 
     # ── PPO ───────────────────────────────────────────────────────────────
     total_timesteps: int = 5_000_000

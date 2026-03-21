@@ -27,9 +27,9 @@ class TestReachReward:
         ee = torch.tensor([[0.5, 0.0, 0.0]])
         target = torch.tensor([[1.0, 0.0, 0.0]])
         prev_dist = torch.tensor([1.0])  # was 1m away
-        # dist=0.5 crosses goal_dist_tol=0.55 → potential 0.5 + bonus 10
+        # dist=0.5 > default goal_dist_tol=0.1 → potential only
         r, d = reach_reward(ee, target, prev_dist)
-        assert r.item() == pytest.approx(10.5)
+        assert r.item() == pytest.approx(0.5)
         assert d.item() == pytest.approx(0.5)
 
     def test_moving_away(self):
@@ -39,33 +39,42 @@ class TestReachReward:
         r, d = reach_reward(ee, target, prev_dist)
         assert r.item() == pytest.approx(-0.5)  # moved 0.5m away
 
-    def test_goal_bonus_triggered(self):
-        """Sparse +10 bonus when crossing goal_dist_tol threshold."""
-        ee = torch.tensor([[0.8, 0.0, 0.0]])
-        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.2 < 0.55
-        prev_dist = torch.tensor([0.6])  # was >= 0.55, now < 0.55
-        r, d = reach_reward(ee, target, prev_dist, goal_bonus=10.0, goal_dist_tol=0.55)
-        # potential = 0.6 - 0.2 = 0.4, plus bonus = 10.0
-        assert r.item() == pytest.approx(10.4)
-        assert d.item() == pytest.approx(0.2)
+    def test_goal_bonus_while_within(self):
+        """Dense +10 bonus every step while within goal_dist_tol."""
+        ee = torch.tensor([[0.95, 0.0, 0.0]])
+        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.05 < 0.1
+        prev_dist = torch.tensor([0.2])  # was 0.2m away
+        r, d = reach_reward(ee, target, prev_dist, goal_bonus=10.0, goal_dist_tol=0.1)
+        # potential = 0.2 - 0.05 = 0.15, plus bonus = 10.0
+        assert r.item() == pytest.approx(10.15)
+        assert d.item() == pytest.approx(0.05)
 
-    def test_goal_bonus_not_retriggered(self):
-        """Bonus only fires on threshold crossing, not every step below."""
-        ee = torch.tensor([[0.9, 0.0, 0.0]])
-        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.1
-        prev_dist = torch.tensor([0.2])  # already below 0.55
-        r, d = reach_reward(ee, target, prev_dist, goal_bonus=10.0, goal_dist_tol=0.55)
-        # potential = 0.2 - 0.1 = 0.1, no bonus (was already inside)
+    def test_goal_bonus_persists(self):
+        """Bonus fires every step while within tolerance (not just first crossing)."""
+        ee = torch.tensor([[0.95, 0.0, 0.0]])
+        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.05 < 0.1
+        prev_dist = torch.tensor([0.06])  # was already within 0.1
+        r, d = reach_reward(ee, target, prev_dist, goal_bonus=10.0, goal_dist_tol=0.1)
+        # potential = 0.06 - 0.05 = 0.01, plus bonus = 10.0
+        assert r.item() == pytest.approx(10.01)
+
+    def test_goal_bonus_outside(self):
+        """No bonus when outside tolerance."""
+        ee = torch.tensor([[0.8, 0.0, 0.0]])
+        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.2 > 0.1
+        prev_dist = torch.tensor([0.3])
+        r, d = reach_reward(ee, target, prev_dist, goal_bonus=10.0, goal_dist_tol=0.1)
+        # potential = 0.3 - 0.2 = 0.1, no bonus
         assert r.item() == pytest.approx(0.1)
 
     def test_goal_bonus_default(self):
-        """Default goal bonus fires with default parameters."""
-        ee = torch.tensor([[0.9, 0.0, 0.0]])
-        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.1 < 0.55
-        prev_dist = torch.tensor([0.6])  # was >= 0.55
+        """Default goal bonus fires with default parameters when within 0.1m."""
+        ee = torch.tensor([[0.95, 0.0, 0.0]])
+        target = torch.tensor([[1.0, 0.0, 0.0]])  # dist = 0.05 < 0.1
+        prev_dist = torch.tensor([0.2])
         r, d = reach_reward(ee, target, prev_dist)
-        # potential = 0.6 - 0.1 = 0.5, plus default bonus = 10.0
-        assert r.item() == pytest.approx(10.5)
+        # potential = 0.2 - 0.05 = 0.15, plus default bonus = 10.0
+        assert r.item() == pytest.approx(10.15)
 
 
 class TestEEOrientationReward:

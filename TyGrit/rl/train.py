@@ -30,7 +30,6 @@ from TyGrit.rl.config import TrainConfig, default_causal_matrix
 from TyGrit.rl.obs import DictArray, build_obs_dict
 from TyGrit.rl.policy import FactoredPolicy, MultiChannelValue
 from TyGrit.rl.rewards import (
-    action_rate_penalty,
     collision_reward,
     ee_local_position_reward,
     ee_orientation_reward,
@@ -484,10 +483,6 @@ class FPPOTrainer:
                 prev_dist=prev_dist,
             )
 
-            # Action rate penalty (added to total, not a separate channel)
-            rate_pen = action_rate_penalty(raw_action.to(dev), prev_action.to(dev))
-            total_reward = total_reward + self.cfg.w_action_rate * rate_pen
-
             rewards_buf[t] = torch.stack([terms[n] for n in CHANNEL_NAMES], dim=1)
 
             prev_action = raw_action.to(dev)
@@ -525,22 +520,12 @@ class FPPOTrainer:
                 completed_successes.append(terminated[done_idx].float())
                 ep_returns[done_idx] = 0.0
 
-                if self.cfg.partial_reset and not done_mask.all():
-                    step_count[done_idx] = 0
-                    next_obs = build_obs_dict(step_result, target_pos)
-                    # Reset prev_dist for done envs
-                    prev_dist[done_idx] = torch.linalg.norm(
-                        next_obs["state"][done_idx, 30:33].to(dev)
-                        - target_pos[done_idx].to(dev),
-                        dim=1,
-                    )
-                else:
-                    next_obs, target_pos = self._reset_all()
-                    step_count.zero_()
-                    prev_dist = torch.linalg.norm(
-                        next_obs["state"][:, 30:33].to(dev) - target_pos.to(dev),
-                        dim=1,
-                    )
+                next_obs, target_pos = self._reset_all()
+                step_count.zero_()
+                prev_dist = torch.linalg.norm(
+                    next_obs["state"][:, 30:33].to(dev) - target_pos.to(dev),
+                    dim=1,
+                )
 
             obs = next_obs
 
