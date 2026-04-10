@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from TyGrit.belief_state.config import SceneConfig
 from TyGrit.config import SystemConfig, load_config
-from TyGrit.scene.config import SceneConfig
 
 
 class TestSystemConfig:
