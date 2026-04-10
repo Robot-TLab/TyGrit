@@ -13,6 +13,7 @@ import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 import torch
+from mani_skill.utils.structs.pose import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SceneConfig, SimConfig
 
 from TyGrit.controller.fetch.mpc import (
@@ -35,6 +36,15 @@ from TyGrit.utils.tensor import to_numpy
 
 class ManiSkillFetchRobot(FetchRobot):
     """Fetch robot driven by ManiSkill3 simulation."""
+
+    @property
+    def _agent(self):
+        """Always read the *current* agent — ManiSkill rebuilds it on every
+        ``env.reset()`` reconfigure (e.g. ``num_envs=1``), so caching the
+        agent reference at ``__init__`` time leaves writes (``set_pose``,
+        ``set_qpos``, …) hitting the destroyed previous scene.
+        """
+        return self._env.unwrapped.agent  # type: ignore[attr-defined]
 
     def __init__(
         self,
@@ -64,7 +74,6 @@ class ManiSkillFetchRobot(FetchRobot):
             ),
         )
 
-        self._agent = self._env.unwrapped.agent  # type: ignore[attr-defined]
         self._obs, _ = self._env.reset()
 
         # Build action slices: arm, gripper, body, base
@@ -369,11 +378,53 @@ class ManiSkillFetchRobot(FetchRobot):
     def close(self) -> None:
         self._env.close()
 
+    # ── Random in-room initial pose ───────────────────────────────────────
+
+    def _randomize_robot_pose(self, seed: int | None = None) -> None:
+        """Place the Fetch base at a random in-room collision-free pose.
+
+        Samples one ``(x, y)`` per env from the ReplicaCAD navmesh
+        (``*.fetch.navigable_positions.obj`` vertices, which are by
+        construction in free space) plus a uniform yaw, and teleports
+        the articulation root there.  Called from ``reset()`` *after*
+        ``self._env.reset()`` has run ``scene_builder.initialize()``
+        (which already snaps qpos to the rest keyframe), so we only
+        need to override the root pose.
+        """
+        nav_meshes = self._env.unwrapped.scene_builder.navigable_positions  # type: ignore[attr-defined]
+        num_envs = getattr(self, "_num_envs", 1)
+
+        rng = np.random.default_rng(seed)
+        poses = np.zeros((num_envs, 7), dtype=np.float32)
+        for i in range(num_envs):
+            mesh = nav_meshes[i] if i < len(nav_meshes) else None
+            if mesh is None or len(mesh.vertices) == 0:
+                x, y = -1.0, 0.0  # ManiSkill default fallback
+            else:
+                verts = np.asarray(mesh.vertices)
+                idx = int(rng.integers(0, len(verts)))
+                x, y = float(verts[idx, 0]), float(verts[idx, 1])
+            theta = float(rng.uniform(-np.pi, np.pi))
+            poses[i] = [x, y, 0.02, np.cos(theta / 2), 0.0, 0.0, np.sin(theta / 2)]
+
+        pose_tensor = torch.from_numpy(poses).to(self._env.unwrapped.device)  # type: ignore[attr-defined]
+        self._agent.robot.set_pose(Pose.create(pose_tensor))
+
     # ── Extra: reset ──────────────────────────────────────────────────────
 
-    def reset(self, seed: int | None = None) -> SensorSnapshot:
+    def reset(
+        self, seed: int | None = None, randomize_init: bool = True
+    ) -> SensorSnapshot:
         """Reset the environment and return a fresh observation."""
         self._obs, _ = self._env.reset(seed=seed)
+        if randomize_init:
+            self._randomize_robot_pose(seed=seed)
+            # Tell the interactive viewer (if any) to refresh its cached
+            # frame on the next render call — the viewer skips
+            # window.update_render when paused unless this flag is set.
+            viewer = self._env.unwrapped.viewer  # type: ignore[attr-defined]
+            if viewer is not None:
+                viewer.notify_render_update()
         self._init_qpos_world_offset()
         self._trajectory = None
         self._waypoint_idx = 0

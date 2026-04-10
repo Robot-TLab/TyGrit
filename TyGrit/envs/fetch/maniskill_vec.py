@@ -95,7 +95,9 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             ),
         )
 
-        self._agent = self._env.unwrapped.agent  # type: ignore[attr-defined]
+        # NOTE: do not cache self._agent — the parent class exposes it as a
+        # property that always reads env.unwrapped.agent, which ManiSkill
+        # rebuilds on every reconfigure.
 
         self._obs, _ = self._env.reset()
 
@@ -330,7 +332,12 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             "ee_forward": ee_forward,
         }
 
-    def reset(self, settle_steps: int = 0, **kwargs) -> dict:  # type: ignore[override]
+    def reset(  # type: ignore[override]
+        self,
+        settle_steps: int = 0,
+        randomize_init: bool = True,
+        **kwargs,
+    ) -> dict:
         """Reset all envs and return result with obs + TCP pose.
 
         Parameters
@@ -339,8 +346,19 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             Number of zero-action physics steps after reset to let objects
             settle before returning observations (prevents explosive forces
             from initial interpenetration).
+        randomize_init : bool
+            If True, randomize each env's Fetch base pose to a random
+            in-room collision-free spawn sampled from the ReplicaCAD
+            navmesh, instead of the hardcoded ``[-1, 0, 0.02]``.
         """
         self._obs, info = self._env.reset(**kwargs)
+        if randomize_init:
+            self._randomize_robot_pose(seed=kwargs.get("seed"))
+            # Tell the interactive viewer (if any) to refresh its
+            # cached frame on the next render call.
+            viewer = self._env.unwrapped.viewer  # type: ignore[attr-defined]
+            if viewer is not None:
+                viewer.notify_render_update()
         self._init_qpos_world_offset()
         self._trajectory = None
         self._waypoint_idx = 0
