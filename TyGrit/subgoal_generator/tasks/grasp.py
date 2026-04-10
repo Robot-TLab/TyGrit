@@ -38,10 +38,10 @@ from TyGrit.subgoal_generator.samplers.grasp_sampler import GraspSampler
 from TyGrit.types.planning import PlanningMode, Subgoal
 
 if TYPE_CHECKING:
+    from TyGrit.belief_state.scene import Scene
     from TyGrit.checker.collision import CollisionCheckFn
     from TyGrit.config import SystemConfig
     from TyGrit.envs.base import RobotBase
-    from TyGrit.scene.scene import Scene
     from TyGrit.subgoal_generator.config import GraspGeneratorConfig
     from TyGrit.types.planning import SchedulerFeedback
     from TyGrit.types.robot import RobotState

@@ -27,6 +27,8 @@ import sys
 import numpy as np
 from loguru import logger
 
+from TyGrit.belief_state.config import PointCloudSceneConfig
+from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.maniskill import ManiSkillFetchRobot
@@ -36,8 +38,6 @@ from TyGrit.perception.grasping.config import GraspGenConfig
 from TyGrit.perception.grasping.graspgen import GraspGenPredictor
 from TyGrit.planning.config import VampPlannerConfig
 from TyGrit.planning.fetch.vamp_preview import VampPreviewPlanner
-from TyGrit.scene.config import PointCloudSceneConfig
-from TyGrit.scene.pointcloud_scene import PointCloudScene
 from TyGrit.subgoal_generator.samplers.config import GraspSamplerConfig
 from TyGrit.subgoal_generator.samplers.grasp_sampler import GraspSampler
 from TyGrit.types.geometry import SE2Pose

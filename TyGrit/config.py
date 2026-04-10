@@ -6,6 +6,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from TyGrit.belief_state.config import PointCloudSceneConfig, SceneConfig
 from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.core.config import SchedulerConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
@@ -16,7 +17,6 @@ from TyGrit.perception.segmentation.config import (
     SegmenterConfig,
 )
 from TyGrit.planning.config import PlannerConfig, VampPlannerConfig
-from TyGrit.scene.config import PointCloudSceneConfig, SceneConfig
 from TyGrit.subgoal_generator.config import GraspGeneratorConfig, SubgoalGeneratorConfig
 
 

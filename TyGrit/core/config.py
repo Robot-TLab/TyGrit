@@ -8,7 +8,7 @@ from typing import Callable
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.scene.scene import Scene
+from TyGrit.belief_state.scene import Scene
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.robot import RobotState
 

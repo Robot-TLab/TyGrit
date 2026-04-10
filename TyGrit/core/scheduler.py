@@ -28,6 +28,7 @@ from typing import Callable  # used by camera_pose_fn annotation
 import numpy as np
 import numpy.typing as npt
 
+from TyGrit.belief_state.scene import Scene
 from TyGrit.core.config import (
     CheckFn,
     ControllerFn,
@@ -37,7 +38,6 @@ from TyGrit.core.config import (
 from TyGrit.envs.base import RobotBase
 from TyGrit.logging import log
 from TyGrit.planning.motion_planner import MotionPlanner
-from TyGrit.scene.scene import Scene
 from TyGrit.subgoal_generator.protocol import SubGoalGenerator
 from TyGrit.types.planning import PlanningMode, SchedulerFeedback, Subgoal, Trajectory
 from TyGrit.types.results import PlanResult, SchedulerOutcome, SchedulerResult

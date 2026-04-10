@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
-from TyGrit.scene.scene import Scene
+from TyGrit.belief_state.scene import Scene
 from TyGrit.types.planning import SchedulerFeedback, Subgoal
 from TyGrit.types.robot import RobotState
 
