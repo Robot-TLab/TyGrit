@@ -30,12 +30,13 @@ Typical setup goes through :func:`bind_specs` because ManiSkill's
 ``gym.make(scene_builder_cls=...)`` wants a class, not an instance::
 
     from TyGrit.worlds import load_manifest
-    from TyGrit.worlds.maniskill import bind_specs, build_world
+    from TyGrit.worlds.backends.maniskill import bind_specs, build_world
 
     specs = load_manifest("resources/worlds/replicacad.json")
     env = gym.make(
         "SceneManipulation-v1",
         scene_builder_cls=bind_specs(specs),
+        build_config_idxs=[0],
         num_envs=1,
     )
     built = build_world(env, specs, per_env_scene_idxs=[0])

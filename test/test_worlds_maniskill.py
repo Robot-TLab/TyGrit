@@ -28,12 +28,12 @@ pytest.importorskip("mani_skill", exc_type=ImportError)
 import gymnasium as gym  # noqa: E402
 
 from TyGrit.types.worlds import SceneSpec  # noqa: E402
-from TyGrit.worlds.manifest import load_manifest  # noqa: E402
-from TyGrit.worlds.maniskill import (  # noqa: E402
+from TyGrit.worlds.backends.maniskill import (  # noqa: E402
     SpecBackedSceneBuilder,
     bind_specs,
     build_world,
 )
+from TyGrit.worlds.manifest import load_manifest  # noqa: E402
 
 BASELINE_MANIFEST = "resources/worlds/replicacad.json"
 

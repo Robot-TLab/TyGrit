@@ -108,14 +108,14 @@ Before creating any new file, module, or directory, survey the project and place
 
 **The established conventions in this repo:**
 
-- `TyGrit/types/` — pure frozen dataclasses, no simulator imports. Every subsystem's data types live here as `types/<subsystem>.py` (e.g. `types/tasks.py`, `types/geometry.py`, `types/robot.py`, `types/planning.py`). If you're writing a pure dataclass, it belongs in `types/`, not anywhere else.
+- `TyGrit/types/` — pure frozen dataclasses, no simulator imports. Every subsystem's data types live here as `types/<subsystem>.py` (e.g. `types/tasks.py`, `types/geometry.py`, `types/robot.py`, `types/planning.py`, `types/worlds.py`). If you're writing a pure dataclass, it belongs in `types/`, not anywhere else.
 - `TyGrit/utils/` — pure functions, data in / data out, no class state.
 - `TyGrit/envs/` — robot + simulator wrapper interface (`RobotBase` protocol and concrete implementations). Nothing about scene assets belongs here.
-- `TyGrit/worlds/` — scene / world construction logic (manifests, samplers, per-sim adapters). Consumes types from `TyGrit/types/worlds.py`.
+- `TyGrit/worlds/` — scene / world construction logic. Sim-agnostic modules (`manifest.py`, `sampler.py`) live at the top level and stay importable in the default pixi env. Per-simulator adapters live under `TyGrit/worlds/backends/` (one file per backend: `backends/maniskill.py`, later `backends/genesis.py`, `backends/isaac_sim.py`) and each imports its own sim package. **Never mix sim-agnostic modules with per-backend adapters at the same directory level** — that hides the env-dependency boundary. Precedent for this split: `TyGrit/planning/` puts sim-agnostic protocol/factory/config at the parent level and robot-specific impls in a subpackage.
 - `TyGrit/tasks/` — task/goal definitions that reference worlds.
 - `TyGrit/belief_state/` — perception representation (point clouds, voxels). Not sim-scene configuration.
 - `TyGrit/planning/`, `TyGrit/perception/`, `TyGrit/controller/`, `TyGrit/kinematics/`, `TyGrit/gaze/`, `TyGrit/core/` — one directory per subsystem.
-- `test/test_<module>.py` — one test file per module, mirroring the import path.
+- `test/test_<module>.py` — one test file per module, mirroring the import path (e.g. `test/test_worlds_maniskill.py` for `TyGrit/worlds/backends/maniskill.py`).
 
 **Before adding a new file, answer these in order:**
 
