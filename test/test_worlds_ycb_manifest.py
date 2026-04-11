@@ -1,11 +1,15 @@
 """Tests for the Step 9 YCB object manifest.
 
 Pure Python — the YCB manifest is a committed artifact; this file
-only verifies it loads cleanly and has the expected shape. The
-generator that produced it requires the ycb asset bundle to be
-downloaded (needs the ``world`` pixi env); regenerating via::
+only verifies it loads cleanly and has the expected shape.
+
+The committed manifest holds the **fetch_graspable** subset (50
+objects curated in grasp_anywhere v1 for Fetch's parallel-jaw
+gripper). To regenerate::
 
     pixi run -e world python -m TyGrit.worlds.generators.ycb
+    # or with the full 78-object upstream set:
+    pixi run -e world python -m TyGrit.worlds.generators.ycb --subset all
 
 Integration with :class:`SpecBackedSceneBuilder` object spawning is
 tested in ``test_worlds_maniskill.py::TestSpecObjectSpawning``.
@@ -16,24 +20,33 @@ from __future__ import annotations
 from pathlib import Path
 
 from TyGrit.types.worlds import ObjectSpec
+from TyGrit.worlds.generators.ycb import FETCH_GRASPABLE_YCB
 from TyGrit.worlds.manifest import load_object_manifest
 
 YCB_MANIFEST = Path("resources/worlds/objects/ycb.json")
 
-#: Expected entry count — locks in ManiSkill's info_pick_v0.json
-#: content at the pinned mani-skill version in pixi.lock. If the
-#: upstream set changes (objects added/removed) we want this test
-#: to fail loudly so we can decide whether to regenerate.
-EXPECTED_YCB_COUNT = 78
+#: Expected count locked to the fetch_graspable subset length via
+#: import — if the curated list changes in the generator, this
+#: automatically tracks it without requiring a manual test update.
+#: v1's curated subset is 50 objects.
+EXPECTED_YCB_COUNT = len(FETCH_GRASPABLE_YCB)
 
 
 class TestYCBManifest:
     def test_manifest_exists(self) -> None:
         assert YCB_MANIFEST.exists()
 
-    def test_object_count_matches_upstream(self) -> None:
+    def test_object_count_matches_fetch_graspable_subset(self) -> None:
         objects = load_object_manifest(YCB_MANIFEST)
         assert len(objects) == EXPECTED_YCB_COUNT
+
+    def test_manifest_matches_fetch_graspable_subset_exactly(self) -> None:
+        # Not just the COUNT — the full set of names should match
+        # FETCH_GRASPABLE_YCB. Catches a regression where the generator
+        # silently picks a different 50-object subset.
+        objects = load_object_manifest(YCB_MANIFEST)
+        names = sorted(o.name for o in objects)
+        assert names == sorted(FETCH_GRASPABLE_YCB)
 
     def test_all_entries_are_objectspec(self) -> None:
         objects = load_object_manifest(YCB_MANIFEST)
@@ -73,16 +86,28 @@ class TestYCBManifest:
             assert o.mesh_path is None
 
     def test_known_model_ids_present(self) -> None:
-        # Spot-check a few well-known YCB objects are included so we
-        # catch cases where the generator accidentally dropped whole
-        # categories (e.g. regex filter gone wrong).
+        # Spot-check a handful of well-known YCB objects that are in
+        # the fetch_graspable subset. 003_cracker_box is intentionally
+        # NOT here — v1 dropped it because Fetch can't pinch a box
+        # that wide.
         objects = load_object_manifest(YCB_MANIFEST)
         names = {o.name for o in objects}
         known = {
             "002_master_chef_can",
-            "003_cracker_box",
             "004_sugar_box",
+            "011_banana",
+            "013_apple",
+            "024_bowl",
+            "025_mug",
             "065-a_cups",
+            "077_rubiks_cube",
         }
         missing = known - names
         assert not missing, f"YCB manifest missing known model IDs: {sorted(missing)}"
+
+    def test_cracker_box_not_in_fetch_graspable_subset(self) -> None:
+        # Regression guard: 003_cracker_box is too wide for Fetch's
+        # parallel-jaw gripper and was dropped by v1. If it ends up
+        # back in the manifest, the subset filter was bypassed.
+        objects = load_object_manifest(YCB_MANIFEST)
+        assert "003_cracker_box" not in {o.name for o in objects}
