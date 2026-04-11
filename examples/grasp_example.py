@@ -19,6 +19,7 @@ import argparse
 
 from loguru import logger
 
+from TyGrit.belief_state import PointCloudScene
 from TyGrit.checker import create_collision_check
 from TyGrit.config import load_config
 from TyGrit.controller.fetch import make_mpc_controller
@@ -26,7 +27,6 @@ from TyGrit.core.scheduler import Scheduler
 from TyGrit.envs import create_env
 from TyGrit.kinematics.fetch.camera import compute_camera_pose
 from TyGrit.planning.planner import create_planner
-from TyGrit.scene import PointCloudScene
 from TyGrit.subgoal_generator import create_subgoal_generator
 
 

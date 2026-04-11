@@ -1,10 +1,10 @@
-"""Tests for TyGrit.scene.pointcloud_scene — PointCloudScene."""
+"""Tests for TyGrit.belief_state.pointcloud_scene — PointCloudScene."""
 
 import numpy as np
 import pytest
 
-from TyGrit.scene.config import PointCloudSceneConfig
-from TyGrit.scene.pointcloud_scene import PointCloudScene
+from TyGrit.belief_state.config import PointCloudSceneConfig
+from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot

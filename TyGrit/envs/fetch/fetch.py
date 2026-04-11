@@ -37,6 +37,11 @@ class FetchRobot:
             config = FetchEnvConfig()
 
         if config.backend == "maniskill":
+            if config.num_envs > 1:
+                from TyGrit.envs.fetch.maniskill_vec import ManiSkillFetchRobotVec
+
+                return ManiSkillFetchRobotVec(config, mpc_config)
+
             from TyGrit.envs.fetch.maniskill import ManiSkillFetchRobot
 
             return ManiSkillFetchRobot(config, mpc_config)

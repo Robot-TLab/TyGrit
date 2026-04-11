@@ -12,7 +12,7 @@ from typing import Callable
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.scene.config import PointCloudSceneConfig
+from TyGrit.belief_state.config import PointCloudSceneConfig
 from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.utils.depth import depth_to_world_pointcloud
 from TyGrit.utils.pointcloud import (
