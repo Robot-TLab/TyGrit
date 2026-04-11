@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "source": "replicacad",
+  "generator": "hand-crafted baseline for Step 2 (6-scene subset; full 90 scenes land in Step 6)",
+  "scenes": [
+    {
+      "scene_id": "replicacad/apt_0",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_0",
+      "objects": [],
+      "target_object_names": []
+    },
+    {
+      "scene_id": "replicacad/apt_1",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_1",
+      "objects": [],
+      "target_object_names": []
+    },
+    {
+      "scene_id": "replicacad/apt_2",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_2",
+      "objects": [],
+      "target_object_names": []
+    },
+    {
+      "scene_id": "replicacad/apt_3",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_3",
+      "objects": [],
+      "target_object_names": []
+    },
+    {
+      "scene_id": "replicacad/apt_4",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_4",
+      "objects": [],
+      "target_object_names": []
+    },
+    {
+      "scene_id": "replicacad/apt_5",
+      "source": "replicacad",
+      "background_builtin_id": "replicacad:apt_5",
+      "objects": [],
+      "target_object_names": []
+    }
+  ]
+}
