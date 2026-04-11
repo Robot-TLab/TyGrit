@@ -64,6 +64,7 @@ setuptools = "<81"
 [feature.world.pypi-dependencies]
 trimesh = ">=4"
 objaverse = ">=0.1.7, <0.2"
+molmospaces-resources = ">=0.0.1b4"
 
 [feature.world.tasks]
 # Download ManiSkill-shipped scene datasets to $PIXI_PROJECT_ROOT/assets/maniskill.
@@ -77,6 +78,7 @@ download-replicacad = "python -m mani_skill.utils.download_asset ReplicaCAD -y"
 download-robocasa = "python -m mani_skill.utils.download_asset RoboCasa -y"
 download-ycb = "python -m mani_skill.utils.download_asset ycb -y"
 generate-objaverse-objects = "python -m TyGrit.worlds.generators.objaverse"
+generate-holodeck-scenes = "python -m TyGrit.worlds.generators.holodeck"
 
 # ── thirdparty (one-shot install tasks for VAMP/GraspGen/MomaViz/SAM3) ─
 # This env is rarely activated — only for `pixi run -e thirdparty install-*`

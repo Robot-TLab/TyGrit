@@ -221,6 +221,13 @@ assets/maniskill/
 # oracle at inference). See TyGrit/worlds/generators/objaverse.py.
 assets/objaverse/
 
+# MolmoSpaces (AllenAI) MJCF bulk cache — Holodeck scenes + shared
+# THOR + Objaverse object pools. Downloaded via molmospaces_resources
+# in TyGrit.worlds.generators.holodeck (~153 GB for the train split).
+# Only the generated scene manifest (resources/worlds/holodeck.json.gz)
+# lives in git.
+assets/molmospaces/
+
 # Thirdparty build artifacts
 thirdparty/GraspGen/pointnet2_ops/build/
 
@@ -243,3 +250,5 @@ __marimo__/
 runs/
 wandb/
 .vscode/
+.codex
+.claude
