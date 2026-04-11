@@ -47,6 +47,7 @@ Typical setup goes through :func:`bind_specs` because ManiSkill's
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any
 
 from mani_skill.utils.scene_builder import SceneBuilder
@@ -54,7 +55,14 @@ from mani_skill.utils.scene_builder.replicacad import ReplicaCADSceneBuilder
 
 from TyGrit.types.worlds import BuiltWorld, SceneSpec
 
-_SUPPORTED_SOURCES = frozenset({"replicacad"})
+#: Source values this adapter knows how to dispatch. Each entry maps to
+#: a ManiSkill shipped scene builder class that loads its own metadata
+#: and asset data. Add new entries here when a new ManiSkill-native
+#: scene source is wired up (HSSD, RoboCasa in Step 10, Genesis in
+#: Step 12 has its own backend at TyGrit/worlds/backends/genesis.py).
+_SUPPORTED_SOURCES = frozenset(
+    {"replicacad", "procthor", "ithor", "robothor", "architecthor"}
+)
 
 
 class SpecBackedSceneBuilder(SceneBuilder):
@@ -133,19 +141,8 @@ class SpecBackedSceneBuilder(SceneBuilder):
                 f"supported (have {sorted(_SUPPORTED_SOURCES)})"
             )
 
-        delegate = ReplicaCADSceneBuilder(
-            self.env,
-            robot_init_qpos_noise=self.robot_init_qpos_noise,
-            include_staging_scenes=True,
-        )
-
-        # delegate.build_configs is a list of scene config filenames
-        # like "apt_0.scene_instance.json" (and similarly for staging
-        # scenes). We key on the stem ("apt_0") so that our SceneSpec
-        # scene_id "replicacad/apt_0" resolves cleanly.
-        stem_to_delegate_idx: dict[str, int] = {
-            name.split(".")[0]: idx for idx, name in enumerate(delegate.build_configs)
-        }
+        delegate = _make_delegate(source, self.env, self.robot_init_qpos_noise)
+        stem_to_delegate_idx = _build_stem_map(delegate)
 
         spec_to_delegate: list[int] = []
         for spec in specs_tuple:
@@ -309,6 +306,102 @@ class SpecBackedSceneBuilder(SceneBuilder):
         if self._delegate is None:
             return False
         return self._delegate.builds_lighting
+
+
+# ─────────────────────── source → delegate dispatch ─────────────────────
+
+
+def _make_delegate(
+    source: str,
+    env: Any,
+    robot_init_qpos_noise: float,
+) -> SceneBuilder:
+    """Instantiate the ManiSkill scene builder for a SceneSpec ``source``.
+
+    ManiSkill ships different builder classes per dataset:
+
+    * **replicacad** → :class:`ReplicaCADSceneBuilder` with
+      ``include_staging_scenes=True`` to unlock all 90 apartments.
+    * **procthor / ithor / robothor / architecthor** → the four AI2THOR
+      variants from :mod:`mani_skill.utils.scene_builder.ai2thor.variants`.
+      They all share the :class:`AI2THORBaseSceneBuilder` base class and
+      differ only by ``scene_dataset`` class attribute, so we dispatch
+      via a lookup dict.
+
+    AI2THOR imports are deferred to this function so the module stays
+    importable when only ReplicaCAD is installed — ManiSkill loads the
+    AI2THOR metadata JSONs from its own package directory at import
+    time of the variants module, but those JSONs ship with the package
+    so the import itself is safe. The asset files themselves are
+    downloaded separately.
+    """
+    if source == "replicacad":
+        return ReplicaCADSceneBuilder(
+            env,
+            robot_init_qpos_noise=robot_init_qpos_noise,
+            include_staging_scenes=True,
+        )
+
+    if source in {"procthor", "ithor", "robothor", "architecthor"}:
+        from mani_skill.utils.scene_builder.ai2thor.variants import (
+            ArchitecTHORSceneBuilder,
+            ProcTHORSceneBuilder,
+            RoboTHORSceneBuilder,
+            iTHORSceneBuilder,
+        )
+
+        variant_cls: dict[str, type[SceneBuilder]] = {
+            "procthor": ProcTHORSceneBuilder,
+            "ithor": iTHORSceneBuilder,
+            "robothor": RoboTHORSceneBuilder,
+            "architecthor": ArchitecTHORSceneBuilder,
+        }
+        return variant_cls[source](env, robot_init_qpos_noise=robot_init_qpos_noise)
+
+    # _SUPPORTED_SOURCES is checked upstream in set_specs, so hitting
+    # this branch means the frozenset and this dispatch got out of sync
+    # — a programming error, not a data error.
+    raise ValueError(
+        f"_make_delegate: internal dispatch missing for source {source!r}; "
+        f"update _make_delegate to match _SUPPORTED_SOURCES"
+    )
+
+
+def _build_stem_map(delegate: SceneBuilder) -> dict[str, int]:
+    """Key the delegate's ``build_configs`` by stripped scene stem.
+
+    Handles two shapes of ``build_configs`` entries:
+
+    * **ReplicaCAD**: plain strings like ``"apt_0.scene_instance.json"``
+      — stem is ``"apt_0"``.
+    * **AI2THOR variants**: :class:`AI2BuildConfig` dataclasses with a
+      ``config_file`` string field like
+      ``"./2/ProcTHOR-Train-293.scene_instance.json"`` — stem is
+      ``"ProcTHOR-Train-293"``.
+
+    Both strip everything after the first ``.`` on the path stem, which
+    drops ``scene_instance`` and any further suffixes so the resulting
+    key is stable regardless of ManiSkill's internal file naming.
+    """
+    out: dict[str, int] = {}
+    for idx, entry in enumerate(delegate.build_configs):
+        if isinstance(entry, str):
+            config_file = entry
+        else:
+            # Duck-type on AI2BuildConfig.config_file — avoids an import
+            # of ai2thor.constants from a module that may be called
+            # before AI2THOR support is wired.
+            config_file = getattr(entry, "config_file", None)
+            if not isinstance(config_file, str):
+                raise TypeError(
+                    f"SpecBackedSceneBuilder: unexpected build_config "
+                    f"entry type {type(entry).__name__} at index {idx}; "
+                    f"expected str or AI2BuildConfig-like with a "
+                    f"'config_file: str' field"
+                )
+        stem = Path(config_file).stem.split(".")[0]
+        out[stem] = idx
+    return out
 
 
 def bind_specs(

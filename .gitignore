@@ -208,6 +208,12 @@ cython_debug/
 # Episode data (H5 files, converted from grasp_anywhere)
 data/
 
+# Downloaded simulator assets (scene datasets, object models). Project-local
+# via MS_ASSET_DIR in [feature.maniskill.activation.env] so ManiSkill writes
+# to assets/maniskill/data/scene_datasets/... instead of the user-global
+# ~/.maniskill/ cache.
+assets/maniskill/
+
 # Thirdparty build artifacts
 thirdparty/GraspGen/pointnet2_ops/build/
 

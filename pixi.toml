@@ -34,6 +34,16 @@ cuda-toolkit = "12.8.*"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
 mani-skill = ">=3.0.0b0, <4"
 
+# Route ManiSkill's asset downloads and lookups to a project-local
+# directory instead of the user-global ~/.maniskill/ cache. This
+# keeps every sim's asset footprint visible inside the repo tree
+# (`assets/maniskill/`, future `assets/genesis/`, …) and makes fresh
+# clones' missing-asset state obvious via `ls`. ManiSkill appends
+# `/data` and `/demos` subdirs to MS_ASSET_DIR on its own, so scenes
+# end up at `assets/maniskill/data/scene_datasets/<dataset>/...`.
+[feature.maniskill.activation.env]
+MS_ASSET_DIR = "$PIXI_PROJECT_ROOT/assets/maniskill"
+
 # ── rl (lightweight RL training) ───────────────────────────────────────
 # Composes: default + maniskill + rl. Minimal delta over maniskill.
 
@@ -53,6 +63,17 @@ setuptools = "<81"
 
 [feature.world.pypi-dependencies]
 trimesh = ">=4"
+
+[feature.world.tasks]
+# Download ManiSkill-shipped scene datasets to $PIXI_PROJECT_ROOT/assets/maniskill.
+# The MS_ASSET_DIR env var (set by [feature.maniskill.activation.env]) tells
+# mani_skill's download_asset where to write, so these tasks always land in
+# the project-local cache regardless of where the user's home directory is.
+# -y disables the "create target dir?" prompt — safe because the path is
+# inside the repo.
+download-ai2thor = "python -m mani_skill.utils.download_asset AI2THOR -y"
+download-replicacad = "python -m mani_skill.utils.download_asset ReplicaCAD -y"
+download-robocasa = "python -m mani_skill.utils.download_asset RoboCasa -y"
 
 # ── thirdparty (one-shot install tasks for VAMP/GraspGen/MomaViz/SAM3) ─
 # This env is rarely activated — only for `pixi run -e thirdparty install-*`

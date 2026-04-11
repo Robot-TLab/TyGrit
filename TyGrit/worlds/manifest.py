@@ -34,6 +34,7 @@ manifests remain forward-compatible with older readers.
 
 from __future__ import annotations
 
+import gzip
 import json
 from collections.abc import Iterable, Mapping
 from dataclasses import fields, is_dataclass
@@ -44,6 +45,34 @@ from TyGrit.types.worlds import ObjectSpec, SceneSpec
 
 #: Current manifest schema version. Incremented only on breaking changes.
 MANIFEST_VERSION = 1
+
+
+def _read_manifest_text(path: Path) -> str:
+    """Read a manifest file as text, transparently unzipping ``.gz``.
+
+    The ``.json.gz`` variant is used for large manifests (e.g. the
+    12,000-entry ProcTHOR manifest) so the committed file fits under
+    pre-commit's ``check-added-large-files`` 500 KB threshold. Load
+    behavior is otherwise identical — callers never need to care
+    whether the file is compressed.
+    """
+    if path.suffix == ".gz":
+        with gzip.open(path, "rt", encoding="utf-8") as f:
+            return f.read()
+    return path.read_text()
+
+
+def _write_manifest_text(path: Path, text: str) -> None:
+    """Write a manifest file as text, transparently gzipping ``.gz``.
+
+    Mirror of :func:`_read_manifest_text` — both functions have to
+    agree on the extension sniffing or the round-trip breaks.
+    """
+    if path.suffix == ".gz":
+        with gzip.open(path, "wt", encoding="utf-8") as f:
+            f.write(text)
+    else:
+        path.write_text(text)
 
 
 def load_manifest(path: str | Path) -> tuple[SceneSpec, ...]:
@@ -71,7 +100,7 @@ def load_manifest(path: str | Path) -> tuple[SceneSpec, ...]:
         (where possible) the ``scene_id`` of the offending entry.
     """
     path = Path(path)
-    text = path.read_text()
+    text = _read_manifest_text(path)
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -141,7 +170,7 @@ def save_manifest(
         data["generator"] = generator
     data["scenes"] = [_to_dict(scene) for scene in scenes]
 
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    _write_manifest_text(path, json.dumps(data, indent=2) + "\n")
 
 
 # ─────────────────────────── object manifests ───────────────────────────
@@ -190,7 +219,7 @@ def load_object_manifest(path: str | Path) -> tuple[ObjectSpec, ...]:
         (where possible) the ``name`` of the offending entry.
     """
     path = Path(path)
-    text = path.read_text()
+    text = _read_manifest_text(path)
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -243,7 +272,7 @@ def save_object_manifest(
         data["generator"] = generator
     data["objects"] = [_to_dict(obj) for obj in objects]
 
-    path.write_text(json.dumps(data, indent=2) + "\n")
+    _write_manifest_text(path, json.dumps(data, indent=2) + "\n")
 
 
 # ─────────────────────────── internals ───────────────────────────
