@@ -376,6 +376,81 @@ class TestSpecObjectSpawning:
         assert all(custom is not a for a in delegate_actors)
 
 
+# ─────────────────────── AI2THOR integration (Step 8) ────────────────
+
+
+class TestAI2THORIntegration:
+    """End-to-end: SpecBackedSceneBuilder dispatches to AI2THOR variants.
+
+    Requires the AI2THOR asset bundle (~15.6 GB download) at the
+    project-local cache under assets/maniskill/data/scene_datasets/ai2thor/.
+    Run::
+
+        pixi run -e world download-ai2thor
+
+    before running this file if the bundle is missing. Uses iTHOR
+    (150 scenes, smallest variant) as the smoke-test target so the
+    test fixture setup is fast.
+    """
+
+    def _ithor_specs(self) -> tuple[SceneSpec, ...]:
+        """Load the first handful of iTHOR scenes from the committed manifest.
+
+        The full iTHOR manifest is only 150 entries, but we slice to
+        2 so the fixture's gym.make call (which scrutinises every
+        build_config at construction time) stays fast. The small
+        slice still exercises the spec→delegate index translation
+        because the two entries have different local ids.
+        """
+        from TyGrit.worlds.manifest import load_manifest
+
+        full = load_manifest("resources/worlds/ithor.json")
+        return full[:2]
+
+    @pytest.fixture(scope="class")
+    def ithor_env(self):
+        specs = self._ithor_specs()
+        env = gym.make(
+            "SceneManipulation-v1",
+            scene_builder_cls=bind_specs(specs),
+            build_config_idxs=[0],
+            num_envs=1,
+        )
+        try:
+            yield env
+        finally:
+            env.close()
+
+    def test_scene_builder_is_spec_backed(self, ithor_env) -> None:
+        sb = ithor_env.unwrapped.scene_builder
+        assert isinstance(sb, SpecBackedSceneBuilder)
+
+    def test_delegate_is_ai2thor_variant(self, ithor_env) -> None:
+        # Our adapter must pick the iTHOR variant when the spec source
+        # is "ithor", not fall back to ReplicaCAD.
+        from mani_skill.utils.scene_builder.ai2thor.variants import (
+            iTHORSceneBuilder,
+        )
+
+        sb = ithor_env.unwrapped.scene_builder
+        assert isinstance(sb._delegate, iTHORSceneBuilder)  # noqa: SLF001
+
+    def test_build_configs_are_ithor_specs(self, ithor_env) -> None:
+        sb = ithor_env.unwrapped.scene_builder
+        assert all(s.source == "ithor" for s in sb.build_configs)
+        assert all(s.scene_id.startswith("ithor/") for s in sb.build_configs)
+
+    def test_build_world_switches_scenes(self, ithor_env) -> None:
+        specs = self._ithor_specs()
+        first = build_world(ithor_env, specs, per_env_scene_idxs=[0])
+        second = build_world(ithor_env, specs, per_env_scene_idxs=[1])
+        # The two iTHOR scenes must be distinct — same infrastructure
+        # as ReplicaCAD, just a different delegate.
+        assert first.spec.scene_id != second.spec.scene_id
+        assert first.spec.source == "ithor"
+        assert second.spec.source == "ithor"
+
+
 class TestSpecObjectSpawningValidation:
     """Unit-level validation of spawn-dispatch error paths.
 
