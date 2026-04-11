@@ -144,6 +144,108 @@ def save_manifest(
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
+# ─────────────────────────── object manifests ───────────────────────────
+#
+# Parallel to the scene manifest API but for ObjectSpec pools. The
+# schema wraps a list of self-contained ObjectSpec dicts under an
+# "objects" key:
+#
+#     {
+#       "version": 1,
+#       "source": "ycb",
+#       "generator": "...",
+#       "objects": [
+#         { "name": "...", "builtin_id": "ycb:..." },
+#         ...
+#       ]
+#     }
+#
+# Kept separate from scene manifests so the same object pool can be
+# reused across multiple scene sources (e.g. YCB objects in both
+# ReplicaCAD and HSSD scenes) without duplication.
+
+
+def load_object_manifest(path: str | Path) -> tuple[ObjectSpec, ...]:
+    """Load an object manifest from a JSON file.
+
+    Parameters
+    ----------
+    path
+        Filesystem path to the manifest.
+
+    Returns
+    -------
+    tuple[ObjectSpec, ...]
+        All objects in file order.
+
+    Raises
+    ------
+    FileNotFoundError
+        If ``path`` does not exist. Surfaces from
+        :meth:`pathlib.Path.read_text`.
+    ValueError
+        If the file is not valid JSON, the top-level structure is wrong,
+        the schema version is unsupported, or any object entry is
+        malformed. The error message includes the manifest path and
+        (where possible) the ``name`` of the offending entry.
+    """
+    path = Path(path)
+    text = path.read_text()
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as exc:
+        # Same wrapping pattern as load_manifest: re-raise with the file
+        # path so the caller sees which manifest failed.
+        raise ValueError(f"object manifest {path}: invalid JSON: {exc}") from exc
+
+    if not isinstance(data, dict):
+        raise ValueError(
+            f"object manifest {path}: top-level must be a JSON object, "
+            f"got {type(data).__name__}"
+        )
+
+    version = data.get("version")
+    if version != MANIFEST_VERSION:
+        raise ValueError(
+            f"object manifest {path}: unsupported schema version {version!r} "
+            f"(this build handles version {MANIFEST_VERSION})"
+        )
+
+    objects_raw = data.get("objects")
+    if not isinstance(objects_raw, list):
+        raise ValueError(
+            f"object manifest {path}: 'objects' must be a list, "
+            f"got {type(objects_raw).__name__}"
+        )
+
+    return tuple(_object_from_dict(entry, path) for entry in objects_raw)
+
+
+def save_object_manifest(
+    path: str | Path,
+    objects: Iterable[ObjectSpec],
+    *,
+    source: str | None = None,
+    generator: str | None = None,
+) -> None:
+    """Write an object manifest to a JSON file.
+
+    Same formatting conventions as :func:`save_manifest` (parent dirs
+    created, pretty-printed with ``indent=2``, trailing newline).
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    data: dict[str, Any] = {"version": MANIFEST_VERSION}
+    if source is not None:
+        data["source"] = source
+    if generator is not None:
+        data["generator"] = generator
+    data["objects"] = [_to_dict(obj) for obj in objects]
+
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
 # ─────────────────────────── internals ───────────────────────────
 
 

@@ -248,3 +248,31 @@ class SceneSamplerConfig:
     manifest_path: str
     scene_ids: tuple[str, ...] | None = None
     base_seed: int = 0
+
+
+@dataclass(frozen=True)
+class ObjectSamplerConfig:
+    """Configuration for an :class:`ObjectSampler`.
+
+    Parallel to :class:`SceneSamplerConfig` but for object pools.
+    ``object_names`` filters the pool to a subset; ``base_seed``
+    plus ``(env_idx, reset_count)`` deterministically derives the
+    per-reset draw, matching the scene-sampler contract so that
+    task samplers composed of (scene, object) pairs inherit the
+    same v1-bug guarantees.
+
+    Parameters
+    ----------
+    manifest_path
+        Path to a JSON object manifest (schema version 1), typically
+        under ``resources/worlds/objects/``.
+    object_names
+        Optional filter: only sample objects whose ``name`` appears
+        in this tuple. ``None`` uses every object in the manifest.
+    base_seed
+        Root seed for deterministic per-reset seed derivation.
+    """
+
+    manifest_path: str
+    object_names: tuple[str, ...] | None = None
+    base_seed: int = 0

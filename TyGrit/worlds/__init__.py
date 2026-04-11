@@ -27,7 +27,14 @@ dataclass definitions.
 
 from __future__ import annotations
 
-from TyGrit.worlds.manifest import MANIFEST_VERSION, load_manifest, save_manifest
+from TyGrit.worlds.manifest import (
+    MANIFEST_VERSION,
+    load_manifest,
+    load_object_manifest,
+    save_manifest,
+    save_object_manifest,
+)
+from TyGrit.worlds.object_sampler import ObjectSampler, create_object_sampler
 from TyGrit.worlds.sampler import SceneSampler, create_sampler
 
 # NOTE: Per-backend adapters live under TyGrit.worlds.backends.* and
@@ -41,8 +48,12 @@ from TyGrit.worlds.sampler import SceneSampler, create_sampler
 
 __all__ = [
     "MANIFEST_VERSION",
+    "ObjectSampler",
     "SceneSampler",
+    "create_object_sampler",
     "create_sampler",
     "load_manifest",
+    "load_object_manifest",
     "save_manifest",
+    "save_object_manifest",
 ]
