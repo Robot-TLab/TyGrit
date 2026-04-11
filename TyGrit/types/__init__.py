@@ -25,6 +25,12 @@ from TyGrit.types.tasks import (
     TaskScene,
     TaskSuite,
 )
+from TyGrit.types.worlds import (
+    BuiltWorld,
+    ObjectSpec,
+    SceneSamplerConfig,
+    SceneSpec,
+)
 
 __all__ = [
     # tasks
@@ -33,6 +39,11 @@ __all__ = [
     "ObjectPose",
     "TaskScene",
     "TaskSuite",
+    # worlds
+    "BuiltWorld",
+    "ObjectSpec",
+    "SceneSamplerConfig",
+    "SceneSpec",
     # geometry
     "SE2Pose",
     # robot
