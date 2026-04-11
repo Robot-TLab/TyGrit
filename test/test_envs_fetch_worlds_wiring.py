@@ -74,11 +74,12 @@ class TestManiSkillFetchRobotWiring:
         assert isinstance(sb, SpecBackedSceneBuilder)
 
     def test_sampler_and_scenes_are_populated(self, robot) -> None:
-        assert robot._sampler.scene_count == 6  # noqa: SLF001
-        assert len(robot._scenes) == 6  # noqa: SLF001
+        # After Step 6, the baseline manifest covers all 90 ReplicaCAD
+        # apts (6 main + 84 staging). The sampler pool must match.
+        assert robot._sampler.scene_count == 90  # noqa: SLF001
+        assert len(robot._scenes) == 90  # noqa: SLF001
         assert all(
-            s.scene_id.startswith("replicacad/apt_")
-            for s in robot._scenes  # noqa: SLF001
+            s.scene_id.startswith("replicacad/") for s in robot._scenes  # noqa: SLF001
         )
 
     def test_reset_count_starts_at_zero(self, robot) -> None:

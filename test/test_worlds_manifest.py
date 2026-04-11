@@ -25,32 +25,51 @@ def _write(tmp_path: Path, payload: dict) -> Path:
 
 
 class TestLoadReplicaCADBaseline:
-    """The bundled 6-apt manifest must load cleanly — it's our CI canary."""
+    """The bundled 90-apt manifest must load cleanly — it's our CI canary.
 
-    def test_loads_six_scenes(self) -> None:
+    The manifest was hand-crafted with 6 main apts in Step 2 and
+    expanded to all 90 (6 main + 84 staging) in Step 6 by the
+    generator at :mod:`TyGrit.worlds.generators.replicacad`.
+    """
+
+    def test_loads_all_scenes(self) -> None:
         scenes = load_manifest(BASELINE_MANIFEST)
-        assert len(scenes) == 6
+        # 6 main apts (apt_0..apt_5) + 84 staging scenes = 90 total.
+        assert len(scenes) == 90
 
     def test_all_entries_are_scenespec(self) -> None:
         scenes = load_manifest(BASELINE_MANIFEST)
         for scene in scenes:
             assert isinstance(scene, SceneSpec)
 
-    def test_scene_ids_sequential(self) -> None:
+    def test_contains_main_apts_and_staging(self) -> None:
         scenes = load_manifest(BASELINE_MANIFEST)
-        ids = [s.scene_id for s in scenes]
-        assert ids == [f"replicacad/apt_{i}" for i in range(6)]
+        ids = {s.scene_id for s in scenes}
+        # Every main apt stem must be present.
+        for i in range(6):
+            assert f"replicacad/apt_{i}" in ids
+        # At least one staging scene from each of the 4 v3_sc* groups.
+        staging_prefixes = {
+            s.scene_id.rsplit("_", 1)[0] for s in scenes if "staging" in s.scene_id
+        }
+        assert "replicacad/v3_sc0_staging" in staging_prefixes
+        assert "replicacad/v3_sc1_staging" in staging_prefixes
+        assert "replicacad/v3_sc2_staging" in staging_prefixes
+        assert "replicacad/v3_sc3_staging" in staging_prefixes
 
     def test_source_is_replicacad(self) -> None:
         scenes = load_manifest(BASELINE_MANIFEST)
         assert all(s.source == "replicacad" for s in scenes)
 
-    def test_builtin_ids_point_at_replicacad_loader(self) -> None:
+    def test_builtin_ids_mirror_scene_ids(self) -> None:
+        # Each builtin_id is "replicacad:<stem>" and the scene_id is
+        # "replicacad/<stem>" — the stems must line up so the
+        # SpecBackedSceneBuilder's scene_id-to-delegate-idx translation
+        # works for every entry.
         scenes = load_manifest(BASELINE_MANIFEST)
-        assert all(
-            s.background_builtin_id == f"replicacad:apt_{i}"
-            for i, s in enumerate(scenes)
-        )
+        for s in scenes:
+            stem = s.scene_id.split("/", 1)[1]
+            assert s.background_builtin_id == f"replicacad:{stem}"
 
     def test_no_objects_in_baseline(self) -> None:
         # The baseline delegates object spawning to ManiSkill's existing
@@ -61,7 +80,13 @@ class TestLoadReplicaCADBaseline:
     def test_accepts_string_path(self) -> None:
         # Callers often pass plain strings; load_manifest must accept them.
         scenes = load_manifest(str(BASELINE_MANIFEST))
-        assert len(scenes) == 6
+        assert len(scenes) == 90
+
+    def test_no_duplicate_scene_ids(self) -> None:
+        # The generator must produce unique scene_ids across all 90.
+        scenes = load_manifest(BASELINE_MANIFEST)
+        ids = [s.scene_id for s in scenes]
+        assert len(ids) == len(set(ids))
 
 
 class TestLoadErrors:

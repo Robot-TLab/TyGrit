@@ -178,7 +178,9 @@ class TestBaselineManifestIntegration:
     def test_create_sampler_loads_manifest(self) -> None:
         cfg = SceneSamplerConfig(manifest_path=str(BASELINE_MANIFEST))
         sampler = create_sampler(cfg)
-        assert sampler.scene_count == 6
+        # Step 6 expanded the baseline manifest to all 90 ReplicaCAD
+        # scenes (6 main + 84 staging). The sampler pool must match.
+        assert sampler.scene_count == 90
 
     def test_create_sampler_respects_filter(self) -> None:
         cfg = SceneSamplerConfig(
@@ -193,7 +195,10 @@ class TestBaselineManifestIntegration:
         sampler = create_sampler(cfg)
         scene = sampler.sample(env_idx=0, reset_count=0)
         assert scene.source == "replicacad"
-        assert scene.scene_id.startswith("replicacad/apt_")
+        # Post-Step-6 the pool includes staging scenes, so the prefix
+        # is "replicacad/" — either "replicacad/apt_N" or
+        # "replicacad/v3_sc*_staging_NN".
+        assert scene.scene_id.startswith("replicacad/")
 
     def test_create_sampler_raises_on_missing_manifest(self, tmp_path: Path) -> None:
         cfg = SceneSamplerConfig(manifest_path=str(tmp_path / "nonexistent.json"))
