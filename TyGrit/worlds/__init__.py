@@ -24,5 +24,12 @@ dataclass definitions.
 from __future__ import annotations
 
 from TyGrit.worlds.manifest import MANIFEST_VERSION, load_manifest, save_manifest
+from TyGrit.worlds.sampler import SceneSampler, create_sampler
 
-__all__ = ["MANIFEST_VERSION", "load_manifest", "save_manifest"]
+__all__ = [
+    "MANIFEST_VERSION",
+    "SceneSampler",
+    "create_sampler",
+    "load_manifest",
+    "save_manifest",
+]
