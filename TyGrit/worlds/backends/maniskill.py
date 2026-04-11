@@ -58,10 +58,10 @@ from TyGrit.types.worlds import BuiltWorld, ObjectSpec, SceneSpec
 #: Source values this adapter knows how to dispatch. Each entry maps to
 #: a ManiSkill shipped scene builder class that loads its own metadata
 #: and asset data. Add new entries here when a new ManiSkill-native
-#: scene source is wired up (HSSD, RoboCasa in Step 10, Genesis in
-#: Step 12 has its own backend at TyGrit/worlds/backends/genesis.py).
+#: scene source is wired up. Genesis (Step 12) has its own backend at
+#: TyGrit/worlds/backends/genesis.py.
 _SUPPORTED_SOURCES = frozenset(
-    {"replicacad", "procthor", "ithor", "robothor", "architecthor"}
+    {"replicacad", "procthor", "ithor", "robothor", "architecthor", "robocasa"}
 )
 
 
@@ -142,23 +142,9 @@ class SpecBackedSceneBuilder(SceneBuilder):
             )
 
         delegate = _make_delegate(source, self.env, self.robot_init_qpos_noise)
-        stem_to_delegate_idx = _build_stem_map(delegate)
-
-        spec_to_delegate: list[int] = []
-        for spec in specs_tuple:
-            # scene_id is conventionally "<source>/<local_id>". Strip
-            # the source prefix; fall back to the whole id if no "/"
-            # separator is present (defensive — manifests should always
-            # be qualified).
-            local_id = spec.scene_id.split("/", 1)[-1]
-            if local_id not in stem_to_delegate_idx:
-                raise ValueError(
-                    f"SpecBackedSceneBuilder: scene {spec.scene_id!r} "
-                    f"maps to local id {local_id!r} which is not in the "
-                    f"ReplicaCAD build_configs "
-                    f"({len(stem_to_delegate_idx)} scenes including staging)"
-                )
-            spec_to_delegate.append(stem_to_delegate_idx[local_id])
+        spec_to_delegate = _translate_specs_to_delegate_idxs(
+            source, specs_tuple, delegate
+        )
 
         self._delegate = delegate
         self._spec_to_delegate_idxs = tuple(spec_to_delegate)
@@ -225,9 +211,17 @@ class SpecBackedSceneBuilder(SceneBuilder):
         # still see spawned actors. Copy rather than assign so our
         # per-spec object spawning below can add entries without
         # mutating the delegate's own dicts.
-        self.scene_objects = dict(self._delegate.scene_objects)
-        self.movable_objects = dict(self._delegate.movable_objects)
-        self.articulations = dict(self._delegate.articulations)
+        #
+        # Coalesce to empty dict: ManiSkill's SceneBuilder base class
+        # declares these attrs as Optional[dict[...]] (default None at
+        # the class level). ReplicaCAD and AI2THOR overwrite them with
+        # {} during build(), but RoboCasaSceneBuilder.build() never
+        # assigns them at all — so reading them still returns the base
+        # class None. Both are valid per the interface; we only care
+        # that our mirror is a dict callers can iterate safely.
+        self.scene_objects = dict(self._delegate.scene_objects or {})
+        self.movable_objects = dict(self._delegate.movable_objects or {})
+        self.articulations = dict(self._delegate.articulations or {})
 
         # Spawn per-spec custom objects on top of the delegate's scene.
         # Heterogeneous parallel envs each draw their own SceneSpec from
@@ -458,6 +452,13 @@ def _make_delegate(
         }
         return variant_cls[source](env, robot_init_qpos_noise=robot_init_qpos_noise)
 
+    if source == "robocasa":
+        from mani_skill.utils.scene_builder.robocasa.scene_builder import (
+            RoboCasaSceneBuilder,
+        )
+
+        return RoboCasaSceneBuilder(env, robot_init_qpos_noise=robot_init_qpos_noise)
+
     # _SUPPORTED_SOURCES is checked upstream in set_specs, so hitting
     # this branch means the frozenset and this dispatch got out of sync
     # — a programming error, not a data error.
@@ -465,6 +466,118 @@ def _make_delegate(
         f"_make_delegate: internal dispatch missing for source {source!r}; "
         f"update _make_delegate to match _SUPPORTED_SOURCES"
     )
+
+
+def _translate_specs_to_delegate_idxs(
+    source: str,
+    specs: Sequence[SceneSpec],
+    delegate: SceneBuilder,
+) -> list[int]:
+    """Map each spec's scene_id to an index in ``delegate.build_configs``.
+
+    Different sources expose their scenes differently:
+
+    * **ReplicaCAD and AI2THOR variants** publish ``build_configs``
+      as a flat list where each entry's stem encodes a unique scene
+      id (``apt_0``, ``ProcTHOR-Train-293`` …). A stem-to-index map
+      built via :func:`_build_stem_map` handles both.
+    * **RoboCasa** does NOT publish a ``build_configs`` list at all —
+      its scenes are generated combinatorially from 10 layouts × 12
+      styles (index = ``layout * 12 + style``, total 120). Spec
+      scene_ids encode the layout/style names explicitly, e.g.
+      ``"robocasa/one_wall_small__industrial"``, and the translator
+      parses them via :func:`_robocasa_scene_id_to_idx` without
+      touching the delegate.
+
+    Raises
+    ------
+    ValueError
+        If any scene_id doesn't resolve to a valid delegate index.
+    """
+    if source == "robocasa":
+        return [_robocasa_scene_id_to_idx(s.scene_id) for s in specs]
+
+    # All other supported sources (replicacad, procthor, ithor,
+    # robothor, architecthor) use the stem-map approach because their
+    # delegates populate build_configs at __init__ time.
+    stem_to_idx = _build_stem_map(delegate)
+    out: list[int] = []
+    for spec in specs:
+        local_id = spec.scene_id.split("/", 1)[-1]
+        if local_id not in stem_to_idx:
+            raise ValueError(
+                f"SpecBackedSceneBuilder: scene {spec.scene_id!r} maps "
+                f"to local id {local_id!r} which is not in the {source} "
+                f"build_configs ({len(stem_to_idx)} scenes available)"
+            )
+        out.append(stem_to_idx[local_id])
+    return out
+
+
+def _robocasa_scene_id_to_idx(scene_id: str) -> int:
+    """Parse a RoboCasa scene_id into a ``build_config_idx``.
+
+    RoboCasa scenes are addressed as ``<layout_name>__<style_name>``
+    with names drawn from
+    :class:`mani_skill.utils.scene_builder.robocasa.utils.scene_registry.LayoutType`
+    and ``StyleType`` (both ``IntEnum``). The expected format is::
+
+        "robocasa/<layout_name>__<style_name>"
+
+    where ``layout_name`` is a lowercase enum member (e.g.
+    ``one_wall_small``, ``l_shaped_large``) and ``style_name`` is
+    likewise (``industrial``, ``modern_1``, …). The index is
+    computed as ``layout_value * 12 + style_value`` to match
+    :meth:`RoboCasaSceneBuilder.build`'s internal decoding::
+
+        layout_idx = build_config_idx // 12
+        style_idx  = build_config_idx %  12
+
+    Separating with ``__`` (two underscores) rather than a single
+    one avoids collisions with enum names that themselves contain
+    underscores (``l_shaped_small``, ``modern_1`` …).
+
+    Raises
+    ------
+    ValueError
+        If the format is unrecognised or either name isn't a valid
+        ``LayoutType``/``StyleType`` member.
+    """
+    from mani_skill.utils.scene_builder.robocasa.utils.scene_registry import (
+        LayoutType,
+        StyleType,
+    )
+
+    local = scene_id.split("/", 1)[-1]
+    if "__" not in local:
+        raise ValueError(
+            f"SpecBackedSceneBuilder: RoboCasa scene_id {scene_id!r} "
+            f"must be formatted '<layout>__<style>' with a double-"
+            f"underscore separator, e.g. 'one_wall_small__industrial'"
+        )
+    layout_name, _, style_name = local.partition("__")
+
+    try:
+        layout_val = LayoutType[layout_name.upper()].value
+    except KeyError as exc:
+        valid = sorted(m.name.lower() for m in LayoutType if m.value >= 0)
+        raise ValueError(
+            f"SpecBackedSceneBuilder: RoboCasa layout {layout_name!r} "
+            f"in {scene_id!r} is not a valid LayoutType. Valid layouts: "
+            f"{valid}"
+        ) from exc
+
+    try:
+        style_val = StyleType[style_name.upper()].value
+    except KeyError as exc:
+        valid = sorted(m.name.lower() for m in StyleType if m.value >= 0)
+        raise ValueError(
+            f"SpecBackedSceneBuilder: RoboCasa style {style_name!r} "
+            f"in {scene_id!r} is not a valid StyleType. Valid styles: "
+            f"{valid}"
+        ) from exc
+
+    return layout_val * 12 + style_val
 
 
 def _build_stem_map(delegate: SceneBuilder) -> dict[str, int]:

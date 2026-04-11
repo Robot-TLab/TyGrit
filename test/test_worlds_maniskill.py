@@ -126,7 +126,7 @@ class TestSpecValidation:
                 background_builtin_id="replicacad:apt_notreal",
             ),
         )
-        with pytest.raises(ValueError, match="not in the ReplicaCAD build_configs"):
+        with pytest.raises(ValueError, match="not in the replicacad build_configs"):
             builder.set_specs(specs)
 
     def test_empty_specs_resets_state(self) -> None:
@@ -449,6 +449,140 @@ class TestAI2THORIntegration:
         assert first.spec.scene_id != second.spec.scene_id
         assert first.spec.source == "ithor"
         assert second.spec.source == "ithor"
+
+
+# ─────────────────── RoboCasa integration (Step 10) ─────────────────────
+
+
+class TestRoboCasaIntegration:
+    """End-to-end: SpecBackedSceneBuilder dispatches to RoboCasa.
+
+    Requires the RoboCasa asset bundle (~8 GB) at
+    ``assets/maniskill/data/scene_datasets/robocasa_dataset/``. Run::
+
+        pixi run -e world download-robocasa
+
+    before running this file if the bundle is missing.
+    """
+
+    def _robocasa_specs(self) -> tuple[SceneSpec, ...]:
+        """First 2 entries from the committed RoboCasa manifest.
+
+        Slicing to 2 keeps the gym.make fixture fast (RoboCasa loads
+        YAML + several fixture meshes per scene). The two entries
+        differ by style (different build_config_idx) so the
+        translator and delegate actually do different work.
+        """
+        from TyGrit.worlds.manifest import load_manifest
+
+        full = load_manifest("resources/worlds/robocasa.json")
+        return full[:2]
+
+    @pytest.fixture(scope="class")
+    def robocasa_env(self):
+        specs = self._robocasa_specs()
+        env = gym.make(
+            "SceneManipulation-v1",
+            scene_builder_cls=bind_specs(specs),
+            build_config_idxs=[0],
+            num_envs=1,
+        )
+        try:
+            yield env
+        finally:
+            env.close()
+
+    def test_scene_builder_is_spec_backed(self, robocasa_env) -> None:
+        sb = robocasa_env.unwrapped.scene_builder
+        assert isinstance(sb, SpecBackedSceneBuilder)
+
+    def test_delegate_is_robocasa(self, robocasa_env) -> None:
+        from mani_skill.utils.scene_builder.robocasa.scene_builder import (
+            RoboCasaSceneBuilder,
+        )
+
+        sb = robocasa_env.unwrapped.scene_builder
+        assert isinstance(sb._delegate, RoboCasaSceneBuilder)  # noqa: SLF001
+
+    def test_build_configs_are_robocasa_specs(self, robocasa_env) -> None:
+        sb = robocasa_env.unwrapped.scene_builder
+        assert all(s.source == "robocasa" for s in sb.build_configs)
+        assert all(s.scene_id.startswith("robocasa/") for s in sb.build_configs)
+
+    def test_build_world_switches_scenes(self, robocasa_env) -> None:
+        specs = self._robocasa_specs()
+        first = build_world(robocasa_env, specs, per_env_scene_idxs=[0])
+        second = build_world(robocasa_env, specs, per_env_scene_idxs=[1])
+        assert first.spec.scene_id != second.spec.scene_id
+        assert first.spec.source == "robocasa"
+        assert second.spec.source == "robocasa"
+
+
+# ─────────────────── RoboCasa scene_id translator (Step 10) ─────────────
+
+
+class TestRoboCasaSceneIdTranslator:
+    """Unit tests for the RoboCasa scene_id → build_config_idx parser.
+
+    RoboCasa's scene space is combinatorial (10 layouts × 12 styles);
+    the translator parses the scene_id local portion and looks up the
+    layout/style names in ManiSkill's LayoutType/StyleType enums.
+    No real env needed — pure parsing.
+    """
+
+    def test_known_layout_and_style_resolve_correctly(self) -> None:
+        from TyGrit.worlds.backends.maniskill import (  # noqa: SLF001
+            _robocasa_scene_id_to_idx,
+        )
+
+        # one_wall_small has LayoutType value 0, industrial has StyleType
+        # value 0 (see mani_skill/utils/scene_builder/robocasa/utils/
+        # scene_registry.py). Expected: 0*12 + 0 = 0.
+        idx = _robocasa_scene_id_to_idx("robocasa/one_wall_small__industrial")
+        assert idx == 0
+
+    def test_layout_encoding_matches_scene_registry_intenum(self) -> None:
+        from mani_skill.utils.scene_builder.robocasa.utils.scene_registry import (
+            LayoutType,
+            StyleType,
+        )
+
+        from TyGrit.worlds.backends.maniskill import (  # noqa: SLF001
+            _robocasa_scene_id_to_idx,
+        )
+
+        # Every valid (layout, style) pair round-trips through the
+        # translator to the (layout_val * 12 + style_val) encoding
+        # that RoboCasaSceneBuilder.build decodes with //12 and %12.
+        for layout in [m for m in LayoutType if m.value >= 0]:
+            for style in [m for m in StyleType if m.value >= 0]:
+                scene_id = f"robocasa/{layout.name.lower()}__{style.name.lower()}"
+                idx = _robocasa_scene_id_to_idx(scene_id)
+                assert idx == layout.value * 12 + style.value
+
+    def test_rejects_missing_double_underscore(self) -> None:
+        from TyGrit.worlds.backends.maniskill import (  # noqa: SLF001
+            _robocasa_scene_id_to_idx,
+        )
+
+        with pytest.raises(ValueError, match="double-underscore"):
+            _robocasa_scene_id_to_idx("robocasa/one_wall_small_industrial")
+
+    def test_rejects_unknown_layout(self) -> None:
+        from TyGrit.worlds.backends.maniskill import (  # noqa: SLF001
+            _robocasa_scene_id_to_idx,
+        )
+
+        with pytest.raises(ValueError, match="not a valid LayoutType"):
+            _robocasa_scene_id_to_idx("robocasa/nonexistent__industrial")
+
+    def test_rejects_unknown_style(self) -> None:
+        from TyGrit.worlds.backends.maniskill import (  # noqa: SLF001
+            _robocasa_scene_id_to_idx,
+        )
+
+        with pytest.raises(ValueError, match="not a valid StyleType"):
+            _robocasa_scene_id_to_idx("robocasa/one_wall_small__nonexistent")
 
 
 class TestSpecObjectSpawningValidation:
