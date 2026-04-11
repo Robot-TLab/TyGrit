@@ -214,6 +214,13 @@ data/
 # ~/.maniskill/ cache.
 assets/maniskill/
 
+# Objaverse mesh cache. Per-UUID .glb files fetched via the objaverse
+# pip package. The UUIDs we sample are NVIDIA's GraspGen-curated
+# Objaverse-LVIS subset — we use their curation as a graspability
+# prior but do NOT use their grasp labels (TyGrit runs its own grasp
+# oracle at inference). See TyGrit/worlds/generators/objaverse.py.
+assets/objaverse/
+
 # Thirdparty build artifacts
 thirdparty/GraspGen/pointnet2_ops/build/
 

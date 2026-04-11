@@ -268,6 +268,15 @@ class SpecBackedSceneBuilder(SceneBuilder):
           future backend additions fail loudly instead of silently
           no-op'ing).
 
+        Secondary branch: if ``builtin_id`` is ``None`` but
+        ``mesh_path`` is set, fall through to a file-based spawn via
+        :meth:`scene.create_actor_builder` +
+        :meth:`add_visual_from_file` + :meth:`add_convex_collision_from_file`.
+        This is the path used by the Objaverse generator (
+        :mod:`TyGrit.worlds.generators.objaverse`), where each entry
+        points at a downloaded ``.glb`` file under
+        ``assets/objaverse/meshes/``.
+
         Pose: ``ObjectSpec.position`` is world-frame ``(x, y, z)``
         and ``orientation_xyzw`` is a unit quaternion in our project
         convention. Sapien takes ``wxyz``, so we swap at this boundary.
@@ -278,26 +287,18 @@ class SpecBackedSceneBuilder(SceneBuilder):
         (e.g. the task layer) sees them alongside delegate movables.
         """
         import sapien
-        from mani_skill.utils.building.actors.ycb import get_ycb_builder
 
-        if obj.builtin_id is None:
+        if obj.builtin_id is not None:
+            builder = self._make_builtin_actor_builder(obj)
+        elif obj.mesh_path is not None:
+            builder = self._make_mesh_path_actor_builder(obj)
+        else:
             raise NotImplementedError(
-                f"SpecBackedSceneBuilder: spawning object {obj.name!r} "
-                f"from file paths (urdf/usd/mjcf/mesh) is not yet "
-                f"supported; set builtin_id to route through a "
-                f"ManiSkill actor loader instead."
+                f"SpecBackedSceneBuilder: object {obj.name!r} has "
+                f"neither builtin_id nor mesh_path set. URDF/USD/MJCF "
+                f"file paths are not yet supported — use mesh_path "
+                f"(.glb/.obj/.stl) or builtin_id instead."
             )
-
-        prefix, _, model_id = obj.builtin_id.partition(":")
-        if prefix != "ycb":
-            raise NotImplementedError(
-                f"SpecBackedSceneBuilder: builtin_id prefix {prefix!r} "
-                f"in {obj.builtin_id!r} is not yet supported. Currently "
-                f"wired: 'ycb:<model_id>'. GSO and other sources land "
-                f"in follow-up steps."
-            )
-
-        builder = get_ycb_builder(self.scene, id=model_id)
 
         # TyGrit convention: xyzw; Sapien convention: wxyz. Swap at
         # the boundary so downstream stays consistent.
@@ -320,6 +321,58 @@ class SpecBackedSceneBuilder(SceneBuilder):
             self.scene_objects[f"env-{env_id}_{obj.name}"] = actor
             if not obj.fix_base:
                 self.movable_objects[f"env-{env_id}_{obj.name}"] = actor
+
+    def _make_builtin_actor_builder(self, obj: ObjectSpec):
+        """Dispatch a ``builtin_id``-qualified ObjectSpec to a ManiSkill loader.
+
+        Currently wired: ``ycb:<model_id>`` via
+        :func:`mani_skill.utils.building.actors.ycb.get_ycb_builder`,
+        which reads ``info_pick_v0.json`` for the object's bbox, scale,
+        and density and constructs an actor builder with the shipped
+        collision + visual files.
+
+        Raises
+        ------
+        NotImplementedError
+            If the ``builtin_id`` prefix is not yet supported. Add new
+            branches here when wiring new per-source actor loaders.
+        """
+        from mani_skill.utils.building.actors.ycb import get_ycb_builder
+
+        # obj.builtin_id is guaranteed non-None by _spawn_one_object.
+        assert obj.builtin_id is not None
+        prefix, _, model_id = obj.builtin_id.partition(":")
+        if prefix != "ycb":
+            raise NotImplementedError(
+                f"SpecBackedSceneBuilder: builtin_id prefix {prefix!r} "
+                f"in {obj.builtin_id!r} is not yet supported. Currently "
+                f"wired: 'ycb:<model_id>'. GSO and other sources land "
+                f"in follow-up steps."
+            )
+        return get_ycb_builder(self.scene, id=model_id)
+
+    def _make_mesh_path_actor_builder(self, obj: ObjectSpec):
+        """Build an actor from a mesh file on disk.
+
+        Used by :class:`ObjectSpec` entries that don't have a
+        ``builtin_id`` (e.g. Objaverse-curated meshes from
+        :mod:`TyGrit.worlds.generators.objaverse`). We use the mesh
+        itself as a single convex collision hull via
+        :meth:`add_convex_collision_from_file` — simplest, works for
+        most Objaverse-LVIS objects which tend toward simple shapes.
+        Generators that need concave collision can pre-decompose via
+        CoACD/V-HACD and store the decomposed collision alongside
+        the visual mesh; we would then switch to
+        ``add_multiple_convex_collisions_from_file``.
+        """
+        # obj.mesh_path is guaranteed non-None by _spawn_one_object.
+        assert obj.mesh_path is not None
+        builder = self.scene.create_actor_builder()
+        # ManiSkill's per-axis scale API takes a length-3 list.
+        scale_list = list(obj.scale)
+        builder.add_visual_from_file(filename=obj.mesh_path, scale=scale_list)
+        builder.add_convex_collision_from_file(filename=obj.mesh_path, scale=scale_list)
+        return builder
 
     def initialize(
         self,

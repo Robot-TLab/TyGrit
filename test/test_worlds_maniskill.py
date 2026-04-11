@@ -603,12 +603,78 @@ class TestSpecObjectSpawningValidation:
         with pytest.raises(NotImplementedError, match="'gso' in"):
             sb._spawn_one_object(obj, [0])  # noqa: SLF001
 
-    def test_file_path_without_builtin_id_raises(self) -> None:
+    def test_urdf_path_without_mesh_or_builtin_raises(self) -> None:
+        # urdf_path alone isn't currently wired — SpecBackedSceneBuilder
+        # only supports builtin_id (ycb:...) and mesh_path (.glb/.obj).
+        # An ObjectSpec with just urdf_path should fail loudly so the
+        # caller knows they need to either set mesh_path or wait for
+        # urdf support to land.
         from TyGrit.types.worlds import ObjectSpec
 
         sb = SpecBackedSceneBuilder(_FakeEnv())
         sb.scene_objects = {}
         sb.movable_objects = {}
         obj = ObjectSpec(name="y", urdf_path="/tmp/foo.urdf")
-        with pytest.raises(NotImplementedError, match="file paths"):
+        with pytest.raises(
+            NotImplementedError,
+            match="neither builtin_id nor mesh_path",
+        ):
             sb._spawn_one_object(obj, [0])  # noqa: SLF001
+
+
+# ─────────────────────── mesh_path spawn path (Step 11) ──────────────
+
+
+class TestMeshPathObjectSpawning:
+    """SpecBackedSceneBuilder spawns ObjectSpec.mesh_path entries via
+    :meth:`_make_mesh_path_actor_builder`.
+
+    Uses a hand-crafted unit-cube .obj fixture committed to the repo
+    (test/fixtures/unit_cube.obj) so the test doesn't depend on any
+    external dataset download. This is the path TyGrit.worlds.
+    generators.objaverse emits for the NVIDIA-curated Objaverse-LVIS
+    subset — each entry has mesh_path=<some .glb> and no builtin_id.
+
+    Requires the ``world`` pixi env (needs ManiSkill for gym.make +
+    the scene builder + add_visual_from_file).
+    """
+
+    def _scene_with_cube(self) -> SceneSpec:
+        from TyGrit.types.worlds import ObjectSpec
+
+        return SceneSpec(
+            scene_id="replicacad/apt_0",
+            source="replicacad",
+            background_builtin_id="replicacad:apt_0",
+            objects=(
+                ObjectSpec(
+                    name="unit_cube",
+                    mesh_path="test/fixtures/unit_cube.obj",
+                    position=(0.0, 0.0, 1.5),
+                ),
+            ),
+        )
+
+    @pytest.fixture(scope="class")
+    def cube_env(self):
+        specs = (self._scene_with_cube(),)
+        env = gym.make(
+            "SceneManipulation-v1",
+            scene_builder_cls=bind_specs(specs),
+            build_config_idxs=[0],
+            num_envs=1,
+        )
+        try:
+            yield env
+        finally:
+            env.close()
+
+    def test_mesh_spawned_actor_appears_in_scene_objects(self, cube_env) -> None:
+        sb = cube_env.unwrapped.scene_builder
+        assert "env-0_unit_cube" in sb.scene_objects
+
+    def test_mesh_spawned_actor_is_movable_by_default(self, cube_env) -> None:
+        # ObjectSpec.fix_base defaults to False, so the spawned cube
+        # must land in movable_objects just like YCB-builtin actors do.
+        sb = cube_env.unwrapped.scene_builder
+        assert "env-0_unit_cube" in sb.movable_objects
