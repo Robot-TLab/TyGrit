@@ -11,87 +11,126 @@ a ``sapien.Scene`` or ``ManiSkillScene`` and calls ``create_actor_builder``
 ``SpecBackedSceneBuilder`` will learn to dispatch to that loader in
 Step 11b (``worlds/backends/molmospaces_maniskill.py``); this module's
 job is strictly the manifest side of things — enumerate the scenes on
-disk, write one ``SceneSpec`` per ``.xml``, and pull the bulk data down so
-future runtime code has something to point at.
+disk, write one ``SceneSpec`` per ``.xml``, and pull down *only the
+objects those scenes actually reference* so future runtime code has
+something to point at without costing half a terabyte of mesh storage.
 
 .. _MolmoSpaces: https://huggingface.co/datasets/allenai/molmospaces
 
+Why the pipeline filters the Objaverse pool
+-------------------------------------------
+
+A naive ``install_all_for_source("objects", "objaverse")`` call would pull
+every one of NVIDIA's 129 725 curated Objaverse UUIDs — ~138 GB compressed
+and far more on disk after extraction. Empirically, a single Holodeck
+scene references only **~50 unique Objaverse UUIDs**, and the 100 k
+scenes share heavy overlap between them (many scenes reuse the same
+chairs / tables / decor). The actual working set is almost certainly
+well under 30 k UUIDs — roughly 1/5 of the full pool — which is the
+difference between a ~150 GB run and a usable ~75 GB run (plus a more
+modest ~15 GB smoke-test if ``--count`` is used to subsample scenes).
+
+We filter by parsing each extracted scene's MJCF for
+``../../objects/objaverse/<uuid>/`` references, unioning the set across
+scenes, and then calling :meth:`ResourceManager.install_packages` with
+that exact list. The ``find_archives`` helper on the resource manager
+translates UUID-qualified paths into Objaverse package names.
+
 Pipeline (one-shot, run manually)::
 
-    pixi run -e world generate-holodeck-scenes
+    pixi run -e world generate-holodeck-scenes                    # full train
+    pixi run -e world generate-holodeck-scenes --count 1000       # smoke
+    pixi run -e world generate-holodeck-scenes --include-val      # + val
 
-Steps:
+Stages:
 
-1. Construct an ``allenai/molmospaces`` :class:`HFRemoteStorage` pointing
-   at the ``mujoco`` repo prefix (we use the MuJoCo MJCF export, not the
-   Isaac USD export — MJCF is what ``MjcfSceneLoader`` consumes).
-2. Call :func:`setup_resource_manager` with pinned versions for
-   ``scenes/holodeck-objaverse-train``, ``objects/thor``, and
-   ``objects/objaverse``. ``setup()`` pulls only the small per-subset
-   index files (<20 MB total).
-3. For each of the three sources, call
-   :meth:`ResourceManager.install_all_for_source` to pull the full bulk
-   data. This is the ~153 GB step:
-
-   * ``scenes/holodeck-objaverse-train`` — 99 997 scenes, ~13.5 GB
-   * ``objects/thor`` — 17 THOR furniture packages, ~1.5 GB
-   * ``objects/objaverse`` — 129 725 curated Objaverse meshes, ~138.6 GB
-
-   The Objaverse pool is the dominant cost because every Holodeck scene
-   references a mix of THOR and Objaverse objects via relative mesh
-   paths inside its MJCF. Skipping the Objaverse pool would produce
-   scenes that spawn with missing geometry.
-4. Walk ``manager.symlink_path("scenes", "holodeck-objaverse-train")``
-   for ``*.xml`` files, sort for deterministic ordering, and emit one
-   :class:`~TyGrit.types.worlds.SceneSpec` per file with
-   ``background_mjcf`` pointing at the absolute (but repo-local) path
-   and ``source="holodeck"``. ``scene_id`` is
-   ``"holodeck/<source_subset>/<stem>"``.
-5. Write the manifest to ``resources/worlds/holodeck.json.gz``
-   (gzipped because 100 k SceneSpecs → ~15 MB uncompressed).
+1. **setup** — ``setup_resource_manager`` downloads the per-source
+   index files (~30 MB total) and, because ``objects/thor`` is declared
+   ``EAGER``, auto-extracts the full THOR pool (~3.2 GB on disk,
+   ~1.5 GB compressed).
+2. **scene subsample** — if ``--count N`` is given, deterministically
+   sample N scene package names from the scene source's
+   ``mjthor_resource_file_to_size_mb.json`` under the per-seed RNG;
+   otherwise use all 99 997 train scenes.
+3. **scene install** — ``install_packages("scenes", {source: [pkgs]})``
+   downloads the HF shards containing those scenes and extracts each
+   into ``cache/scenes/<source>/<version>/train_<N>.{xml,json,...}``.
+4. **scene linking** — manually symlink every scene file from its
+   cache location into ``mjcf/scenes/<source>/train_<N>.*``. The
+   ``ResourceManager``'s own ``PER_FILE`` linker for scenes is broken
+   because the scene source ships an empty trie dict; we recreate the
+   equivalent layout ourselves so that the MJCF's ``../../objects/...``
+   relative references resolve through ``mjcf/objects/{thor,objaverse}/``
+   (both of which *are* symlinks the ResourceManager creates correctly).
+5. **objaverse filter + install** — parse every linked MJCF for
+   Objaverse UUIDs, union them, call ``find_archives`` to resolve the
+   working set to package names, then
+   ``install_packages("objects", {"objaverse": pkgs})``. This is the
+   only stage whose cost scales with the number of unique UUIDs rather
+   than scene count.
+6. **manifest** — emit one :class:`~TyGrit.types.worlds.SceneSpec` per
+   linked MJCF with ``source="holodeck"``,
+   ``scene_id="holodeck/<source_subset>/<stem>"``, and
+   ``background_mjcf`` pointing at the (project-local) symlink path.
+   Write to ``resources/worlds/holodeck.json.gz`` (gzipped because
+   100 k SceneSpecs uncompressed exceeds the pre-commit large-file
+   threshold).
 
 Opt-in flags
 ------------
 
-* ``--include-val`` — also download and enumerate
-  ``holodeck-objaverse-val`` (~1.1 GB additional, +10 001 scenes).
-  Off by default because val is for eval and most RL runs don't need it.
-* ``--no-download`` — skip the bulk download and only rebuild the
-  manifest from whatever is already on disk under
-  ``assets/molmospaces/mjcf/``. Use this to regenerate after tweaking
-  naming conventions without re-paying the 153 GB cost.
+* ``--count N`` — subsample to N scenes (deterministic via
+  ``--seed``). Off by default ⇒ use every scene in the split.
+  Start with something like ``--count 1000`` for a fast smoke test,
+  then rerun without the flag once you've confirmed the pipeline
+  works end-to-end.
+* ``--seed S`` — RNG seed for the subsample step. Default ``0``.
+* ``--include-val`` — also pull ``holodeck-objaverse-val`` (+10 001
+  scenes, adds ~2-4 GB in scenes + a delta of Objaverse packages that
+  aren't already in the train working set).
+* ``--no-download`` — skip every network / extraction step and only
+  rebuild the manifest from whatever is already linked under
+  ``assets/molmospaces/mjcf/scenes/<source>/``. Useful for format
+  tweaks without re-paying the download cost.
 
 Disk layout
 -----------
 
-All writes land under the gitignored project-local
-``assets/molmospaces/`` tree to match the pattern we use for
-ManiSkill / Objaverse caches::
+Everything lands under the gitignored project-local
+``assets/molmospaces/`` tree::
 
     assets/molmospaces/
-    ├── cache/                   # versioned tarball cache
-    │   ├── scenes/holodeck-objaverse-train/20251217/...
-    │   ├── objects/thor/20251117/...
-    │   └── objects/objaverse/20260131/...
-    └── mjcf/                    # extracted + symlinked working tree
-        ├── scenes/holodeck-objaverse-train/*.xml
-        ├── objects/thor/...
-        └── objects/objaverse/...
+    ├── cache/                   # extracted .tar.zst payloads
+    │   ├── scenes/holodeck-objaverse-train/20251217/
+    │   │   ├── train_<N>.xml
+    │   │   ├── train_<N>_assets/
+    │   │   └── ...
+    │   ├── objects/thor/20251117/...        (auto-installed, EAGER)
+    │   └── objects/objaverse/20260131/      (filtered subset only)
+    │       └── <uuid>/<uuid>_visual.obj ...
+    └── mjcf/                    # symlink tree the MJCFs resolve against
+        ├── scenes/holodeck-objaverse-train/
+        │   ├── train_<N>.xml -> ../../cache/.../20251217/train_<N>.xml
+        │   ├── train_<N>_assets -> ../../cache/.../20251217/train_<N>_assets
+        │   └── ...
+        ├── objects/thor -> ../../cache/objects/thor/20251117
+        └── objects/objaverse -> ../../cache/objects/objaverse/20260131
 
 Version pins
 ------------
 
-Dates in :data:`VERSIONS` are the latest ``mujoco/`` MolmoSpaces snapshots
-observed on HF as of 2026-04-11. Bumping them is a deliberate act — a
-fresh snapshot may reshuffle scene counts or rename files, so any bump
-should come paired with a manifest regeneration and (ideally) a spot
-check that random sampled scenes still load via
-:class:`MjcfSceneLoader`.
+:data:`VERSIONS` tracks the latest ``mujoco/`` MolmoSpaces snapshots as
+of 2026-04-11. Bumping any date is deliberate — a fresh snapshot may
+reshuffle scenes or rename object UUIDs, which would invalidate the
+filtered working set the manifest was generated against.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
+import random
+import re
 from pathlib import Path
 
 from TyGrit.types.worlds import SceneSpec
@@ -106,15 +145,15 @@ HF_REPO_ID = "allenai/molmospaces"
 #: adjacent loader) consumes MJCF XML, not USD.
 HF_REPO_PREFIX = "mujoco"
 
-#: Pinned version dates per (data_type, source). The ResourceManager
-#: uses these to locate the right snapshot under ``mujoco/<data_type>/
-#: <source>/<version>/`` on HF. All four are the latest mujoco snapshots
-#: observed on 2026-04-11; bumping any date is a deliberate act.
+#: Pinned version dates per (data_type, source). Bumping any date is a
+#: deliberate act — a fresh snapshot may reshuffle scenes or rename
+#: object UUIDs, which would invalidate a generated manifest's filtered
+#: working set.
 VERSIONS: dict[str, dict[str, str]] = {
     "scenes": {
         "holodeck-objaverse-train": "20251217",
-        # val is opt-in via --include-val; we keep the version pin
-        # here so enabling the flag doesn't need a second constant.
+        # val is opt-in via --include-val; we keep the version pin here
+        # so enabling the flag doesn't need a second constant.
         "holodeck-objaverse-val": "20251217",
     },
     "objects": {
@@ -127,21 +166,37 @@ VERSIONS: dict[str, dict[str, str]] = {
 #: added by the ``--include-val`` CLI flag.
 DEFAULT_SCENE_SOURCES: tuple[str, ...] = ("holodeck-objaverse-train",)
 
+DEFAULT_SEED: int = 0
+
 #: Project-local paths. Everything under ``assets/molmospaces/`` is
-#: gitignored (see .gitignore, added alongside this generator).
+#: gitignored.
 MOLMOSPACES_ROOT = Path("assets/molmospaces")
 MJCF_DIR = MOLMOSPACES_ROOT / "mjcf"
 CACHE_DIR = MOLMOSPACES_ROOT / "cache"
 MANIFEST_PATH = Path("resources/worlds/holodeck.json.gz")
 
+#: Files the ResourceManager already symlinks at the top of
+#: ``mjcf/scenes/<source>/``. Our manual linker must skip these so it
+#: doesn't try to re-create them.
+_RESOURCE_MANAGER_INDEX_FILES = frozenset(
+    {
+        "mjthor_resource_file_to_size_mb.json",
+        "mjthor_resources_combined_meta.json.gz",
+    }
+)
+
+#: Regex matching ``file="../../objects/objaverse/<uuid>/..."`` references
+#: inside Holodeck MJCFs. The captured group is just the UUID.
+_OBJAVERSE_REF_RE = re.compile(r'"\.\./\.\./objects/objaverse/([^/]+)/')
+
 
 def _filter_versions(scene_sources: tuple[str, ...]) -> dict[str, dict[str, str]]:
-    """Return the :data:`VERSIONS` dict reduced to the requested scene sources.
+    """Reduce :data:`VERSIONS` to only the requested scene sources.
 
-    ``objects/thor`` and ``objects/objaverse`` are always included
-    because every Holodeck scene references meshes from both pools.
-    Filtering out a scene source the caller didn't ask for avoids an
-    unnecessary download if a future caller only wants val.
+    Object sources are always included because Holodeck scenes reference
+    meshes from both THOR and Objaverse pools. Filtering out a scene
+    source the caller didn't ask for avoids paying the download cost
+    for a source they won't enumerate.
     """
     if not scene_sources:
         raise ValueError("scene_sources must be non-empty")
@@ -157,125 +212,287 @@ def _filter_versions(scene_sources: tuple[str, ...]) -> dict[str, dict[str, str]
     }
 
 
-def download_molmospaces(scene_sources: tuple[str, ...]) -> None:
-    """Download + extract the MolmoSpaces MJCF bulk data for Holodeck.
+def _build_manager(scene_sources: tuple[str, ...]):
+    """Stand up a configured :class:`ResourceManager` for the requested sources.
 
-    Blocks until every scene package and every referenced object package
-    is cached on disk. Idempotent: reruns skip sources that are already
-    fully installed (the ResourceManager tracks install state via
-    per-source ``*_complete`` flag files in the cache dir, so a
-    partially-completed previous run resumes from where it stopped).
-
-    Parameters
-    ----------
-    scene_sources
-        A subset of :data:`VERSIONS`'s ``"scenes"`` keys to pull. Always
-        includes the shared ``objects/thor`` + ``objects/objaverse``
-        pools because Holodeck scene MJCFs reference meshes from both.
-
-    Raises
-    ------
-    ImportError
-        If ``molmospaces_resources`` isn't installed. This dep lives in
-        the ``world`` pixi feature — run via
-        ``pixi run -e world generate-holodeck-scenes`` so the right
-        env is active.
+    Deferred ``molmospaces_resources`` import so the generator module
+    stays importable in the default pixi env (which doesn't have the
+    dep installed). Same pattern the Objaverse + AI2THOR generators
+    use for their heavy imports.
     """
-    # Deferred import: molmospaces_resources only lives in the `world`
-    # pixi feature. Importing it at module load time would break the
-    # default env's ability to even import TyGrit.worlds.generators —
-    # which breaks test discovery. The same deferred-import pattern is
-    # used by the AI2THOR / Objaverse generators for exactly this reason.
     from molmospaces_resources import HFRemoteStorage, setup_resource_manager
 
     MJCF_DIR.mkdir(parents=True, exist_ok=True)
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
     storage = HFRemoteStorage(repo_id=HF_REPO_ID, repo_prefix=HF_REPO_PREFIX)
-    versions = _filter_versions(scene_sources)
-
-    # setup_resource_manager fetches the per-source index files
-    # (~20 MB total) and returns a ready-to-use manager. It does NOT
-    # download the bulk shards; that requires an explicit
-    # install_all_for_source call per source below.
-    manager = setup_resource_manager(
+    return setup_resource_manager(
         remote_storage=storage,
         symlink_dir=MJCF_DIR,
         cache_dir=CACHE_DIR,
-        versions=versions,
+        versions=_filter_versions(scene_sources),
         force_install=False,
         cache_lock=True,
     )
 
-    # Now pull the bulk data. We call install_all_for_source per
-    # (data_type, source) so the tqdm progress bars have a clear label
-    # and failures are scoped to one source at a time.
-    print("  downloading MolmoSpaces bulk data — this may take a long time...")
-    for data_type, sources in versions.items():
-        for source in sources:
-            print(
-                f"  install_all_for_source(data_type={data_type!r}, source={source!r})"
-            )
-            manager.install_all_for_source(data_type, source)
 
+def _scene_cache_version_dir(manager, source: str) -> Path:
+    """Return the extracted-cache version directory for a scene source.
 
-def list_scene_mjcfs(scene_source: str) -> list[Path]:
-    """Return every Holodeck MJCF path on disk for a scene source.
-
-    Walks ``MJCF_DIR / "scenes" / scene_source`` recursively for
-    ``*.xml`` files and sorts the result so manifest output is stable
-    across platforms. Raises :class:`FileNotFoundError` with a helpful
-    message if the expected directory doesn't exist — almost always
-    means :func:`download_molmospaces` hasn't been run yet.
+    ``ResourceManager.cache_path`` points at the versioned subdir where
+    scene packages land after ``install_packages`` extracts them. This
+    is the *authoritative* on-disk location for scene MJCFs; the
+    ``mjcf/scenes/<source>/`` tree is a symlink layer on top (which
+    our manual linker below populates).
     """
-    scene_dir = MJCF_DIR / "scenes" / scene_source
-    if not scene_dir.exists():
+    return manager.cache_path("scenes", source)
+
+
+def fixup_object_symlinks(manager) -> None:
+    """Rewrite ``mjcf/objects/{thor,objaverse}`` with absolute targets.
+
+    ``ResourceManager`` creates those two top-level object symlinks
+    with a *repo-relative* target like
+    ``"assets/molmospaces/cache/objects/thor/20251117"``. On most
+    filesystems, relative symlink targets are resolved against the
+    symlink's parent directory, NOT the process CWD — so the OS ends
+    up looking for ``mjcf/objects/assets/molmospaces/cache/objects/...``
+    which doesn't exist. The consequence is that every scene MJCF's
+    ``../../objects/thor/...`` reference silently dangles.
+
+    We delete those bad symlinks and recreate them pointing at the
+    *absolute* cache version directory. Absolute targets make the
+    links survive ``cd`` in any consumer while still living under
+    the gitignored ``assets/`` tree. Running this is idempotent — if
+    the link already has an absolute target we leave it alone.
+    """
+    for obj_source in VERSIONS["objects"]:
+        link = MJCF_DIR / "objects" / obj_source
+        cache_target = manager.cache_path("objects", obj_source).resolve()
+        if link.is_symlink():
+            current = Path(link.readlink())
+            if current.is_absolute() and current == cache_target:
+                continue
+            link.unlink()
+        elif link.exists():
+            # A plain directory exists where we need the symlink —
+            # refuse to touch it so we don't accidentally nuke user data.
+            raise FileExistsError(
+                f"{link} exists as a regular directory; expected either "
+                f"nothing or a ResourceManager-created symlink. Move or "
+                f"delete it before rerunning the generator."
+            )
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(cache_target)
+
+
+def load_scene_package_names(manager, source: str) -> list[str]:
+    """Return every scene package name (``*.tar.zst``) the source ships.
+
+    Reads ``mjthor_resource_file_to_size_mb.json`` under the cache
+    version dir — that file is downloaded by ``setup()`` before any
+    per-package install, so this works from the moment
+    :func:`_build_manager` returns.
+    """
+    version_dir = _scene_cache_version_dir(manager, source)
+    manifest_path = version_dir / "mjthor_resource_file_to_size_mb.json"
+    if not manifest_path.exists():
         raise FileNotFoundError(
-            f"Expected Holodeck scene dir at {scene_dir} but it does not "
-            f"exist. Run `pixi run -e world generate-holodeck-scenes` "
-            f"(without --no-download) to fetch the MolmoSpaces bulk data."
+            f"Expected scene package manifest at {manifest_path} but it "
+            f"is missing. setup_resource_manager should have fetched it; "
+            f"if it didn't, the manager construction likely failed."
         )
-    paths = sorted(scene_dir.rglob("*.xml"))
-    if not paths:
-        raise FileNotFoundError(
-            f"Holodeck scene dir {scene_dir} exists but contains no "
-            f".xml files. The bulk download may have been interrupted; "
-            f"rerun the generator without --no-download to resume."
-        )
-    return paths
+    with manifest_path.open() as f:
+        return sorted(json.load(f).keys())
+
+
+def subsample_scene_packages(
+    packages: list[str], count: int | None, seed: int
+) -> list[str]:
+    """Deterministically sample ``count`` scene package names.
+
+    ``count = None`` returns the full sorted list. Otherwise uses
+    :class:`random.Random` seeded on ``seed`` for repeatability
+    independent of numpy / hashseed state, then re-sorts so the
+    manifest diff is stable across reruns.
+    """
+    if count is None or count >= len(packages):
+        return list(packages)
+    rng = random.Random(seed)
+    return sorted(rng.sample(packages, count))
+
+
+def install_scene_packages(manager, source: str, packages: list[str]) -> None:
+    """Download + extract the requested scene packages via the resource manager.
+
+    Idempotent: packages that the ResourceManager has already marked as
+    extracted (via ``_complete_extract_flag`` files in the cache dir)
+    are skipped, so reruns cost only the incremental download.
+    """
+    if not packages:
+        return
+    print(
+        f"  install_packages(scenes, {source}) — "
+        f"{len(packages)} package(s) to install/verify"
+    )
+    manager.install_packages("scenes", {source: packages})
+
+
+def _scene_file_entries(
+    cache_version_dir: Path, package_names: list[str]
+) -> list[Path]:
+    """Resolve each scene package name to the on-disk files it extracted to.
+
+    Each package ``holodeck-objaverse-train_train_<N>.tar.zst`` extracts
+    to a set of sibling files sharing the ``train_<N>`` stem:
+    ``train_<N>.xml``, ``train_<N>.json``, ``train_<N>_metadata.json``,
+    ``train_<N>_ceiling.xml``, and a ``train_<N>_assets/`` directory.
+    Our linker needs to glob all of them without assuming a fixed set
+    of suffixes (fresh snapshots have added new sidecars in the past).
+
+    Returns a flat list of paths inside ``cache_version_dir`` — both
+    top-level files and the ``_assets`` directory (as a single Path,
+    not its recursive contents).
+    """
+    entries: list[Path] = []
+    for pkg in package_names:
+        # Package name format: "<source>_train_<N>.tar.zst"
+        # Scene stem: "train_<N>"
+        stem = pkg.rsplit(".tar.zst", 1)[0]
+        prefix = stem.split("_", 1)[-1]  # "<source>_train_N" -> "train_N"
+        # Match "train_<N>" followed by "." (e.g. train_91962.xml) or "_"
+        # (e.g. train_91962_assets, train_91962_metadata.json). This
+        # narrowly matches the one scene without sweeping in
+        # train_9196Xnnn unrelated scenes.
+        for candidate in cache_version_dir.iterdir():
+            name = candidate.name
+            if name in _RESOURCE_MANAGER_INDEX_FILES:
+                continue
+            if (
+                name == prefix
+                or name.startswith(prefix + ".")
+                or name.startswith(prefix + "_")
+            ):
+                entries.append(candidate)
+    return entries
+
+
+def link_scenes_into_mjcf_dir(manager, source: str, package_names: list[str]) -> Path:
+    """Symlink extracted scene files from cache into ``mjcf/scenes/<source>/``.
+
+    The ResourceManager's PER_FILE linking for the scenes source is a
+    no-op because its scene trie dict is empty (a quirk we don't need
+    to debug — the scene package trie *is* populated in the LMDB
+    archive index used by ``find_archives``, just not the higher-level
+    ``tries()`` helper). We create the equivalent symlink layout
+    ourselves: for each scene package, link every extracted sibling
+    file / dir at ``mjcf/scenes/<source>/<filename>`` pointing at the
+    cache copy. This makes the MJCF's ``../../objects/...`` references
+    resolve through ``mjcf/objects/{thor,objaverse}/`` symlinks that
+    the resource manager *does* create correctly.
+
+    Returns the target directory, which is then walked by
+    :func:`build_holodeck_manifest` to produce the manifest entries.
+    """
+    cache_version_dir = _scene_cache_version_dir(manager, source)
+    target_dir = MJCF_DIR / "scenes" / source
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    linked = 0
+    for entry in _scene_file_entries(cache_version_dir, package_names):
+        link_path = target_dir / entry.name
+        if link_path.is_symlink() or link_path.exists():
+            continue
+        # Use absolute paths so the link survives `cd` in a future
+        # consumer, and so a walk from MJCF_DIR finds the actual files
+        # instead of broken relative targets.
+        link_path.symlink_to(entry.resolve())
+        linked += 1
+
+    print(f"  linked {linked} scene entries into {target_dir}")
+    return target_dir
+
+
+def collect_objaverse_uuids(
+    mjcf_source_dir: Path, package_names: list[str]
+) -> set[str]:
+    """Scan the linked MJCFs for referenced Objaverse UUIDs.
+
+    Iterates only the ``train_<N>.xml`` files that correspond to the
+    installed ``package_names`` — we do NOT recurse into every link the
+    directory has accumulated, because a prior generator run may have
+    left orphan links from a different package set. Each MJCF is read
+    as text and regex-scanned for ``../../objects/objaverse/<uuid>/``
+    references; the union across all scenes is returned.
+    """
+    uuids: set[str] = set()
+    for pkg in package_names:
+        stem = pkg.rsplit(".tar.zst", 1)[0].split("_", 1)[-1]  # train_<N>
+        mjcf = mjcf_source_dir / f"{stem}.xml"
+        if not mjcf.exists():
+            # Shouldn't happen if link_scenes_into_mjcf_dir ran, but surface
+            # rather than silently missing the UUIDs.
+            raise FileNotFoundError(
+                f"Expected linked MJCF at {mjcf}; was link_scenes_into_mjcf_dir "
+                f"called with the same package_names?"
+            )
+        uuids.update(_OBJAVERSE_REF_RE.findall(mjcf.read_text()))
+    return uuids
+
+
+def install_filtered_objaverse(manager, uuids: set[str]) -> None:
+    """Download only the Objaverse packages referenced by our scenes.
+
+    Turns each UUID into a sample path (``<uuid>/<uuid>_visual.obj``),
+    calls :meth:`ResourceManager.find_archives` to translate those to
+    package names, de-duplicates, and installs the resulting subset.
+    With an average of ~50 Objaverse UUIDs per scene and heavy scene-
+    to-scene overlap, this is typically 1/5 the size of the full
+    Objaverse pool — and far less on disk after extraction.
+    """
+    if not uuids:
+        print("  no Objaverse UUIDs referenced; skipping Objaverse install")
+        return
+    sample_paths = [f"{u}/{u}_visual.obj" for u in sorted(uuids)]
+    print(
+        f"  find_archives(objects, objaverse, <{len(sample_paths)} paths>) "
+        f"to resolve the working set..."
+    )
+    pkgs = sorted(set(manager.find_archives("objects", "objaverse", sample_paths)))
+    print(
+        f"  install_packages(objects, objaverse) — {len(pkgs)} package(s) "
+        f"(filtered from the full 129725-UUID pool)"
+    )
+    manager.install_packages("objects", {"objaverse": pkgs})
 
 
 def build_holodeck_manifest(
-    scene_sources: tuple[str, ...] = DEFAULT_SCENE_SOURCES,
+    mjcf_source_dir: Path, source: str, package_names: list[str]
 ) -> tuple[SceneSpec, ...]:
-    """Enumerate downloaded Holodeck scenes as a :class:`SceneSpec` tuple.
+    """Emit one :class:`SceneSpec` per linked Holodeck MJCF.
 
-    Each spec is::
-
-        SceneSpec(
-            scene_id            = f"holodeck/{source}/{stem}",
-            source              = "holodeck",
-            background_mjcf     = str(mjcf_path),  # relative to repo root
-        )
-
-    ``objects`` is left empty — a Holodeck MJCF is self-contained: all
-    furniture and Objaverse props are inlined in the XML via ``<include>``
-    / ``<body>`` references to the shared ``objects/thor`` and
-    ``objects/objaverse`` pools (downloaded alongside the scenes), so the
-    SpecBackedSceneBuilder doesn't need a per-object spawn list — the
-    MjcfSceneLoader parses the whole tree in one go during ``build()``.
+    ``scene_id`` is ``"holodeck/<source>/<stem>"`` where ``stem`` is
+    the MJCF filename without extension (globally unique inside a
+    source). ``background_mjcf`` is the project-local symlink path
+    under ``mjcf/scenes/<source>/`` — guaranteed to be the right
+    location for the MJCF's ``../../objects/...`` references to
+    resolve. ``objects`` is empty because Holodeck MJCFs inline their
+    object placements via ``<include>`` / ``<body>`` references; the
+    per-scene spawn happens inside ``MjcfSceneLoader.load()`` at
+    Step 11b runtime rather than as a list of
+    :class:`~TyGrit.types.worlds.ObjectSpec` entries here.
     """
     specs: list[SceneSpec] = []
-    for source in scene_sources:
-        for mjcf in list_scene_mjcfs(source):
-            stem = mjcf.stem
-            specs.append(
-                SceneSpec(
-                    scene_id=f"holodeck/{source}/{stem}",
-                    source="holodeck",
-                    background_mjcf=str(mjcf),
-                )
+    for pkg in package_names:
+        stem = pkg.rsplit(".tar.zst", 1)[0].split("_", 1)[-1]
+        mjcf = mjcf_source_dir / f"{stem}.xml"
+        specs.append(
+            SceneSpec(
+                scene_id=f"holodeck/{source}/{stem}",
+                source="holodeck",
+                background_mjcf=str(mjcf),
             )
+        )
     return tuple(specs)
 
 
@@ -283,31 +500,47 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
             "Download AllenAI's Holodeck scene set from MolmoSpaces and "
-            "write a TyGrit world manifest. Default pulls the train split "
-            "(~100k scenes) plus the shared THOR + Objaverse object pools; "
-            "full bulk download is ~153 GB (Objaverse dominates). "
-            "Step 11b will add a runtime ManiSkill backend adapter that "
-            "dispatches scene_id='holodeck/...' entries to AllenAI's "
-            "MjcfSceneLoader; until then this manifest is data-only."
+            "write a TyGrit world manifest. Only downloads the Objaverse "
+            "meshes actually referenced by the selected scenes; the shared "
+            "THOR pool (~3 GB) is pulled automatically by the resource "
+            "manager as an eager source. Step 11b will add a ManiSkill "
+            "backend adapter that dispatches scene_id='holodeck/...' "
+            "entries to AllenAI's MjcfSceneLoader; until then this manifest "
+            "is data-only."
         )
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help=(
+            "Subsample this many scenes deterministically (default: all). "
+            "Recommended smoke-test value is 1000; full train set is 99997."
+        ),
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SEED,
+        help="RNG seed for --count subsampling. Same seed -> same subset.",
     )
     parser.add_argument(
         "--include-val",
         action="store_true",
         help=(
             "Also download and enumerate the holodeck-objaverse-val split "
-            "(~1.1 GB additional, +10001 scenes). Off by default because "
-            "RL training only consumes the train split."
+            "(+10001 scenes). Off by default because RL training only "
+            "consumes the train split."
         ),
     )
     parser.add_argument(
         "--no-download",
         action="store_true",
         help=(
-            "Skip the bulk download and rebuild the manifest from whatever "
-            "is already present under assets/molmospaces/mjcf/. Use this to "
-            "regenerate after tweaking the manifest format without paying "
-            "the 153 GB download cost again."
+            "Skip every download / extract step and rebuild the manifest "
+            "from whatever is already linked under "
+            "assets/molmospaces/mjcf/scenes/<source>/. Useful for format "
+            "tweaks without re-paying the download cost."
         ),
     )
     args = parser.parse_args()
@@ -317,30 +550,67 @@ def main() -> None:
         scene_sources.append("holodeck-objaverse-val")
     sources_tuple = tuple(scene_sources)
 
+    print(f"[1/6] Standing up ResourceManager for sources={sources_tuple}...")
+    manager = _build_manager(sources_tuple)
+    fixup_object_symlinks(manager)
+
+    all_specs: list[SceneSpec] = []
+    # Per-source install + link + UUID collect. Each source is
+    # independent so failures in one don't corrupt another.
+    all_referenced_uuids: set[str] = set()
+    per_source_selected: dict[str, list[str]] = {}
+
+    for source in sources_tuple:
+        all_pkgs = load_scene_package_names(manager, source)
+        selected = subsample_scene_packages(all_pkgs, args.count, args.seed)
+        per_source_selected[source] = selected
+        print(
+            f"[2/6] Scene source {source!r}: "
+            f"{len(all_pkgs)} total, {len(selected)} selected "
+            f"(count={args.count}, seed={args.seed})"
+        )
+
+        if args.no_download:
+            print(f"[3/6] (skipped install for {source}, --no-download)")
+        else:
+            print(f"[3/6] Installing scene packages for {source}...")
+            install_scene_packages(manager, source, selected)
+
+        print(f"[4/6] Linking scenes into mjcf dir for {source}...")
+        mjcf_dir = link_scenes_into_mjcf_dir(manager, source, selected)
+
+        print(f"[5a/6] Parsing MJCFs for Objaverse refs in {source}...")
+        uuids = collect_objaverse_uuids(mjcf_dir, selected)
+        print(f"       {source}: {len(uuids)} unique Objaverse UUIDs referenced")
+        all_referenced_uuids |= uuids
+
+        all_specs.extend(build_holodeck_manifest(mjcf_dir, source, selected))
+
     if args.no_download:
-        print("[1/2] Skipping download (--no-download)")
+        print("[5b/6] (skipped Objaverse install, --no-download)")
     else:
         print(
-            f"[1/2] Downloading MolmoSpaces bulk data for {sources_tuple} + "
-            f"shared objects/thor + objects/objaverse (~153 GB one-time)..."
+            f"[5b/6] Installing filtered Objaverse subset "
+            f"({len(all_referenced_uuids)} unique UUIDs across all sources)..."
         )
-        download_molmospaces(sources_tuple)
+        install_filtered_objaverse(manager, all_referenced_uuids)
 
-    print(f"[2/2] Enumerating MJCFs + writing manifest to {MANIFEST_PATH}...")
-    specs = build_holodeck_manifest(sources_tuple)
+    print(f"[6/6] Writing manifest to {MANIFEST_PATH}...")
     save_manifest(
         MANIFEST_PATH,
-        specs,
+        tuple(all_specs),
         source="holodeck",
         generator=(
-            "TyGrit.worlds.generators.holodeck " f"--sources={','.join(sources_tuple)}"
+            "TyGrit.worlds.generators.holodeck "
+            f"--sources={','.join(sources_tuple)} "
+            f"--count={args.count} --seed={args.seed}"
         ),
     )
-    print(f"       wrote {len(specs)} SceneSpecs to {MANIFEST_PATH}")
+    print(f"       wrote {len(all_specs)} SceneSpecs to {MANIFEST_PATH}")
     print()
     print(
-        f"Done. Commit {MANIFEST_PATH} (gzipped, small). The (gitignored) "
-        f"bulk cache stays in {MOLMOSPACES_ROOT}/ for local use — Step 11b "
+        f"Done. Commit {MANIFEST_PATH}. The (gitignored) bulk cache "
+        f"stays in {MOLMOSPACES_ROOT}/ for local use — Step 11b "
         f"will wire scene_id='holodeck/...' entries to MjcfSceneLoader so "
         f"they spawn in ManiSkill."
     )
