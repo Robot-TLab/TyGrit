@@ -105,6 +105,37 @@ class SceneSampler:
         """The root seed used for per-reset derivation."""
         return self._base_seed
 
+    @property
+    def scenes(self) -> tuple[SceneSpec, ...]:
+        """The filtered scene pool this sampler draws from.
+
+        Callers that need to share the SAME pool with a downstream
+        component (e.g. a ManiSkill scene builder created via
+        :func:`TyGrit.worlds.backends.maniskill.bind_specs`) should
+        pass this tuple rather than reloading the manifest — otherwise
+        indices returned by :meth:`sample_idx` won't line up with the
+        consumer's internal index space.
+        """
+        return self._scenes
+
+    def sample_idx(self, env_idx: int, reset_count: int) -> int:
+        """Pick the **index** of a scene for a given (env_idx, reset_count).
+
+        Prefer this over :meth:`sample` when you already hold the
+        scene pool and want the integer index directly — callers that
+        forward indices to ManiSkill's ``build_config_idxs`` path use
+        this one. See :meth:`sample` for the deterministic mapping
+        contract.
+        """
+        # numpy.random.SeedSequence accepts an int or a sequence of ints
+        # and deterministically mixes them into a 128-bit entropy pool.
+        # It's explicitly designed for "derive independent seeds from a
+        # root" workflows like this one, and is stable across numpy
+        # versions per numpy's API compat policy.
+        seq = np.random.SeedSequence([self._base_seed, int(env_idx), int(reset_count)])
+        rng = np.random.default_rng(seq)
+        return int(rng.integers(0, len(self._scenes)))
+
     def sample(self, env_idx: int, reset_count: int) -> SceneSpec:
         """Pick a scene for a given (env_idx, reset_count) pair.
 
@@ -130,15 +161,7 @@ class SceneSampler:
         SceneSpec
             One of the scenes in the filtered pool.
         """
-        # numpy.random.SeedSequence accepts an int or a sequence of ints
-        # and deterministically mixes them into a 128-bit entropy pool.
-        # It's explicitly designed for "derive independent seeds from a
-        # root" workflows like this one, and is stable across numpy
-        # versions per numpy's API compat policy.
-        seq = np.random.SeedSequence([self._base_seed, int(env_idx), int(reset_count)])
-        rng = np.random.default_rng(seq)
-        idx = int(rng.integers(0, len(self._scenes)))
-        return self._scenes[idx]
+        return self._scenes[self.sample_idx(env_idx, reset_count)]
 
 
 def create_sampler(config: SceneSamplerConfig) -> SceneSampler:

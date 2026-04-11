@@ -21,11 +21,16 @@ from torch import Tensor
 
 from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill import ManiSkillFetchRobot
+from TyGrit.envs.fetch.maniskill import (
+    _SCENE_MANIPULATION_ENV_ID,
+    ManiSkillFetchRobot,
+)
 from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.worlds.backends.maniskill import bind_specs
+from TyGrit.worlds.sampler import create_sampler
 
 
 def _gpu_memory_config(num_envs: int) -> GPUMemoryConfig:
@@ -73,12 +78,29 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
         self._mpc_config = mpc_config
         self._num_envs = cfg.num_envs
 
+        # Load manifest + construct sampler. Sharing the sampler's scene
+        # pool with bind_specs means sampler indices line up with the
+        # SpecBackedSceneBuilder's build_config indices 1:1.
+        self._sampler = create_sampler(cfg.scene_sampler)
+        self._scenes = self._sampler.scenes
+        self._reset_count = 0
+
+        # Pick initial per-env scene indices deterministically at
+        # reset_count=0. One draw per parallel worker so the starting
+        # batch is already diverse.
+        initial_idxs = [
+            self._sampler.sample_idx(env_idx=i, reset_count=0)
+            for i in range(self._num_envs)
+        ]
+
         # Create vectorized environment
         # Use GPU sim when num_envs > 1 for parallel stepping + rendering
         sim_backend = "gpu" if self._num_envs > 1 else "cpu"
         self._env = gym.make(
-            cfg.env_id,
+            _SCENE_MANIPULATION_ENV_ID,
             robot_uids="fetch",
+            scene_builder_cls=bind_specs(self._scenes),
+            build_config_idxs=initial_idxs,
             obs_mode=cfg.obs_mode,
             control_mode=cfg.control_mode,
             render_mode=cfg.render_mode,
@@ -350,8 +372,24 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
             If True, randomize each env's Fetch base pose to a random
             in-room collision-free spawn sampled from the ReplicaCAD
             navmesh, instead of the hardcoded ``[-1, 0, 0.02]``.
+
+        Scene selection per parallel worker is drawn from
+        ``self._sampler`` using ``(env_idx, reset_count)`` so successive
+        resets get fresh scenes without the caller having to vary
+        their own seed — the v1 repeating-scene fix.
         """
-        self._obs, info = self._env.reset(**kwargs)
+        self._reset_count += 1
+        idxs = [
+            self._sampler.sample_idx(env_idx=i, reset_count=self._reset_count)
+            for i in range(self._num_envs)
+        ]
+        # Override any reconfigure/build_config_idxs the caller may have
+        # passed through kwargs — scene selection is owned by the
+        # sampler, not the caller, to keep the v1 bug guard effective.
+        options = kwargs.pop("options", None) or {}
+        options["reconfigure"] = True
+        options["build_config_idxs"] = idxs
+        self._obs, info = self._env.reset(options=options, **kwargs)
         if randomize_init:
             self._randomize_robot_pose(seed=kwargs.get("seed"))
             # Tell the interactive viewer (if any) to refresh its

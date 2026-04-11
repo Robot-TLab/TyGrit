@@ -42,12 +42,15 @@ from TyGrit.subgoal_generator.samplers.config import GraspSamplerConfig
 from TyGrit.subgoal_generator.samplers.grasp_sampler import GraspSampler
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.tasks import TaskSuite
+from TyGrit.types.worlds import SceneSamplerConfig
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Grasp benchmark")
     p.add_argument(
-        "--env-id", default="ReplicaCAD_SceneManipulation-v1", help="ManiSkill env ID"
+        "--manifest-path",
+        default="resources/worlds/replicacad.json",
+        help="Path to a world manifest JSON (see TyGrit.worlds.manifest)",
     )
     p.add_argument(
         "--target-id", type=int, default=None, help="Segmentation ID of target object"
@@ -202,7 +205,7 @@ def main() -> None:
     logger.info("Phase 0: Setup")
 
     env_config = FetchEnvConfig(
-        env_id=args.env_id,
+        scene_sampler=SceneSamplerConfig(manifest_path=args.manifest_path),
         obs_mode="rgb+depth+segmentation",
         control_mode="pd_joint_delta_pos",
         render_mode="human" if args.render else None,
@@ -211,7 +214,7 @@ def main() -> None:
     )
     mpc_config = MPCConfig()
 
-    logger.info("Creating ManiSkill env: {}", args.env_id)
+    logger.info("Creating ManiSkill env from manifest: {}", args.manifest_path)
     robot = ManiSkillFetchRobot(config=env_config, mpc_config=mpc_config)
 
     logger.info("Creating VampPreviewPlanner")

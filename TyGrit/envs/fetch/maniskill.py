@@ -30,6 +30,14 @@ from TyGrit.types.planning import Trajectory
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.utils.tensor import to_numpy
+from TyGrit.worlds.backends.maniskill import bind_specs
+from TyGrit.worlds.sampler import create_sampler
+
+# ManiSkill env id used by the worlds-backed path. The old env_id kwarg
+# on FetchEnvConfig has been removed — scene selection now comes from
+# config.scene_sampler, and this string is the only piece ManiSkill
+# needs to dispatch the env class.
+_SCENE_MANIPULATION_ENV_ID = "SceneManipulation-v1"
 
 # ── ManiSkill Fetch Robot ────────────────────────────────────────────────────
 
@@ -54,10 +62,26 @@ class ManiSkillFetchRobot(FetchRobot):
         self._config = config or FetchEnvConfig()
         self._mpc_config = mpc_config
 
+        # Load manifest + construct sampler. Sharing the sampler's scene
+        # pool with bind_specs means sampler indices line up with the
+        # SpecBackedSceneBuilder's build_config indices 1:1.
+        self._sampler = create_sampler(self._config.scene_sampler)
+        self._scenes = self._sampler.scenes
+        self._reset_count = 0
+
+        # Pick the initial scene deterministically (reset_count=0). The
+        # index is stashed via gym.make's build_config_idxs kwarg so
+        # the constructor-time auto-reset in BaseEnv.__init__ uses the
+        # correct indices without hitting SpecBackedSceneBuilder's
+        # sample_build_config_idxs guard.
+        initial_idx = self._sampler.sample_idx(env_idx=0, reset_count=0)
+
         # Create environment
         self._env = gym.make(
-            self._config.env_id,
+            _SCENE_MANIPULATION_ENV_ID,
             robot_uids="fetch",
+            scene_builder_cls=bind_specs(self._scenes),
+            build_config_idxs=[initial_idx],
             obs_mode=self._config.obs_mode,
             control_mode=self._config.control_mode,
             render_mode=self._config.render_mode,
@@ -415,8 +439,26 @@ class ManiSkillFetchRobot(FetchRobot):
     def reset(
         self, seed: int | None = None, randomize_init: bool = True
     ) -> SensorSnapshot:
-        """Reset the environment and return a fresh observation."""
-        self._obs, _ = self._env.reset(seed=seed)
+        """Reset the environment and return a fresh observation.
+
+        Increments ``self._reset_count`` and asks the sampler for a
+        fresh ``(env_idx=0, reset_count)`` scene selection, then
+        passes it through to ManiSkill via
+        ``env.reset(options=dict(reconfigure=True, build_config_idxs=[idx]))``.
+        This is the deterministic per-reset scene switch that fixes
+        the v1 repeating-scene bug: ``reset_count`` participates in
+        seed derivation inside the sampler, so the caller never needs
+        to vary its own seed to get scene variety across resets.
+        """
+        self._reset_count += 1
+        idx = self._sampler.sample_idx(env_idx=0, reset_count=self._reset_count)
+        # Direct env.reset with reconfigure — equivalent to what
+        # TyGrit.worlds.backends.maniskill.build_world does, but we
+        # capture the returned obs inline rather than discarding it.
+        self._obs, _ = self._env.reset(
+            seed=seed,
+            options={"reconfigure": True, "build_config_idxs": [idx]},
+        )
         if randomize_init:
             self._randomize_robot_pose(seed=seed)
             # Tell the interactive viewer (if any) to refresh its cached

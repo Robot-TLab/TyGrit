@@ -348,14 +348,16 @@ def build_world(
     env: Any,
     specs: Sequence[SceneSpec],
     per_env_scene_idxs: Sequence[int],
+    *,
+    seed: int | list[int] | None = None,
 ) -> BuiltWorld:
     """Reconfigure ``env`` for the given per-env scene selection and return a :class:`BuiltWorld`.
 
-    This is the integration entry point used by Step 5 (the Fetch env
-    wrapper): given an existing ManiSkill env whose scene builder is a
-    :class:`SpecBackedSceneBuilder`, and a per-env list of scene indices
-    chosen by the :class:`~TyGrit.worlds.sampler.SceneSampler`, trigger a
-    reconfiguration that loads the corresponding geometry.
+    This is the integration entry point used by the Fetch env wrapper:
+    given an existing ManiSkill env whose scene builder is a
+    :class:`SpecBackedSceneBuilder`, and a per-env list of scene
+    indices chosen by the :class:`~TyGrit.worlds.sampler.SceneSampler`,
+    trigger a reconfiguration that loads the corresponding geometry.
 
     Parameters
     ----------
@@ -369,6 +371,12 @@ def build_world(
         for caller inspection.
     per_env_scene_idxs
         One integer per parallel env, indexing into ``specs``.
+    seed
+        Optional ``seed`` argument forwarded to ``env.reset``. Use this
+        to keep the ManiSkill ``_episode_rng`` state aligned with the
+        outer (RL loop) seed schedule while still passing explicit
+        scene indices. ``None`` lets ManiSkill pick its own episode
+        seed.
 
     Returns
     -------
@@ -400,6 +408,7 @@ def build_world(
     # _reconfigure → _load_scene → scene_builder.build(idxs). See
     # mani_skill/envs/scenes/base_env.py (reset + _load_scene).
     env.reset(
+        seed=seed,
         options={"reconfigure": True, "build_config_idxs": idxs},
     )
 
