@@ -102,12 +102,17 @@ install-momaviz = "pip install --no-deps -e thirdparty/MomaViz"
 download-graspgen-weights = "scripts/download_graspgen_weights.sh"
 install-extensions = "pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu128.html && pip install spconv-cu120 && pip install sam3@git+https://github.com/facebookresearch/sam3.git"
 
-# ── robot (ROS runtime for real-robot work) ────────────────────────────
-# Feature defined but no env composed yet — create `robot` env when
-# someone actually needs to run on hardware.
-
-[feature.robot.dependencies]
-ros-humble-desktop = ">=0.10.0,<0.11"
+# Note: a `robot` feature/env for ROS (ros-humble-desktop) is NOT
+# defined here. Pixi warns about unused features, so we add it only
+# when someone genuinely needs to drive real hardware. The one-liner
+# to introduce it is:
+#
+#   pixi add --feature robot ros-humble-desktop
+#   # then manually add `robot = ["maniskill", "robot"]` under [environments]
+#
+# ros-humble-desktop is ~2 GB and resolving it bloats pixi.lock, so
+# keeping it out of the default dev loop is worth the one-time cost
+# of re-adding when the real-robot work lands.
 
 # ── docs ───────────────────────────────────────────────────────────────
 

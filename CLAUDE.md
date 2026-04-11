@@ -38,7 +38,8 @@ TyGrit's `pixi.toml` defines **one env per purpose**, composed from minimal feat
 | `ci`         | ci                        | GitHub Actions slim test suite                          |
 | `lint`       | lint (no default feature) | `pre-commit`, `black`, `ruff`                           |
 | `docs`       | docs                      | `sphinx-build`                                          |
-| *(no `robot` env yet)* | robot feature defined   | `ros-humble-desktop` for real-robot work — add env when needed |
+
+**No `robot`/ROS env** exists. `ros-humble-desktop` is ~2 GB and bloats `pixi.lock` resolution, and pixi warns on unused features if we pre-declare it. When real-robot work lands, add it with `pixi add --feature robot ros-humble-desktop` and a manual `robot = ["maniskill", "robot"]` entry under `[environments]`.
 
 The `maniskill` feature (`torch`, `mani-skill`, `cuda-toolkit`) is shared by `rl`, `world`, and `thirdparty` via feature composition — torch is declared in exactly one place.
 
