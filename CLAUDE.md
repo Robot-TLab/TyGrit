@@ -130,6 +130,22 @@ Before creating any new file, module, or directory, survey the project and place
 
 If in doubt, list the existing top-level modules under `TyGrit/` with `Glob` before creating anything new. Consistency over cleverness.
 
+## 5. Keep modules small, functional, and reusable
+
+When a file grows past roughly **~400 lines** or mixes more than one clearly separable concern, split it. Long files hide bugs, make diffs painful, and couple concerns that didn't need to be coupled.
+
+**Split rules:**
+
+- **Core orchestration stays in the module's main file.** The `class SpecBackedSceneBuilder` in `TyGrit/worlds/backends/maniskill.py` is the core adapter — that's load-bearing glue and belongs in `maniskill.py`.
+- **Helpers that aren't deeply coupled to the core class move to a util file.** If a function takes data in and returns data out without reaching into the class's state, it's a candidate to live in `TyGrit/utils/` (or a new `TyGrit/<subsystem>/utils.py` if it's subsystem-specific). Move it; import it back.
+- **`TyGrit/utils/` can have subfolders.** Don't cram 15 unrelated helpers into one flat `utils.py`. Group by topic: `utils/geometry.py`, `utils/pointcloud.py`, `utils/tensor.py`. Subdirectories like `utils/serialization/` are fine when you have several related helpers.
+- **Favor pure functions over stateful classes.** A function that takes arguments and returns a value is easier to test, easier to reuse, and easier to move between modules than a method that reads/writes `self`. Only reach for a class when you need to hold state across multiple calls (e.g. `SceneSampler` caches a seeded RNG stream).
+- **Reuse before reinvent.** Before writing a new helper, `grep` the existing `TyGrit/utils/` and `TyGrit/types/` trees. If a similar function exists, extend or generalize the existing one instead of duplicating it.
+
+**When you encounter a long file you didn't create**, apply the split rules as part of touching it, not as a separate cleanup pass. Dragging dead/duplicated code through a refactor is worse than leaving it alone.
+
+**Bounding the damage:** the refactor itself should never be a "rewrite everything" pass. Move one helper at a time, commit each move as its own atomic change, and run tests in between. Rule of 3 still applies — don't extract a helper until at least two call sites genuinely need it.
+
 ---
 
 ## Quick reference
