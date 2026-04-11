@@ -74,6 +74,7 @@ trimesh = ">=4"
 download-ai2thor = "python -m mani_skill.utils.download_asset AI2THOR -y"
 download-replicacad = "python -m mani_skill.utils.download_asset ReplicaCAD -y"
 download-robocasa = "python -m mani_skill.utils.download_asset RoboCasa -y"
+download-ycb = "python -m mani_skill.utils.download_asset ycb -y"
 
 # ── thirdparty (one-shot install tasks for VAMP/GraspGen/MomaViz/SAM3) ─
 # This env is rarely activated — only for `pixi run -e thirdparty install-*`

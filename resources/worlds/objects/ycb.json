@@ -1,0 +1,2113 @@
+{
+  "version": 1,
+  "source": "ycb",
+  "generator": "TyGrit.worlds.generators.ycb",
+  "objects": [
+    {
+      "name": "002_master_chef_can",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:002_master_chef_can",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "003_cracker_box",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:003_cracker_box",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "004_sugar_box",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:004_sugar_box",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "005_tomato_soup_can",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:005_tomato_soup_can",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "006_mustard_bottle",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:006_mustard_bottle",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "007_tuna_fish_can",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:007_tuna_fish_can",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "008_pudding_box",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:008_pudding_box",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "009_gelatin_box",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:009_gelatin_box",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "010_potted_meat_can",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:010_potted_meat_can",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "011_banana",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:011_banana",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "012_strawberry",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:012_strawberry",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "013_apple",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:013_apple",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "014_lemon",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:014_lemon",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "015_peach",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:015_peach",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "016_pear",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:016_pear",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "017_orange",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:017_orange",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "018_plum",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:018_plum",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "019_pitcher_base",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:019_pitcher_base",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "021_bleach_cleanser",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:021_bleach_cleanser",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "022_windex_bottle",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:022_windex_bottle",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "024_bowl",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:024_bowl",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "025_mug",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:025_mug",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "026_sponge",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:026_sponge",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "028_skillet_lid",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:028_skillet_lid",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "029_plate",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:029_plate",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "030_fork",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:030_fork",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "031_spoon",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:031_spoon",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "032_knife",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:032_knife",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "033_spatula",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:033_spatula",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "035_power_drill",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:035_power_drill",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "036_wood_block",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:036_wood_block",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "037_scissors",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:037_scissors",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "038_padlock",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:038_padlock",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "040_large_marker",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:040_large_marker",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "042_adjustable_wrench",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:042_adjustable_wrench",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "043_phillips_screwdriver",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:043_phillips_screwdriver",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "044_flat_screwdriver",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:044_flat_screwdriver",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "048_hammer",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:048_hammer",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "050_medium_clamp",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:050_medium_clamp",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "051_large_clamp",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:051_large_clamp",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "052_extra_large_clamp",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:052_extra_large_clamp",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "053_mini_soccer_ball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:053_mini_soccer_ball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "054_softball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:054_softball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "055_baseball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:055_baseball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "056_tennis_ball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:056_tennis_ball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "057_racquetball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:057_racquetball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "058_golf_ball",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:058_golf_ball",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "059_chain",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:059_chain",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "061_foam_brick",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:061_foam_brick",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "062_dice",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:062_dice",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "063-a_marbles",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:063-a_marbles",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "063-b_marbles",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:063-b_marbles",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-a_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-a_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-b_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-b_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-c_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-c_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-d_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-d_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-e_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-e_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-f_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-f_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-g_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-g_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-h_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-h_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-i_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-i_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "065-j_cups",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:065-j_cups",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "070-a_colored_wood_blocks",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:070-a_colored_wood_blocks",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "070-b_colored_wood_blocks",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:070-b_colored_wood_blocks",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "071_nine_hole_peg_test",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:071_nine_hole_peg_test",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "072-a_toy_airplane",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:072-a_toy_airplane",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "072-b_toy_airplane",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:072-b_toy_airplane",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "072-c_toy_airplane",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:072-c_toy_airplane",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "072-d_toy_airplane",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:072-d_toy_airplane",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "072-e_toy_airplane",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:072-e_toy_airplane",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-a_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-a_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-b_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-b_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-c_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-c_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-d_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-d_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-e_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-e_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-f_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-f_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "073-g_lego_duplo",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:073-g_lego_duplo",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "077_rubiks_cube",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": null,
+      "builtin_id": "ycb:077_rubiks_cube",
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    }
+  ]
+}

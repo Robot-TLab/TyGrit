@@ -53,7 +53,7 @@ from typing import Any
 from mani_skill.utils.scene_builder import SceneBuilder
 from mani_skill.utils.scene_builder.replicacad import ReplicaCADSceneBuilder
 
-from TyGrit.types.worlds import BuiltWorld, SceneSpec
+from TyGrit.types.worlds import BuiltWorld, ObjectSpec, SceneSpec
 
 #: Source values this adapter knows how to dispatch. Each entry maps to
 #: a ManiSkill shipped scene builder class that loads its own metadata
@@ -222,10 +222,110 @@ class SpecBackedSceneBuilder(SceneBuilder):
 
         # Mirror the delegate's scene inventories so callers using the
         # standard SceneBuilder interface (env wrappers, debug tools)
-        # still see spawned actors.
-        self.scene_objects = self._delegate.scene_objects
-        self.movable_objects = self._delegate.movable_objects
-        self.articulations = self._delegate.articulations
+        # still see spawned actors. Copy rather than assign so our
+        # per-spec object spawning below can add entries without
+        # mutating the delegate's own dicts.
+        self.scene_objects = dict(self._delegate.scene_objects)
+        self.movable_objects = dict(self._delegate.movable_objects)
+        self.articulations = dict(self._delegate.articulations)
+
+        # Spawn per-spec custom objects on top of the delegate's scene.
+        # Heterogeneous parallel envs each draw their own SceneSpec from
+        # the sampler (Step 5), and each spec may list its own objects
+        # to spawn — see SceneSpec.objects. Objects are keyed by
+        # (env_idx, obj.name) because two parallel envs drawing the
+        # same spec spawn two independent actors, one per env_idx.
+        self._spawn_per_spec_objects(idxs)
+
+    def _spawn_per_spec_objects(self, per_env_spec_idxs: list[int]) -> None:
+        """Spawn :attr:`SceneSpec.objects` for each parallel env.
+
+        Groups envs by which spec they drew, so multiple envs sharing
+        the same spec spawn each object once via ``set_scene_idxs`` —
+        matching the pattern ReplicaCADSceneBuilder uses internally for
+        background meshes. Dispatches each :class:`ObjectSpec` to the
+        appropriate ManiSkill actor loader based on its ``builtin_id``
+        prefix (currently only ``ycb:`` is wired; ``gso:`` will be
+        added when we wire a GSO loader; explicit file paths from
+        ``urdf_path``/``mesh_path`` raise NotImplementedError until
+        their code path is written).
+        """
+        from collections import defaultdict
+
+        envs_by_spec: dict[int, list[int]] = defaultdict(list)
+        for env_idx, spec_idx in enumerate(per_env_spec_idxs):
+            envs_by_spec[spec_idx].append(env_idx)
+
+        for spec_idx, env_ids in envs_by_spec.items():
+            spec = self.build_configs[spec_idx]
+            for obj_spec in spec.objects:
+                self._spawn_one_object(obj_spec, env_ids)
+
+    def _spawn_one_object(self, obj: ObjectSpec, env_ids: list[int]) -> None:
+        """Spawn a single :class:`ObjectSpec` into ``env_ids``.
+
+        Dispatch on ``builtin_id`` prefix:
+
+        * ``ycb:<model_id>`` → ManiSkill's
+          :func:`mani_skill.utils.building.actors.ycb.get_ycb_builder`,
+          which reads ``info_pick_v0.json`` and creates an actor
+          builder with the right collision + visual files and scale.
+        * anything else → :class:`NotImplementedError` (explicit so
+          future backend additions fail loudly instead of silently
+          no-op'ing).
+
+        Pose: ``ObjectSpec.position`` is world-frame ``(x, y, z)``
+        and ``orientation_xyzw`` is a unit quaternion in our project
+        convention. Sapien takes ``wxyz``, so we swap at this boundary.
+
+        Fix-base: :meth:`ObjectSpec.fix_base` controls static vs
+        dynamic spawning. Dynamic actors also land in
+        :attr:`movable_objects` so code that iterates movable objects
+        (e.g. the task layer) sees them alongside delegate movables.
+        """
+        import sapien
+        from mani_skill.utils.building.actors.ycb import get_ycb_builder
+
+        if obj.builtin_id is None:
+            raise NotImplementedError(
+                f"SpecBackedSceneBuilder: spawning object {obj.name!r} "
+                f"from file paths (urdf/usd/mjcf/mesh) is not yet "
+                f"supported; set builtin_id to route through a "
+                f"ManiSkill actor loader instead."
+            )
+
+        prefix, _, model_id = obj.builtin_id.partition(":")
+        if prefix != "ycb":
+            raise NotImplementedError(
+                f"SpecBackedSceneBuilder: builtin_id prefix {prefix!r} "
+                f"in {obj.builtin_id!r} is not yet supported. Currently "
+                f"wired: 'ycb:<model_id>'. GSO and other sources land "
+                f"in follow-up steps."
+            )
+
+        builder = get_ycb_builder(self.scene, id=model_id)
+
+        # TyGrit convention: xyzw; Sapien convention: wxyz. Swap at
+        # the boundary so downstream stays consistent.
+        x, y, z, w = obj.orientation_xyzw
+        builder.initial_pose = sapien.Pose(p=list(obj.position), q=[w, x, y, z])
+        builder.set_scene_idxs(env_ids)
+
+        # Suffix with env_ids so parallel envs spawning the same object
+        # still produce distinct actor names — ManiSkill requires
+        # unique names across all parallel actors.
+        env_tag = ",".join(str(e) for e in env_ids)
+        actor_name = f"tygrit_{obj.name}_envs[{env_tag}]"
+
+        if obj.fix_base:
+            actor = builder.build_static(name=actor_name)
+        else:
+            actor = builder.build(name=actor_name)
+
+        for env_id in env_ids:
+            self.scene_objects[f"env-{env_id}_{obj.name}"] = actor
+            if not obj.fix_base:
+                self.movable_objects[f"env-{env_id}_{obj.name}"] = actor
 
     def initialize(
         self,

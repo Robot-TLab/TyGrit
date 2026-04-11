@@ -282,3 +282,124 @@ class TestReplicaCADIntegration:
                 build_world(env, baseline_specs, per_env_scene_idxs=[0])
         finally:
             env.close()
+
+
+# ─────────────────── custom object spawning (Step 9) ────────────────────
+
+
+class TestSpecObjectSpawning:
+    """SpecBackedSceneBuilder.build spawns SceneSpec.objects on top of the delegate.
+
+    Requires both ReplicaCAD (background) and the ycb asset bundle
+    downloaded to the project-local cache. Run the following if
+    either is missing::
+
+        pixi run -e world download-replicacad
+        pixi run -e world download-ycb
+    """
+
+    def _scene_with_one_ycb(self) -> SceneSpec:
+        """SceneSpec: apt_0 background + one YCB can placed above the floor."""
+        from TyGrit.types.worlds import ObjectSpec
+
+        return SceneSpec(
+            scene_id="replicacad/apt_0",
+            source="replicacad",
+            background_builtin_id="replicacad:apt_0",
+            objects=(
+                ObjectSpec(
+                    name="chef_can",
+                    builtin_id="ycb:002_master_chef_can",
+                    # Inside apt_0's play area, well above the floor
+                    # so the physics drop on reset can't immediately
+                    # collide with the background.
+                    position=(0.0, 0.0, 1.5),
+                ),
+            ),
+            target_object_names=("chef_can",),
+        )
+
+    @pytest.fixture(scope="class")
+    def spawned_env(self):
+        specs = (self._scene_with_one_ycb(),)
+        env = gym.make(
+            "SceneManipulation-v1",
+            scene_builder_cls=bind_specs(specs),
+            build_config_idxs=[0],
+            num_envs=1,
+        )
+        try:
+            yield env
+        finally:
+            env.close()
+
+    def test_spawned_actor_appears_in_scene_objects(self, spawned_env) -> None:
+        sb = spawned_env.unwrapped.scene_builder
+        # Custom objects are keyed "env-{env_id}_{obj.name}" per
+        # SpecBackedSceneBuilder._spawn_one_object.
+        assert "env-0_chef_can" in sb.scene_objects
+
+    def test_spawned_actor_is_movable_when_fix_base_is_false(self, spawned_env) -> None:
+        # ObjectSpec defaults fix_base=False, so the spawned actor
+        # must also land in movable_objects — the task layer iterates
+        # movables to identify graspable targets.
+        sb = spawned_env.unwrapped.scene_builder
+        assert "env-0_chef_can" in sb.movable_objects
+
+    def test_delegate_furniture_still_present(self, spawned_env) -> None:
+        # Custom-object spawning must NOT wipe out the delegate's own
+        # per-furniture scene_objects entries — we copy the delegate's
+        # dict rather than overwrite it. ReplicaCAD spawns individual
+        # furniture pieces (cabinets, fridges, drawers) into its own
+        # scene_objects dict, and we mirror that plus our custom object.
+        sb = spawned_env.unwrapped.scene_builder
+        our_keys = set(sb.scene_objects) - {"env-0_chef_can"}
+        delegate_keys = set(sb._delegate.scene_objects)  # noqa: SLF001
+        # Every delegate-spawned entry must also be in our mirrored
+        # dict — if any got dropped during _spawn_per_spec_objects,
+        # scene_objects would be missing it.
+        assert delegate_keys <= our_keys
+        assert len(delegate_keys) > 0, (
+            f"Delegate spawned no furniture — the delegate's own "
+            f"scene_objects is unexpectedly empty: {sorted(delegate_keys)}"
+        )
+
+    def test_custom_object_and_delegate_actors_are_independent(
+        self, spawned_env
+    ) -> None:
+        sb = spawned_env.unwrapped.scene_builder
+        custom = sb.scene_objects["env-0_chef_can"]
+        delegate_actors = [
+            v for k, v in sb.scene_objects.items() if k != "env-0_chef_can"
+        ]
+        assert len(delegate_actors) > 0
+        assert all(custom is not a for a in delegate_actors)
+
+
+class TestSpecObjectSpawningValidation:
+    """Unit-level validation of spawn-dispatch error paths.
+
+    These don't need a real env — they construct a bare
+    SpecBackedSceneBuilder with a fake env, initialise the two dicts
+    _spawn_one_object writes to, and exercise the dispatch branches.
+    """
+
+    def test_unsupported_builtin_prefix_raises(self) -> None:
+        from TyGrit.types.worlds import ObjectSpec
+
+        sb = SpecBackedSceneBuilder(_FakeEnv())
+        sb.scene_objects = {}
+        sb.movable_objects = {}
+        obj = ObjectSpec(name="x", builtin_id="gso:some_model")
+        with pytest.raises(NotImplementedError, match="'gso' in"):
+            sb._spawn_one_object(obj, [0])  # noqa: SLF001
+
+    def test_file_path_without_builtin_id_raises(self) -> None:
+        from TyGrit.types.worlds import ObjectSpec
+
+        sb = SpecBackedSceneBuilder(_FakeEnv())
+        sb.scene_objects = {}
+        sb.movable_objects = {}
+        obj = ObjectSpec(name="y", urdf_path="/tmp/foo.urdf")
+        with pytest.raises(NotImplementedError, match="file paths"):
+            sb._spawn_one_object(obj, [0])  # noqa: SLF001
