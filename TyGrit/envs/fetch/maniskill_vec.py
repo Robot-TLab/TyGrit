@@ -21,10 +21,8 @@ from torch import Tensor
 
 from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill import (
-    _SCENE_MANIPULATION_ENV_ID,
-    ManiSkillFetchRobot,
-)
+from TyGrit.envs.fetch.fetch import FetchRobot
+from TyGrit.envs.fetch.maniskill import _SCENE_MANIPULATION_ENV_ID
 from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.robot import RobotState
@@ -52,7 +50,7 @@ def _gpu_memory_config(num_envs: int) -> GPUMemoryConfig:
     )
 
 
-class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
+class ManiSkillFetchRobotVec(FetchRobot):
     """Vectorized Fetch robot for GPU-parallel training.
 
     Wraps ManiSkill3 with ``num_envs`` parallel environments.  Observations
@@ -62,11 +60,32 @@ class ManiSkillFetchRobotVec(ManiSkillFetchRobot):
     obs (which includes ``agent/qpos``, ``agent/qvel``, ``sensor_data``,
     ``sensor_param/cam2world_gl``) plus ``ee_pos`` and ``ee_forward``
     from a single TCP pose read — the only data not in the obs dict.
+
+    Standalone (does NOT inherit from
+    :class:`~TyGrit.envs.fetch.maniskill.ManiSkillFetchRobot`) because
+    that single-env class now composes :class:`FetchRobotCore` with a
+    pure-numpy :class:`FetchSimBackend`, while this vec class operates
+    on torch tensors and returns dict-shaped results — the two no
+    longer share enough method bodies to justify inheritance. A
+    future ``FetchSimBackendBatched`` protocol could parallel
+    :class:`~TyGrit.envs.fetch.sim_backend.FetchSimBackend` so vec
+    classes follow the same composition pattern; deferred until a
+    second batched backend (Genesis vec) actually arrives.
     """
 
     _gripper_targets: Tensor
     _head_targets: Tensor
     _qpos: Tensor
+
+    @property
+    def _agent(self):
+        """Always read the *current* agent (rebuilt by ManiSkill on
+        every reconfigure)."""
+        return self._env.unwrapped.agent  # type: ignore[attr-defined]
+
+    @property
+    def camera_ids(self) -> list[str]:
+        return ["head"]
 
     def __init__(
         self,

@@ -70,7 +70,7 @@ class TestManiSkillFetchRobotWiring:
             robot.close()
 
     def test_scene_builder_is_spec_backed(self, robot) -> None:
-        sb = robot._env.unwrapped.scene_builder  # noqa: SLF001
+        sb = robot._backend._env.unwrapped.scene_builder  # noqa: SLF001
         assert isinstance(sb, SpecBackedSceneBuilder)
 
     def test_sampler_and_scenes_are_populated(self, robot) -> None:
@@ -96,7 +96,7 @@ class TestManiSkillFetchRobotWiring:
         seen: set[str] = set()
         for _ in range(30):
             robot.reset(randomize_init=False)
-            sb = robot._env.unwrapped.scene_builder  # noqa: SLF001
+            sb = robot._backend._env.unwrapped.scene_builder  # noqa: SLF001
             # Infer loaded scene from the builder's internal
             # spec_to_delegate mapping — the first index selected
             # during build() is what this parallel env saw.

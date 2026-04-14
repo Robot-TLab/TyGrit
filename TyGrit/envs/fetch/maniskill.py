@@ -1,10 +1,22 @@
-"""ManiSkill3-backed Fetch robot environment.
+"""ManiSkill3 backend for the Fetch robot.
 
-Concrete ``FetchRobot`` that drives a Fetch mobile manipulator inside a
-ManiSkill3 simulation.  All control is synchronous — no background threads.
+This module hosts two pieces:
 
-Ported from ``grasp_anywhere/envs/maniskill/maniskill_env_mpc.py`` as clean,
-single-threaded code.
+* :class:`ManiSkillFetchSimBackend` — the
+  :class:`~TyGrit.envs.fetch.sim_backend.FetchSimBackend`
+  implementation. Owns the underlying ``gym.make`` env, parses
+  ManiSkill obs dicts into numpy arrays, and routes actions back into
+  the env. All ManiSkill / Sapien / torch coupling lives here.
+* :class:`ManiSkillFetchRobot` — a thin
+  :class:`~TyGrit.envs.fetch.core.FetchRobotCore` subclass that
+  constructs the backend and forwards. The Fetch-specific *logic*
+  (joint indexing, base-pose calibration, action assembly, head PD,
+  MPC trajectory execution, look_at) lives in ``FetchRobotCore`` so a
+  Genesis or hardware backend can reuse it by composing with a
+  different :class:`FetchSimBackend`.
+
+Ported from ``grasp_anywhere/envs/maniskill/maniskill_env_mpc.py`` as
+clean, single-threaded code.
 """
 
 from __future__ import annotations
@@ -16,78 +28,54 @@ import torch
 from mani_skill.utils.structs.pose import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SceneConfig, SimConfig
 
-from TyGrit.controller.fetch.mpc import (
-    MPCConfig,
-    compute_mpc_action,
-    robot_state_to_mpc_state,
-)
+from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
+from TyGrit.envs.fetch.core import FetchRobotCore
 from TyGrit.envs.fetch.fetch import FetchRobot
-from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
-from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
-from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.utils.tensor import to_numpy
 from TyGrit.worlds.backends.maniskill import bind_specs
 from TyGrit.worlds.sampler import create_sampler
 
-# ManiSkill env id used by the worlds-backed path. The old env_id kwarg
-# on FetchEnvConfig has been removed — scene selection now comes from
-# config.scene_sampler, and this string is the only piece ManiSkill
-# needs to dispatch the env class.
+# ManiSkill env id used by the worlds-backed path. The old env_id
+# kwarg on FetchEnvConfig has been removed — scene selection now
+# comes from config.scene_sampler, and this string is the only piece
+# ManiSkill needs to dispatch the env class.
 _SCENE_MANIPULATION_ENV_ID = "SceneManipulation-v1"
 
-# ── ManiSkill Fetch Robot ────────────────────────────────────────────────────
 
+class ManiSkillFetchSimBackend:
+    """ManiSkill3 implementation of :class:`FetchSimBackend`.
 
-class ManiSkillFetchRobot(FetchRobot):
-    """Fetch robot driven by ManiSkill3 simulation."""
+    Owns the ``gym.make`` env, the per-controller action slices, the
+    joint-name lookup, and the cached observation. Single-env only —
+    the batched path is :class:`ManiSkillFetchRobotVec` and currently
+    does not implement this protocol (different semantics: torch
+    tensors, dict-returning step/reset).
+    """
 
-    @property
-    def _agent(self):
-        """Always read the *current* agent — ManiSkill rebuilds it on every
-        ``env.reset()`` reconfigure (e.g. ``num_envs=1``), so caching the
-        agent reference at ``__init__`` time leaves writes (``set_pose``,
-        ``set_qpos``, …) hitting the destroyed previous scene.
-        """
-        return self._env.unwrapped.agent  # type: ignore[attr-defined]
+    def __init__(self, config: FetchEnvConfig) -> None:
+        self._config = config
+        # Sampler ownership for scene-pool scope: the backend only
+        # needs the spec list at gym.make time (for bind_specs) and
+        # one initial idx. The core layer also constructs its own
+        # sampler so it can advance the deterministic reset sequence
+        # — sharing one sampler instance across the two layers would
+        # couple them more tightly than necessary.
+        sampler = create_sampler(config.scene_sampler)
+        self._scenes = sampler.scenes
+        initial_idx = sampler.sample_idx(env_idx=0, reset_count=0)
 
-    def __init__(
-        self,
-        config: FetchEnvConfig | None = None,
-        mpc_config: MPCConfig | None = None,
-    ) -> None:
-        self._config = config or FetchEnvConfig()
-        self._mpc_config = mpc_config
-
-        # Load manifest + construct sampler. Sharing the sampler's scene
-        # pool with bind_specs means sampler indices line up with the
-        # SpecBackedSceneBuilder's build_config indices 1:1.
-        self._sampler = create_sampler(self._config.scene_sampler)
-        self._scenes = self._sampler.scenes
-        self._reset_count = 0
-
-        # Pick the initial scene deterministically (reset_count=0). The
-        # index is stashed via gym.make's build_config_idxs kwarg so
-        # the constructor-time auto-reset in BaseEnv.__init__ uses the
-        # correct indices without hitting SpecBackedSceneBuilder's
-        # sample_build_config_idxs guard.
-        initial_idx = self._sampler.sample_idx(env_idx=0, reset_count=0)
-
-        # Create environment
         self._env = gym.make(
             _SCENE_MANIPULATION_ENV_ID,
             robot_uids="fetch",
             scene_builder_cls=bind_specs(self._scenes),
             build_config_idxs=[initial_idx],
-            obs_mode=self._config.obs_mode,
-            control_mode=self._config.control_mode,
-            render_mode=self._config.render_mode,
+            obs_mode=config.obs_mode,
+            control_mode=config.control_mode,
+            render_mode=config.render_mode,
             sensor_configs={
-                "width": self._config.camera_width,
-                "height": self._config.camera_height,
+                "width": config.camera_width,
+                "height": config.camera_height,
             },
             sim_config=SimConfig(
                 gpu_memory_config=GPUMemoryConfig(
@@ -100,7 +88,8 @@ class ManiSkillFetchRobot(FetchRobot):
 
         self._obs, _ = self._env.reset()
 
-        # Build action slices: arm, gripper, body, base
+        # Build action slices: arm, gripper, body, base — order
+        # matches the ManiSkill Fetch agent's controller registration.
         self._action_slices: dict[str, slice] = {}
         idx = 0
         for name in ("arm", "gripper", "body", "base"):
@@ -112,49 +101,64 @@ class ManiSkillFetchRobot(FetchRobot):
             idx += dim
         self._total_action_dim: int = self._env.action_space.shape[0]  # type: ignore[union-attr]
 
-        # Build joint-name → index map
         self._joint_name_to_idx: dict[str, int] = {
             j.name: i for i, j in enumerate(self._agent.robot.active_joints)
         }
 
-        # Calibrate base pose offset
-        self._qpos_base_indices: tuple[int, int, int] = (0, 0, 0)
-        self._qpos_base_offset = np.zeros(3, dtype=np.float64)
-        self._init_qpos_world_offset()
-
-        # Cache camera intrinsics (static)
+        # Cache camera intrinsics (static across resets — sensor
+        # configs don't change once gym.make returns).
         cam_params = self._env.unwrapped._sensors["fetch_head"].get_params()  # type: ignore[attr-defined]
         K = np.array(cam_params["intrinsic_cv"])
         if K.ndim == 3:
             K = K[0]
         self._intrinsics: npt.NDArray[np.float64] = K.astype(np.float64)
 
-        # Trajectory state
-        self._trajectory: Trajectory | None = None
-        self._waypoint_idx: int = 0
+    # ── ManiSkill internals ────────────────────────────────────────────
 
-        # Actuator targets
-        self._gripper_target: float = 0.0
-        self._head_target: tuple[float, float] = (float("nan"), float("nan"))
+    @property
+    def _agent(self):
+        """Always read the *current* agent.
 
-        # Initial render
-        if self._config.render_mode == "human":
-            self._env.render()
+        ManiSkill rebuilds it on every ``env.reset()`` reconfigure
+        (e.g. ``num_envs=1`` paths), so caching the reference at
+        ``__init__`` time would leave subsequent writes hitting the
+        destroyed previous scene.
+        """
+        return self._env.unwrapped.agent  # type: ignore[attr-defined]
 
-    # ── Base-offset calibration ───────────────────────────────────────────
+    # ── FetchSimBackend: metadata ─────────────────────────────────────
 
-    def _init_qpos_world_offset(self) -> None:
-        """Compute offset between qpos base joints and world-frame base_link pose."""
-        base_joint_names = self._agent.base_joint_names
-        ix = self._joint_name_to_idx[base_joint_names[0]]
-        iy = self._joint_name_to_idx[base_joint_names[1]]
-        ith = self._joint_name_to_idx[base_joint_names[2]]
-        self._qpos_base_indices = (ix, iy, ith)
+    @property
+    def num_envs(self) -> int:
+        return 1
 
-        qpos = to_numpy(self._obs["state"])
-        qx, qy, qth = float(qpos[ix]), float(qpos[iy]), float(qpos[ith])
+    @property
+    def intrinsics(self) -> npt.NDArray[np.float64]:
+        return self._intrinsics
 
-        # Get world-frame pose of base_link
+    @property
+    def total_action_dim(self) -> int:
+        return self._total_action_dim
+
+    @property
+    def action_slices(self) -> dict[str, slice]:
+        return self._action_slices
+
+    @property
+    def joint_name_to_idx(self) -> dict[str, int]:
+        return self._joint_name_to_idx
+
+    @property
+    def base_joint_names(self) -> tuple[str, str, str]:
+        names = self._agent.base_joint_names
+        return (names[0], names[1], names[2])
+
+    # ── FetchSimBackend: per-step queries (cached obs) ────────────────
+
+    def get_qpos(self) -> npt.NDArray[np.float64]:
+        return to_numpy(self._obs["state"]).astype(np.float64)
+
+    def get_base_link_world_pose(self) -> npt.NDArray[np.float64]:
         base_link = None
         for link in self._agent.robot.links:
             if link.name == "base_link":
@@ -168,51 +172,20 @@ class ManiSkillFetchRobot(FetchRobot):
             T = np.array(T)
         if T.ndim == 3:
             T = T[0]
+        return T.astype(np.float64)
 
-        wx = float(T[0, 3])
-        wy = float(T[1, 3])
-        wth = float(np.arctan2(T[1, 0], T[0, 0]))
-        dth = float(np.arctan2(np.sin(wth - qth), np.cos(wth - qth)))
-        self._qpos_base_offset = np.array([wx - qx, wy - qy, dth], dtype=np.float64)
-
-    # ── Observation parsing ───────────────────────────────────────────────
-
-    def _build_robot_state(self, qpos: np.ndarray) -> RobotState:
-        """Build a RobotState from a qpos array (all from same observation)."""
-        return RobotState(
-            base_pose=self._compute_base_pose(qpos),
-            planning_joints=self._extract_planning_joints(qpos),
-            head_joints=self._extract_head_joints(qpos),
-        )
-
-    def _compute_base_pose(self, qpos: np.ndarray) -> SE2Pose:
-        ix, iy, ith = self._qpos_base_indices
-        dx, dy, dth = self._qpos_base_offset
-        x = float(qpos[ix]) + dx
-        y = float(qpos[iy]) + dy
-        th = float(
-            np.arctan2(
-                np.sin(float(qpos[ith]) + dth),
-                np.cos(float(qpos[ith]) + dth),
+    def parse_camera(self, camera_id: str) -> tuple[
+        npt.NDArray[np.uint8],
+        npt.NDArray[np.float32],
+        npt.NDArray[np.int32] | None,
+    ]:
+        if camera_id != "head":
+            raise ValueError(
+                f"ManiSkillFetchSimBackend.parse_camera: unknown camera_id "
+                f"{camera_id!r}. Currently only 'head' (fetch_head sensor) "
+                f"is configured."
             )
-        )
-        return SE2Pose(x=x, y=y, theta=th)
-
-    def _extract_planning_joints(self, qpos: np.ndarray) -> tuple[float, ...]:
-        return tuple(
-            float(qpos[self._joint_name_to_idx[n]]) for n in PLANNING_JOINT_NAMES
-        )
-
-    def _extract_head_joints(self, qpos: np.ndarray) -> tuple[float, ...]:
-        return tuple(float(qpos[self._joint_name_to_idx[n]]) for n in HEAD_JOINT_NAMES)
-
-    def _parse_observation(self, obs: dict) -> SensorSnapshot:
-        """Parse a ManiSkill obs dict into a SensorSnapshot.
-
-        All data (RGB, depth, robot state) is extracted from the same *obs*
-        dict so they are guaranteed to be from the same simulation step.
-        """
-        sensor = obs["sensor_data"]["fetch_head"]
+        sensor = self._obs["sensor_data"]["fetch_head"]
 
         rgb = sensor["rgb"]
         if isinstance(rgb, torch.Tensor):
@@ -222,7 +195,8 @@ class ManiSkillFetchRobot(FetchRobot):
         depth = sensor["depth"]
         if isinstance(depth, torch.Tensor):
             depth = depth.detach().cpu().numpy()
-        depth = (depth[0, ..., 0].astype(np.float32)) / 1000.0  # mm → m, remove channel
+        # mm → m, drop channel dim
+        depth = depth[0, ..., 0].astype(np.float32) / 1000.0
 
         seg = sensor.get("segmentation")
         if seg is not None:
@@ -230,228 +204,14 @@ class ManiSkillFetchRobot(FetchRobot):
                 seg = seg.detach().cpu().numpy()
             seg = seg[0, ..., 0].astype(np.int32)
 
-        qpos = to_numpy(obs["state"])
+        return rgb, depth, seg
 
-        return SensorSnapshot(
-            rgb=rgb,
-            depth=depth,
-            intrinsics=self._intrinsics,
-            robot_state=self._build_robot_state(qpos),
-            segmentation=seg,
-        )
+    # ── FetchSimBackend: mutations ────────────────────────────────────
 
-    # ── RobotBase: sensing ────────────────────────────────────────────────
+    def step(self, action: npt.NDArray[np.float32]) -> None:
+        self._obs, _, _, _, _ = self._env.step(action)
 
-    @property
-    def camera_ids(self) -> list[str]:
-        return ["head"]
-
-    def get_sensor_snapshot(self, camera_id: str) -> SensorSnapshot:
-        if camera_id != "head":
-            raise ValueError(
-                f"Unknown camera_id {camera_id!r}; available: {self.camera_ids}"
-            )
-        return self._parse_observation(self._obs)
-
-    def get_robot_state(self) -> RobotState:
-        return self._build_robot_state(to_numpy(self._obs["state"]))
-
-    def get_observation(self) -> SensorSnapshot:
-        return self._parse_observation(self._obs)
-
-    # ── RobotBase: active perception ──────────────────────────────────────
-
-    def look_at(self, target: npt.NDArray[np.float64], camera_id: str) -> None:
-        if camera_id != "head":
-            raise NotImplementedError(f"Cannot steer camera {camera_id!r}")
-
-        state = self.get_robot_state()
-
-        # Build FK input: [torso, 7 arm, pan, tilt]
-        fk_joints = np.array(
-            [*state.planning_joints, *state.head_joints],
-            dtype=np.float64,
-        )
-        link_poses = forward_kinematics(fk_joints)
-
-        # Transform world target to base frame
-        bp = state.base_pose
-        cos_th, sin_th = np.cos(bp.theta), np.sin(bp.theta)
-        R_wb = np.array([[cos_th, -sin_th], [sin_th, cos_th]])
-        t_wb = np.array([bp.x, bp.y])
-        target_base_xy = R_wb.T @ (target[:2] - t_wb)
-        target_base = np.array([target_base_xy[0], target_base_xy[1], target[2]])
-
-        # Compute relative pan in head_pan_link frame
-        T_head_pan = link_poses["head_pan_link"]
-        T_head_pan_inv = np.linalg.inv(T_head_pan)
-        target_head_pan = (T_head_pan_inv @ np.append(target_base, 1.0))[:3]
-
-        x, y, z = target_head_pan
-        current_pan = float(state.head_joints[0])
-        pan_rel = float(np.arctan2(y, x))
-
-        # Tilt: vector from tilt joint origin to target in pan-aligned frame
-        T_head_tilt = link_poses["head_tilt_link"]
-        T_pan_tilt = T_head_pan_inv @ T_head_tilt
-        tilt_origin_pan = T_pan_tilt[:3, 3]
-        dist_xy = np.sqrt(x**2 + y**2)
-        v_tilt_target = np.array([dist_xy, 0.0, z]) - tilt_origin_pan
-        tilt_abs = float(np.arctan2(-v_tilt_target[2], v_tilt_target[0]))
-
-        pan = current_pan + pan_rel
-        self._head_target = (pan, tilt_abs)
-
-    # ── Head PD controller ────────────────────────────────────────────────
-
-    def _compute_head_pd(self) -> tuple[float, float]:
-        state = self.get_robot_state()
-        current_pan, current_tilt = state.head_joints
-        target_pan, target_tilt = self._head_target
-
-        kp = self._config.gaze_kp
-        max_vel = self._config.gaze_max_vel
-
-        pan_err = 0.0 if np.isnan(target_pan) else target_pan - current_pan
-        tilt_err = 0.0 if np.isnan(target_tilt) else target_tilt - current_tilt
-
-        pan_vel = float(np.clip(kp * pan_err, -max_vel, max_vel))
-        tilt_vel = float(np.clip(kp * tilt_err, -max_vel, max_vel))
-        return pan_vel, tilt_vel
-
-    # ── Action assembly ───────────────────────────────────────────────────
-
-    def _assemble_action(self, mpc_action: npt.NDArray[np.float32]) -> np.ndarray:
-        """Map MPC output (10,) [v, w, torso_vel, 7 arm_vels] → ManiSkill action."""
-        action = np.zeros(self._total_action_dim, dtype=np.float32)
-
-        # Base: [v, w]
-        if "base" in self._action_slices:
-            action[self._action_slices["base"]] = mpc_action[0:2]
-
-        # Arm: 7 joint velocities
-        if "arm" in self._action_slices:
-            sl = self._action_slices["arm"]
-            n = sl.stop - sl.start
-            action[sl] = mpc_action[3 : 3 + n]
-
-        # Body: [pan_vel, tilt_vel, torso_vel]
-        if "body" in self._action_slices:
-            pan_vel, tilt_vel = self._compute_head_pd()
-            torso_vel = float(mpc_action[2])
-            action[self._action_slices["body"]] = np.array(
-                [pan_vel, tilt_vel, torso_vel],
-                dtype=np.float32,
-            )
-
-        # Gripper: map [0,1] → [-1,1]
-        if "gripper" in self._action_slices:
-            gripper_action = 2.0 * self._gripper_target - 1.0
-            action[self._action_slices["gripper"]] = gripper_action
-
-        return np.nan_to_num(action, nan=0.0)
-
-    # ── RobotBase: stepping ───────────────────────────────────────────────
-
-    def step(self, action: npt.NDArray[np.float32]) -> SensorSnapshot:
-        ms_action = self._assemble_action(action)
-        self._obs, _, _, _, _ = self._env.step(ms_action)
-        if self._config.render_mode == "human":
-            self._env.render()
-        return self._parse_observation(self._obs)
-
-    # ── RobotBase: trajectory / motion ────────────────────────────────────
-
-    def start_trajectory(self, trajectory: Trajectory) -> None:
-        self._trajectory = trajectory
-        self._waypoint_idx = 0
-
-    def is_motion_done(self) -> bool:
-        return self._trajectory is None or self._waypoint_idx >= len(
-            self._trajectory.arm_path
-        )
-
-    def stop_motion(self) -> None:
-        self._trajectory = None
-        self._waypoint_idx = 0
-
-    def execute_trajectory(self, trajectory: Trajectory) -> bool:
-        cfg = self._config
-        for arm_wp, base_wp in zip(trajectory.arm_path, trajectory.base_configs):
-            x_ref = np.array(
-                [base_wp.x, base_wp.y, base_wp.theta, *arm_wp],
-                dtype=np.float64,
-            )
-            for _ in range(cfg.max_steps_per_waypoint):
-                state = self.get_robot_state()
-                x = robot_state_to_mpc_state(state)
-                error = float(np.linalg.norm(x_ref - x))
-                if error < cfg.convergence_threshold:
-                    break
-                u = compute_mpc_action(x, x_ref, self._mpc_config)
-                self.step(u)
-        return True
-
-    # ── RobotBase: end-effector ───────────────────────────────────────────
-
-    def control_gripper(self, position: float) -> None:
-        self._gripper_target = float(np.clip(position, 0.0, 1.0))
-
-    # ── RobotBase: lifecycle ──────────────────────────────────────────────
-
-    def close(self) -> None:
-        self._env.close()
-
-    # ── Random in-room initial pose ───────────────────────────────────────
-
-    def _randomize_robot_pose(self, seed: int | None = None) -> None:
-        """Place the Fetch base at a random in-room collision-free pose.
-
-        Samples one ``(x, y)`` per env from the ReplicaCAD navmesh
-        (``*.fetch.navigable_positions.obj`` vertices, which are by
-        construction in free space) plus a uniform yaw, and teleports
-        the articulation root there.  Called from ``reset()`` *after*
-        ``self._env.reset()`` has run ``scene_builder.initialize()``
-        (which already snaps qpos to the rest keyframe), so we only
-        need to override the root pose.
-        """
-        nav_meshes = self._env.unwrapped.scene_builder.navigable_positions  # type: ignore[attr-defined]
-        num_envs = getattr(self, "_num_envs", 1)
-
-        rng = np.random.default_rng(seed)
-        poses = np.zeros((num_envs, 7), dtype=np.float32)
-        for i in range(num_envs):
-            mesh = nav_meshes[i] if i < len(nav_meshes) else None
-            if mesh is None or len(mesh.vertices) == 0:
-                x, y = -1.0, 0.0  # ManiSkill default fallback
-            else:
-                verts = np.asarray(mesh.vertices)
-                idx = int(rng.integers(0, len(verts)))
-                x, y = float(verts[idx, 0]), float(verts[idx, 1])
-            theta = float(rng.uniform(-np.pi, np.pi))
-            poses[i] = [x, y, 0.02, np.cos(theta / 2), 0.0, 0.0, np.sin(theta / 2)]
-
-        pose_tensor = torch.from_numpy(poses).to(self._env.unwrapped.device)  # type: ignore[attr-defined]
-        self._agent.robot.set_pose(Pose.create(pose_tensor))
-
-    # ── Extra: reset ──────────────────────────────────────────────────────
-
-    def reset(
-        self, seed: int | None = None, randomize_init: bool = True
-    ) -> SensorSnapshot:
-        """Reset the environment and return a fresh observation.
-
-        Increments ``self._reset_count`` and asks the sampler for a
-        fresh ``(env_idx=0, reset_count)`` scene selection, then
-        passes it through to ManiSkill via
-        ``env.reset(options=dict(reconfigure=True, build_config_idxs=[idx]))``.
-        This is the deterministic per-reset scene switch that fixes
-        the v1 repeating-scene bug: ``reset_count`` participates in
-        seed derivation inside the sampler, so the caller never needs
-        to vary its own seed to get scene variety across resets.
-        """
-        self._reset_count += 1
-        idx = self._sampler.sample_idx(env_idx=0, reset_count=self._reset_count)
+    def reset_to_idx(self, idx: int, seed: int | None = None) -> None:
         # Direct env.reset with reconfigure — equivalent to what
         # TyGrit.worlds.backends.maniskill.build_world does, but we
         # capture the returned obs inline rather than discarding it.
@@ -459,19 +219,67 @@ class ManiSkillFetchRobot(FetchRobot):
             seed=seed,
             options={"reconfigure": True, "build_config_idxs": [idx]},
         )
-        if randomize_init:
-            self._randomize_robot_pose(seed=seed)
-            # Tell the interactive viewer (if any) to refresh its cached
-            # frame on the next render call — the viewer skips
-            # window.update_render when paused unless this flag is set.
-            viewer = self._env.unwrapped.viewer  # type: ignore[attr-defined]
-            if viewer is not None:
-                viewer.notify_render_update()
-        self._init_qpos_world_offset()
-        self._trajectory = None
-        self._waypoint_idx = 0
-        self._gripper_target = 0.0
-        self._head_target = (float("nan"), float("nan"))
-        if self._config.render_mode == "human":
-            self._env.render()
-        return self._parse_observation(self._obs)
+        # Tell the interactive viewer (if any) to refresh its cached
+        # frame on the next render call — the viewer skips
+        # window.update_render when paused unless this flag is set.
+        viewer = self._env.unwrapped.viewer  # type: ignore[attr-defined]
+        if viewer is not None:
+            viewer.notify_render_update()
+
+    def set_base_pose(self, x: float, y: float, theta: float, env_idx: int = 0) -> None:
+        if env_idx != 0:
+            raise ValueError(
+                f"ManiSkillFetchSimBackend.set_base_pose: this single-env "
+                f"backend only accepts env_idx=0, got {env_idx}."
+            )
+        # 7-vector: position xyz + quaternion wxyz (Sapien convention).
+        # z=0.02 matches the existing default spawn height.
+        pose = np.array(
+            [x, y, 0.02, np.cos(theta / 2), 0.0, 0.0, np.sin(theta / 2)],
+            dtype=np.float32,
+        )
+        pose_tensor = (
+            torch.from_numpy(pose)
+            .unsqueeze(0)
+            .to(self._env.unwrapped.device)  # type: ignore[attr-defined]
+        )
+        self._agent.robot.set_pose(Pose.create(pose_tensor))
+
+    # ── FetchSimBackend: world hooks ──────────────────────────────────
+
+    def get_navigable_positions(self) -> list:
+        nav = self._env.unwrapped.scene_builder.navigable_positions  # type: ignore[attr-defined]
+        return list(nav) if nav is not None else []
+
+    # ── FetchSimBackend: lifecycle ────────────────────────────────────
+
+    def render(self) -> None:
+        self._env.render()
+
+    def close(self) -> None:
+        self._env.close()
+
+
+class ManiSkillFetchRobot(FetchRobotCore, FetchRobot):
+    """Fetch robot driven by ManiSkill3 simulation.
+
+    Composes :class:`FetchRobotCore` (sim-agnostic logic) with
+    :class:`ManiSkillFetchSimBackend` (sim-specific glue). Most code
+    lives in those two pieces; this class only wires construction.
+
+    Inherits :class:`FetchRobot` for the public ``FetchRobot.create``
+    factory dispatch path defined by :mod:`TyGrit.envs.fetch.fetch`.
+    """
+
+    def __init__(
+        self,
+        config: FetchEnvConfig | None = None,
+        mpc_config: MPCConfig | None = None,
+    ) -> None:
+        cfg = config or FetchEnvConfig()
+        backend = ManiSkillFetchSimBackend(cfg)
+        FetchRobotCore.__init__(self, cfg, backend, mpc_config)
+        # Initial render kicks the viewer once after the
+        # construction-time reset so the first frame is visible.
+        if cfg.render_mode == "human":
+            backend.render()
