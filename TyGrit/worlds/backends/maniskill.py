@@ -485,7 +485,7 @@ def _make_delegate(
       They all share the :class:`AI2THORBaseSceneBuilder` base class and
       differ only by ``scene_dataset`` class attribute, so we dispatch
       via a lookup dict.
-    * **holodeck** → :class:`~TyGrit.worlds.backends.molmospaces_maniskill.HolodeckSceneBuilder`,
+    * **holodeck** → :class:`~TyGrit.worlds.backends._maniskill_holodeck.HolodeckSceneBuilder`,
       which wraps AllenAI's :class:`MjcfSceneLoader` to load Holodeck
       MJCFs into a Sapien scene. Construction needs the per-spec
       ``background_mjcf`` paths up front because the delegate does not
@@ -527,7 +527,7 @@ def _make_delegate(
         return RoboCasaSceneBuilder(env, robot_init_qpos_noise=robot_init_qpos_noise)
 
     if source == "holodeck":
-        from TyGrit.worlds.backends.molmospaces_maniskill import (
+        from TyGrit.worlds.backends._maniskill_holodeck import (
             HolodeckSceneBuilder,
         )
 
@@ -581,7 +581,7 @@ def _translate_specs_to_delegate_idxs(
       parses them via :func:`_robocasa_scene_id_to_idx` without
       touching the delegate.
     * **Holodeck** uses an identity mapping. The delegate
-      (:class:`~TyGrit.worlds.backends.molmospaces_maniskill.HolodeckSceneBuilder`)
+      (:class:`~TyGrit.worlds.backends._maniskill_holodeck.HolodeckSceneBuilder`)
       stores the per-spec MJCF paths on its ``build_configs`` in the
       same order as the spec pool, so ``spec_idx == delegate_idx``.
 

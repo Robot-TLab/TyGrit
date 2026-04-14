@@ -1,4 +1,13 @@
-"""ManiSkill SceneBuilder wrapper around AllenAI's MjcfSceneLoader.
+"""Internal helper: ManiSkill-side Holodeck MJCF loader.
+
+Private companion to :mod:`TyGrit.worlds.backends.maniskill`. The
+underscore prefix marks this module as backend-private — external
+callers dispatch through :class:`SpecBackedSceneBuilder`, which imports
+:class:`HolodeckSceneBuilder` from here when it encounters a
+``source="holodeck"`` spec. Sibling naming follows
+:mod:`TyGrit.worlds.backends._genesis_habitat`: one file per sim
+backend, with ``_<sim>_<source>.py`` helpers for source-specific
+loaders the sim backend imports.
 
 For Holodeck (MolmoSpaces) scenes, neither sapien nor mani_skill ship
 a native MJCF loader. We delegate to ``MjcfSceneLoader`` from
@@ -6,8 +15,8 @@ a native MJCF loader. We delegate to ``MjcfSceneLoader`` from
 under ``thirdparty/molmospaces``; install via
 ``pixi run -e world install-molmo-spaces-maniskill``).
 
-This module's :class:`HolodeckSceneBuilder` adapts that loader to the
-mani_skill ``SceneBuilder`` interface so the central
+:class:`HolodeckSceneBuilder` adapts that loader to the mani_skill
+``SceneBuilder`` interface so the central
 :class:`~TyGrit.worlds.backends.maniskill.SpecBackedSceneBuilder` can
 dispatch ``source="holodeck"`` SceneSpecs through it.
 

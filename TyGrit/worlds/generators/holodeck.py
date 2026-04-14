@@ -9,7 +9,7 @@ its own ``molmo_spaces_maniskill.assets.loader.MjcfSceneLoader`` which takes
 a ``sapien.Scene`` or ``ManiSkillScene`` and calls ``create_actor_builder``
 + ``create_articulation_builder`` directly. TyGrit's own
 ``SpecBackedSceneBuilder`` will learn to dispatch to that loader in
-Step 11b (``worlds/backends/molmospaces_maniskill.py``); this module's
+Step 11b (``worlds/backends/_maniskill_holodeck.py``); this module's
 job is strictly the manifest side of things — enumerate the scenes on
 disk, write one ``SceneSpec`` per ``.xml``, and pull down *only the
 objects those scenes actually reference* so future runtime code has

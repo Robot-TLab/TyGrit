@@ -198,7 +198,7 @@ class TestV1BugGuard:
 
 
 class TestHolodeckDispatch:
-    """source='holodeck' routes to the molmospaces_maniskill adapter."""
+    """source='holodeck' routes to the _maniskill_holodeck adapter."""
 
     def _holodeck_spec(self, idx: int = 0) -> SceneSpec:
         return SceneSpec(
