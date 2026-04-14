@@ -21,7 +21,6 @@ clean, single-threaded code.
 
 from __future__ import annotations
 
-import gymnasium as gym
 import numpy as np
 import numpy.typing as npt
 import torch
@@ -32,15 +31,14 @@ from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.core import FetchRobotCore
 from TyGrit.envs.fetch.fetch import FetchRobot
+from TyGrit.envs.fetch.maniskill_setup import (
+    build_action_slices,
+    build_joint_name_to_idx,
+    extract_intrinsics,
+    make_scene_manipulation_env,
+)
 from TyGrit.utils.tensor import to_numpy
-from TyGrit.worlds.backends.maniskill import bind_specs
 from TyGrit.worlds.sampler import create_sampler
-
-# ManiSkill env id used by the worlds-backed path. The old env_id
-# kwarg on FetchEnvConfig has been removed — scene selection now
-# comes from config.scene_sampler, and this string is the only piece
-# ManiSkill needs to dispatch the env class.
-_SCENE_MANIPULATION_ENV_ID = "SceneManipulation-v1"
 
 
 class ManiSkillFetchSimBackend:
@@ -65,18 +63,10 @@ class ManiSkillFetchSimBackend:
         self._scenes = sampler.scenes
         initial_idx = sampler.sample_idx(env_idx=0, reset_count=0)
 
-        self._env = gym.make(
-            _SCENE_MANIPULATION_ENV_ID,
-            robot_uids="fetch",
-            scene_builder_cls=bind_specs(self._scenes),
+        self._env = make_scene_manipulation_env(
+            config,
+            self._scenes,
             build_config_idxs=[initial_idx],
-            obs_mode=config.obs_mode,
-            control_mode=config.control_mode,
-            render_mode=config.render_mode,
-            sensor_configs={
-                "width": config.camera_width,
-                "height": config.camera_height,
-            },
             sim_config=SimConfig(
                 gpu_memory_config=GPUMemoryConfig(
                     found_lost_pairs_capacity=2**25,
@@ -88,30 +78,11 @@ class ManiSkillFetchSimBackend:
 
         self._obs, _ = self._env.reset()
 
-        # Build action slices: arm, gripper, body, base — order
-        # matches the ManiSkill Fetch agent's controller registration.
-        self._action_slices: dict[str, slice] = {}
-        idx = 0
-        for name in ("arm", "gripper", "body", "base"):
-            controller = self._agent.controller.controllers.get(name)
-            if controller is None:
-                continue
-            dim = controller.action_space.shape[0]
-            self._action_slices[name] = slice(idx, idx + dim)
-            idx += dim
-        self._total_action_dim: int = self._env.action_space.shape[0]  # type: ignore[union-attr]
-
-        self._joint_name_to_idx: dict[str, int] = {
-            j.name: i for i, j in enumerate(self._agent.robot.active_joints)
-        }
-
-        # Cache camera intrinsics (static across resets — sensor
-        # configs don't change once gym.make returns).
-        cam_params = self._env.unwrapped._sensors["fetch_head"].get_params()  # type: ignore[attr-defined]
-        K = np.array(cam_params["intrinsic_cv"])
-        if K.ndim == 3:
-            K = K[0]
-        self._intrinsics: npt.NDArray[np.float64] = K.astype(np.float64)
+        self._action_slices, self._total_action_dim = build_action_slices(self._agent)
+        self._joint_name_to_idx = build_joint_name_to_idx(self._agent)
+        self._intrinsics: npt.NDArray[np.float64] = extract_intrinsics(
+            self._env, "fetch_head"
+        )
 
     # ── ManiSkill internals ────────────────────────────────────────────
 

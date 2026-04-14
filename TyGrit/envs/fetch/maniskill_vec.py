@@ -13,7 +13,6 @@ No redundant sim queries.
 
 from __future__ import annotations
 
-import gymnasium as gym
 import numpy as np
 import torch
 from mani_skill.utils.structs.types import GPUMemoryConfig, SceneConfig, SimConfig
@@ -22,12 +21,16 @@ from torch import Tensor
 from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.fetch import FetchRobot
-from TyGrit.envs.fetch.maniskill import _SCENE_MANIPULATION_ENV_ID
+from TyGrit.envs.fetch.maniskill_setup import (
+    build_action_slices,
+    build_joint_name_to_idx,
+    extract_intrinsics,
+    make_scene_manipulation_env,
+)
 from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
-from TyGrit.worlds.backends.maniskill import bind_specs
 from TyGrit.worlds.sampler import create_sampler
 
 
@@ -112,53 +115,26 @@ class ManiSkillFetchRobotVec(FetchRobot):
             for i in range(self._num_envs)
         ]
 
-        # Create vectorized environment
-        # Use GPU sim when num_envs > 1 for parallel stepping + rendering
-        sim_backend = "gpu" if self._num_envs > 1 else "cpu"
-        self._env = gym.make(
-            _SCENE_MANIPULATION_ENV_ID,
-            robot_uids="fetch",
-            scene_builder_cls=bind_specs(self._scenes),
+        # Create vectorized environment. GPU sim when num_envs > 1
+        # for parallel stepping + rendering; CPU otherwise.
+        self._env = make_scene_manipulation_env(
+            cfg,
+            self._scenes,
             build_config_idxs=initial_idxs,
-            obs_mode=cfg.obs_mode,
-            control_mode=cfg.control_mode,
-            render_mode=cfg.render_mode,
-            num_envs=self._num_envs,
-            sim_backend=sim_backend,
-            sensor_configs={
-                "width": cfg.camera_width,
-                "height": cfg.camera_height,
-            },
             sim_config=SimConfig(
                 spacing=50,
                 gpu_memory_config=_gpu_memory_config(self._num_envs),
                 scene_config=SceneConfig(contact_offset=0.002),
             ),
+            num_envs=self._num_envs,
+            sim_backend="gpu" if self._num_envs > 1 else "cpu",
         )
-
-        # NOTE: do not cache self._agent — the parent class exposes it as a
-        # property that always reads env.unwrapped.agent, which ManiSkill
-        # rebuilds on every reconfigure.
 
         self._obs, _ = self._env.reset()
 
-        # Build action slices — use shape[-1] because vectorized envs
-        # have shape (num_envs, action_dim)
-        self._action_slices: dict[str, slice] = {}
-        idx = 0
-        for name in ("arm", "gripper", "body", "base"):
-            controller = self._agent.controller.controllers.get(name)
-            if controller is None:
-                continue
-            dim = controller.action_space.shape[-1]
-            self._action_slices[name] = slice(idx, idx + dim)
-            idx += dim
-        self._total_action_dim: int = self._env.action_space.shape[-1]  # type: ignore[union-attr]
-
-        # Joint-name → index map
-        self._joint_name_to_idx: dict[str, int] = {
-            j.name: i for i, j in enumerate(self._agent.robot.active_joints)
-        }
+        self._action_slices, self._total_action_dim = build_action_slices(self._agent)
+        self._joint_name_to_idx = build_joint_name_to_idx(self._agent)
+        self._intrinsics = extract_intrinsics(self._env, "fetch_head")
 
         # Base calibration (batched)
         self._qpos_base_indices: tuple[int, int, int] = (0, 0, 0)
@@ -166,13 +142,6 @@ class ManiSkillFetchRobotVec(FetchRobot):
             self._num_envs, 3, dtype=torch.float64
         )
         self._init_qpos_world_offset()
-
-        # Cache camera intrinsics (static, shared across envs)
-        cam_params = self._env.unwrapped._sensors["fetch_head"].get_params()  # type: ignore[attr-defined]
-        K = cam_params["intrinsic_cv"].detach().cpu().numpy()
-        if K.ndim == 3:
-            K = K[0]
-        self._intrinsics = K.astype(np.float64)
 
         # Build joint index tensors for fast batched extraction
         self._planning_indices = torch.tensor(
