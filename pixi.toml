@@ -183,6 +183,10 @@ boost = ">=1.85.0,<2"
 py-trees = ">=2.2,<3"
 opencv-python-headless = ">=4.8,<5"
 
+[feature.genesis.pypi-dependencies]
+genesis-world = "*"
+torch = ">=2.10.0, <3"
+
 # ── environments ───────────────────────────────────────────────────────
 
 [environments]
@@ -193,3 +197,10 @@ rl         = ["maniskill", "rl"]
 world      = ["maniskill", "world"]
 thirdparty = ["maniskill", "thirdparty"]
 ci         = ["ci"]
+# Genesis is an alternative physics engine — NOT composed with
+# maniskill because the two sims don't share a scene/actor API
+# and pinning torch/cuda twice in one env risks resolution
+# conflicts. Each backend lives in its own env; the core TyGrit
+# package (types, utils, samplers, FetchRobotCore) is pure-Python
+# and importable from both.
+genesis    = ["genesis"]
