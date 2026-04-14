@@ -45,8 +45,8 @@ from TyGrit.controller.fetch.mpc import (
 )
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.sim_backend import FetchSimBackend
-from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
 from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
+from TyGrit.robots import FETCH_SPEC
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.planning import Trajectory
 from TyGrit.types.robot import RobotState
@@ -147,12 +147,13 @@ class FetchRobotCore:
     ) -> tuple[float, ...]:
         return tuple(
             float(qpos[self._backend.joint_name_to_idx[n]])
-            for n in PLANNING_JOINT_NAMES
+            for n in FETCH_SPEC.planning_joint_names
         )
 
     def _extract_head_joints(self, qpos: npt.NDArray[np.float64]) -> tuple[float, ...]:
         return tuple(
-            float(qpos[self._backend.joint_name_to_idx[n]]) for n in HEAD_JOINT_NAMES
+            float(qpos[self._backend.joint_name_to_idx[n]])
+            for n in FETCH_SPEC.head_joint_names
         )
 
     def _build_sensor_snapshot(self, camera_id: str) -> SensorSnapshot:

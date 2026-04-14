@@ -32,11 +32,13 @@ from TyGrit.envs.fetch.maniskill_setup import (
     extract_intrinsics,
     make_scene_manipulation_env,
 )
-from TyGrit.kinematics.fetch.constants import HEAD_JOINT_NAMES, PLANNING_JOINT_NAMES
+from TyGrit.robots import FETCH_SPEC
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.robot import RobotState
 from TyGrit.types.sensor import SensorSnapshot
 from TyGrit.worlds.sampler import create_sampler
+
+_HEAD_SENSOR_ID = FETCH_SPEC.camera_sensor_ids["head"]
 
 
 def _gpu_memory_config(num_envs: int) -> GPUMemoryConfig:
@@ -124,6 +126,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         # for parallel stepping + rendering; CPU otherwise.
         self._env = make_scene_manipulation_env(
             cfg,
+            FETCH_SPEC,
             self._scenes,
             build_config_idxs=initial_idxs,
             sim_config=SimConfig(
@@ -137,9 +140,11 @@ class ManiSkillFetchRobotVec(FetchRobot):
 
         self._obs, _ = self._env.reset()
 
-        self._action_slices, self._total_action_dim = build_action_slices(self._agent)
+        self._action_slices, self._total_action_dim = build_action_slices(
+            self._agent, FETCH_SPEC
+        )
         self._joint_name_to_idx = build_joint_name_to_idx(self._agent)
-        self._intrinsics = extract_intrinsics(self._env, "fetch_head")
+        self._intrinsics = extract_intrinsics(self._env, _HEAD_SENSOR_ID)
 
         # Base calibration (batched)
         self._qpos_base_indices: tuple[int, int, int] = (0, 0, 0)
@@ -150,11 +155,11 @@ class ManiSkillFetchRobotVec(FetchRobot):
 
         # Build joint index tensors for fast batched extraction
         self._planning_indices = torch.tensor(
-            [self._joint_name_to_idx[n] for n in PLANNING_JOINT_NAMES],
+            [self._joint_name_to_idx[n] for n in FETCH_SPEC.planning_joint_names],
             dtype=torch.long,
         )
         self._head_indices = torch.tensor(
-            [self._joint_name_to_idx[n] for n in HEAD_JOINT_NAMES],
+            [self._joint_name_to_idx[n] for n in FETCH_SPEC.head_joint_names],
             dtype=torch.long,
         )
 
@@ -566,7 +571,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
 
     def _parse_observation_single(self, obs: dict) -> SensorSnapshot:
         """Parse obs dict for env 0 only (single-env compat)."""
-        sensor = obs["sensor_data"]["fetch_head"]
+        sensor = obs["sensor_data"][_HEAD_SENSOR_ID]
 
         rgb = sensor["rgb"].detach().cpu().numpy()[0]
 

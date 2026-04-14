@@ -37,8 +37,11 @@ from TyGrit.envs.fetch.maniskill_setup import (
     extract_intrinsics,
     make_scene_manipulation_env,
 )
+from TyGrit.robots import FETCH_SPEC
 from TyGrit.utils.tensor import to_numpy
 from TyGrit.worlds.sampler import create_sampler
+
+_HEAD_SENSOR_ID = FETCH_SPEC.camera_sensor_ids["head"]
 
 
 class ManiSkillFetchSimBackend:
@@ -65,6 +68,7 @@ class ManiSkillFetchSimBackend:
 
         self._env = make_scene_manipulation_env(
             config,
+            FETCH_SPEC,
             self._scenes,
             build_config_idxs=[initial_idx],
             sim_config=SimConfig(
@@ -78,10 +82,12 @@ class ManiSkillFetchSimBackend:
 
         self._obs, _ = self._env.reset()
 
-        self._action_slices, self._total_action_dim = build_action_slices(self._agent)
+        self._action_slices, self._total_action_dim = build_action_slices(
+            self._agent, FETCH_SPEC
+        )
         self._joint_name_to_idx = build_joint_name_to_idx(self._agent)
         self._intrinsics: npt.NDArray[np.float64] = extract_intrinsics(
-            self._env, "fetch_head"
+            self._env, _HEAD_SENSOR_ID
         )
 
     # ── ManiSkill internals ────────────────────────────────────────────
@@ -153,10 +159,10 @@ class ManiSkillFetchSimBackend:
         if camera_id != "head":
             raise ValueError(
                 f"ManiSkillFetchSimBackend.parse_camera: unknown camera_id "
-                f"{camera_id!r}. Currently only 'head' (fetch_head sensor) "
-                f"is configured."
+                f"{camera_id!r}. Currently only 'head' ({_HEAD_SENSOR_ID} "
+                f"sensor) is configured."
             )
-        sensor = self._obs["sensor_data"]["fetch_head"]
+        sensor = self._obs["sensor_data"][_HEAD_SENSOR_ID]
 
         rgb = sensor["rgb"]
         if isinstance(rgb, torch.Tensor):

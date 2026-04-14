@@ -25,6 +25,7 @@ import numpy.typing as npt
 from mani_skill.utils.structs.types import SimConfig
 
 from TyGrit.envs.fetch.config import FetchEnvConfig
+from TyGrit.types.robots import RobotSpec
 from TyGrit.types.worlds import SceneSpec
 from TyGrit.worlds.backends.maniskill import bind_specs
 
@@ -33,15 +34,10 @@ from TyGrit.worlds.backends.maniskill import bind_specs
 #: only piece ManiSkill needs to dispatch the env class.
 SCENE_MANIPULATION_ENV_ID = "SceneManipulation-v1"
 
-#: Order in which Fetch's controllers are concatenated into the
-#: low-level action vector. Both backends iterate in this order so
-#: the slice indices match the controller layout the ManiSkill agent
-#: registers at agent build time.
-_CONTROLLER_ORDER: tuple[str, ...] = ("arm", "gripper", "body", "base")
-
 
 def make_scene_manipulation_env(
     config: FetchEnvConfig,
+    robot: RobotSpec,
     scenes: Sequence[SceneSpec],
     build_config_idxs: list[int],
     sim_config: SimConfig,
@@ -67,7 +63,7 @@ def make_scene_manipulation_env(
     caller can omit them and let ManiSkill pick its CPU defaults.
     """
     kwargs: dict = dict(
-        robot_uids="fetch",
+        robot_uids=robot.sim_uids["maniskill"],
         scene_builder_cls=bind_specs(scenes),
         build_config_idxs=build_config_idxs,
         obs_mode=config.obs_mode,
@@ -86,13 +82,16 @@ def make_scene_manipulation_env(
     return gym.make(SCENE_MANIPULATION_ENV_ID, **kwargs)
 
 
-def build_action_slices(agent) -> tuple[dict[str, slice], int]:
+def build_action_slices(agent, robot: RobotSpec) -> tuple[dict[str, slice], int]:
     """Compute per-controller slices of the low-level action vector.
 
-    Returns ``(slices, total_dim)`` where ``slices`` is a dict keyed
-    on controller name (``"arm"``, ``"gripper"``, ``"body"``,
-    ``"base"`` — only those that the agent actually exposes) and
-    ``total_dim`` is the length of the full action vector.
+    Iterates ``robot.controller_order`` so the concatenation layout is
+    robot-specific — the same helper works for any robot whose spec
+    names its controllers. Only controllers the underlying agent
+    actually exposes get a slice; absent ones are skipped.
+
+    Returns ``(slices, total_dim)`` where ``total_dim`` is the length
+    of the full action vector.
 
     Reads ``action_space.shape[-1]`` so the helper works for both
     single-env (shape ``(D,)``) and vec (shape ``(N, D)``) without
@@ -100,7 +99,7 @@ def build_action_slices(agent) -> tuple[dict[str, slice], int]:
     """
     slices: dict[str, slice] = {}
     cursor = 0
-    for name in _CONTROLLER_ORDER:
+    for name in robot.controller_order:
         controller = agent.controller.controllers.get(name)
         if controller is None:
             continue
