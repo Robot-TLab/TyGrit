@@ -1,9 +1,13 @@
 """Vectorized ManiSkill3 Fetch robot for GPU-parallel RL training.
 
-Subclass of :class:`ManiSkillFetchRobot` that handles ``num_envs > 1``.
-The parent class assumes a single environment (hardcoded ``[0]`` indexing,
-``float()`` calls, returning single ``SensorSnapshot``).  This override
-keeps observations as batched tensors and returns batched results.
+Standalone class (no longer a subclass of ``ManiSkillFetchRobot``)
+that handles ``num_envs > 1``. The single-env class now composes a
+:class:`FetchRobotCore` with a numpy/scalar :class:`FetchSimBackend`;
+this vec class operates on torch tensors with dict-shaped step/reset
+returns, so the two no longer share enough method bodies to justify
+inheritance. Construction-time setup is shared via helpers in
+:mod:`TyGrit.envs.fetch.maniskill_setup` (gym.make wrapper, action
+slices, joint-name map, intrinsics).
 
 ``step()`` and ``reset()`` return a dict built from the ManiSkill obs
 (which already contains qpos, qvel, rgb, depth, camera matrices) plus
@@ -15,6 +19,7 @@ from __future__ import annotations
 
 import numpy as np
 import torch
+from mani_skill.utils.structs.pose import Pose
 from mani_skill.utils.structs.types import GPUMemoryConfig, SceneConfig, SimConfig
 from torch import Tensor
 
@@ -341,6 +346,49 @@ class ManiSkillFetchRobotVec(FetchRobot):
             "ee_pos": ee_pos,
             "ee_forward": ee_forward,
         }
+
+    # ── Random in-room initial pose (batched) ─────────────────────────────
+
+    def _randomize_robot_pose(self, seed: int | None = None) -> None:
+        """Place the Fetch base of every parallel env at a random
+        in-room collision-free pose.
+
+        Samples one ``(x, y)`` per env from the active scene's navmesh
+        (``*.fetch.navigable_positions.obj`` vertices, by construction
+        in free space) plus a uniform yaw, and teleports all
+        articulation roots in one batched ``set_pose`` call. Falls
+        back to ``(-1, 0, 0.02)`` (ManiSkill's default Fetch spawn)
+        for any env whose scene has no navmesh — Holodeck specifically
+        ships none.
+
+        This is the vec-side counterpart to
+        :meth:`FetchRobotCore._randomize_robot_pose`; it can't share
+        with that method because we need to issue a single batched
+        ``set_pose`` rather than a per-env ``set_base_pose`` loop, and
+        because the navmesh source on the vec env is the underlying
+        scene_builder rather than a backend protocol method (vec
+        doesn't compose a FetchSimBackend yet).
+        """
+        nav_meshes = self._env.unwrapped.scene_builder.navigable_positions  # type: ignore[attr-defined]
+        rng = np.random.default_rng(seed)
+        poses = np.zeros((self._num_envs, 7), dtype=np.float32)
+        for i in range(self._num_envs):
+            mesh = (
+                nav_meshes[i]
+                if nav_meshes is not None and i < len(nav_meshes)
+                else None
+            )
+            if mesh is None or len(mesh.vertices) == 0:
+                x, y = -1.0, 0.0
+            else:
+                verts = np.asarray(mesh.vertices)
+                idx = int(rng.integers(0, len(verts)))
+                x, y = float(verts[idx, 0]), float(verts[idx, 1])
+            theta = float(rng.uniform(-np.pi, np.pi))
+            poses[i] = [x, y, 0.02, np.cos(theta / 2), 0.0, 0.0, np.sin(theta / 2)]
+
+        pose_tensor = torch.from_numpy(poses).to(self._env.unwrapped.device)  # type: ignore[attr-defined]
+        self._agent.robot.set_pose(Pose.create(pose_tensor))
 
     def reset(  # type: ignore[override]
         self,
