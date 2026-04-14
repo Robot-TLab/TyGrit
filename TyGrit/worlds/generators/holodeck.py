@@ -189,6 +189,29 @@ _RESOURCE_MANAGER_INDEX_FILES = frozenset(
 #: inside Holodeck MJCFs. The captured group is just the UUID.
 _OBJAVERSE_REF_RE = re.compile(r'"\.\./\.\./objects/objaverse/([^/]+)/')
 
+#: Regex that pulls the ``train_<N>`` stem out of an extracted scene
+#: file's ``name`` (e.g. ``train_91962.xml`` → ``train_91962``,
+#: ``train_91962_assets`` → ``train_91962``). Flag files start with
+#: ``.`` and index files start with ``mjthor_`` so they fail to match
+#: and are naturally excluded.
+_SCENE_STEM_RE = re.compile(r"^(train_\d+)(?:[._]|$)")
+
+
+def _scene_stem(pkg: str) -> str | None:
+    """Return ``train_<N>`` for scene packages, or ``None`` for auxiliaries.
+
+    The MolmoSpaces scene manifest (``mjthor_resource_file_to_size_mb.json``)
+    lists the ~100k ``<source>_train_<N>.tar.zst`` scene packages plus a
+    handful of auxiliary config packages (observed: ``housegen_build_
+    settings.json.tar.zst``). The auxiliaries get downloaded + extracted
+    by ``install_packages`` but aren't scenes, so the manifest/UUID-
+    collection stages have to skip them.
+    """
+    stem = pkg.rsplit(".tar.zst", 1)[0].split("_", 1)[-1]
+    if stem.startswith("train_") and stem[len("train_") :].isdigit():
+        return stem
+    return None
+
 
 def _filter_versions(scene_sources: tuple[str, ...]) -> dict[str, dict[str, str]]:
     """Reduce :data:`VERSIONS` to only the requested scene sources.
@@ -353,27 +376,29 @@ def _scene_file_entries(
     Returns a flat list of paths inside ``cache_version_dir`` — both
     top-level files and the ``_assets`` directory (as a single Path,
     not its recursive contents).
+
+    Implementation: single ``iterdir()`` pass, bucketing by ``train_<N>``
+    stem. The previous O(N²) version re-iterated the whole cache dir
+    for each of the ~100k packages, which froze the pipeline for hours
+    at a ~500k-entry cache. Now we scan once (O(N)) and do O(1) dict
+    lookups per package.
     """
+    by_stem: dict[str, list[Path]] = {}
+    for candidate in cache_version_dir.iterdir():
+        match = _SCENE_STEM_RE.match(candidate.name)
+        if match is None:
+            # Index files (mjthor_*), flag files (.<pkg>_complete_*) and
+            # any other unrelated entries fall through here and are
+            # correctly ignored.
+            continue
+        by_stem.setdefault(match.group(1), []).append(candidate)
+
     entries: list[Path] = []
     for pkg in package_names:
-        # Package name format: "<source>_train_<N>.tar.zst"
-        # Scene stem: "train_<N>"
-        stem = pkg.rsplit(".tar.zst", 1)[0]
-        prefix = stem.split("_", 1)[-1]  # "<source>_train_N" -> "train_N"
-        # Match "train_<N>" followed by "." (e.g. train_91962.xml) or "_"
-        # (e.g. train_91962_assets, train_91962_metadata.json). This
-        # narrowly matches the one scene without sweeping in
-        # train_9196Xnnn unrelated scenes.
-        for candidate in cache_version_dir.iterdir():
-            name = candidate.name
-            if name in _RESOURCE_MANAGER_INDEX_FILES:
-                continue
-            if (
-                name == prefix
-                or name.startswith(prefix + ".")
-                or name.startswith(prefix + "_")
-            ):
-                entries.append(candidate)
+        stem = _scene_stem(pkg)
+        if stem is None:
+            continue
+        entries.extend(by_stem.get(stem, ()))
     return entries
 
 
@@ -398,15 +423,20 @@ def link_scenes_into_mjcf_dir(manager, source: str, package_names: list[str]) ->
     target_dir = MJCF_DIR / "scenes" / source
     target_dir.mkdir(parents=True, exist_ok=True)
 
+    # Snapshot existing link names once so the per-entry existence check
+    # is an O(1) set lookup instead of a stat syscall. At 100k packages
+    # * 5 files each = 500k iterations, the stat cost adds up to minutes.
+    existing = {p.name for p in target_dir.iterdir()}
+
     linked = 0
     for entry in _scene_file_entries(cache_version_dir, package_names):
-        link_path = target_dir / entry.name
-        if link_path.is_symlink() or link_path.exists():
+        if entry.name in existing:
             continue
         # Use absolute paths so the link survives `cd` in a future
         # consumer, and so a walk from MJCF_DIR finds the actual files
         # instead of broken relative targets.
-        link_path.symlink_to(entry.resolve())
+        (target_dir / entry.name).symlink_to(entry.resolve())
+        existing.add(entry.name)
         linked += 1
 
     print(f"  linked {linked} scene entries into {target_dir}")
@@ -427,7 +457,9 @@ def collect_objaverse_uuids(
     """
     uuids: set[str] = set()
     for pkg in package_names:
-        stem = pkg.rsplit(".tar.zst", 1)[0].split("_", 1)[-1]  # train_<N>
+        stem = _scene_stem(pkg)
+        if stem is None:
+            continue
         mjcf = mjcf_source_dir / f"{stem}.xml"
         if not mjcf.exists():
             # Shouldn't happen if link_scenes_into_mjcf_dir ran, but surface
@@ -484,7 +516,9 @@ def build_holodeck_manifest(
     """
     specs: list[SceneSpec] = []
     for pkg in package_names:
-        stem = pkg.rsplit(".tar.zst", 1)[0].split("_", 1)[-1]
+        stem = _scene_stem(pkg)
+        if stem is None:
+            continue
         mjcf = mjcf_source_dir / f"{stem}.xml"
         specs.append(
             SceneSpec(
