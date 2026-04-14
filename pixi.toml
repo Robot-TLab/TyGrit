@@ -66,6 +66,7 @@ trimesh = ">=4"
 objaverse = ">=0.1.7, <0.2"
 molmospaces-resources = ">=0.0.1b4"
 huggingface-hub = ">=1.10.1, <2"
+mujoco = ">=3.6.0, <4"
 
 [feature.world.tasks]
 # Download ManiSkill-shipped scene datasets to $PIXI_PROJECT_ROOT/assets/maniskill.
@@ -80,6 +81,13 @@ download-robocasa = "python -m mani_skill.utils.download_asset RoboCasa -y"
 download-ycb = "python -m mani_skill.utils.download_asset ycb -y"
 generate-objaverse-objects = "python -m TyGrit.worlds.generators.objaverse"
 generate-holodeck-scenes = "python -m TyGrit.worlds.generators.holodeck"
+# AllenAI's MJCF→Sapien loader for Holodeck scenes. Vendored as a
+# submodule under thirdparty/molmospaces because the package is not
+# published on PyPI. --no-deps skips its declared mani-skill-nightly
+# requirement (the loader actually only uses public mani_skill APIs
+# present in our stable mani-skill 3.x); mujoco (the parser dep) is
+# in [feature.world.pypi-dependencies] above.
+install-molmo-spaces-maniskill = "pip install --no-deps -e thirdparty/molmospaces/molmo_spaces_maniskill"
 
 # ── thirdparty (one-shot install tasks for VAMP/GraspGen/MomaViz/SAM3) ─
 # This env is rarely activated — only for `pixi run -e thirdparty install-*`

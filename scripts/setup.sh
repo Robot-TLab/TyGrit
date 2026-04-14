@@ -40,4 +40,11 @@ pixi run install-graspgen
 echo "Downloading GraspGen weights..."
 pixi run download-graspgen-weights
 
+# ── 8. AllenAI MJCF→Sapien loader (for Holodeck scenes) ──────────
+# Pure-Python; --no-deps in the task skips the upstream's stated
+# mani-skill-nightly requirement, which is a project-wide AllenAI
+# preference and not an actual API dependency of the loader.
+echo "Installing molmo_spaces_maniskill..."
+pixi run -e world install-molmo-spaces-maniskill
+
 echo "Done! Run 'pixi run test' to verify."
