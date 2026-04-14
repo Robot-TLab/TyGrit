@@ -87,3 +87,41 @@ class TestRobotSpecValidation:
                 base_joint_names=(),
                 default_spawn_pose=(0.0, 0.0, 0.0),
             )
+
+    def test_rejects_camera_sensor_ids_mismatch(self) -> None:
+        with pytest.raises(ValueError, match="camera_sensor_ids"):
+            self._make_spec(
+                camera_ids=("head", "wrist"),
+                camera_sensor_ids={"head": "sensor_head"},
+            )
+
+
+class TestRobotSpecImmutability:
+    def test_sim_uids_mapping_is_read_only(self) -> None:
+        # __post_init__ wraps the input dict in MappingProxyType so
+        # downstream consumers can't silently mutate it.
+        with pytest.raises(TypeError):
+            FETCH_SPEC.sim_uids["isaac"] = "fetch"  # type: ignore[index]
+
+    def test_camera_sensor_ids_mapping_is_read_only(self) -> None:
+        with pytest.raises(TypeError):
+            FETCH_SPEC.camera_sensor_ids["wrist"] = "wrist_cam"  # type: ignore[index]
+
+    def test_mapping_input_is_copied_not_aliased(self) -> None:
+        source = {"maniskill": "testbot"}
+        spec = RobotSpec(
+            name="testbot",
+            sim_uids=source,
+            planning_joint_names=("j0",),
+            head_joint_names=(),
+            base_joint_names=(),
+            is_mobile=False,
+            controller_order=("arm",),
+            camera_ids=("head",),
+            camera_sensor_ids={"head": "sensor_head"},
+            joint_limits_lower=(-1.0,),
+            joint_limits_upper=(1.0,),
+            default_spawn_pose=None,
+        )
+        source["genesis"] = "leaked"
+        assert "genesis" not in spec.sim_uids

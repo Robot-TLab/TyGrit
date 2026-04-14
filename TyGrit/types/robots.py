@@ -15,6 +15,8 @@ Example
 from __future__ import annotations
 
 from dataclasses import dataclass
+from types import MappingProxyType
+from typing import Mapping
 
 
 @dataclass(frozen=True)
@@ -52,19 +54,34 @@ class RobotSpec:
     """
 
     name: str
-    sim_uids: dict[str, str]
+    sim_uids: Mapping[str, str]
     planning_joint_names: tuple[str, ...]
     head_joint_names: tuple[str, ...]
     base_joint_names: tuple[str, ...]
     is_mobile: bool
     controller_order: tuple[str, ...]
     camera_ids: tuple[str, ...]
-    camera_sensor_ids: dict[str, str]
+    camera_sensor_ids: Mapping[str, str]
     joint_limits_lower: tuple[float, ...]
     joint_limits_upper: tuple[float, ...]
     default_spawn_pose: tuple[float, float, float] | None
 
     def __post_init__(self) -> None:
+        # Wrap the two mapping fields in MappingProxyType so consumers
+        # can't silently mutate them post-construction and desync from
+        # whatever the spec was first built with. object.__setattr__ is
+        # the documented escape-hatch for assigning to a frozen
+        # dataclass inside __post_init__.
+        object.__setattr__(self, "sim_uids", MappingProxyType(dict(self.sim_uids)))
+        object.__setattr__(
+            self,
+            "camera_sensor_ids",
+            MappingProxyType(dict(self.camera_sensor_ids)),
+        )
+
+        if set(self.camera_sensor_ids) != set(self.camera_ids):
+            raise ValueError("RobotSpec camera_sensor_ids keys must match camera_ids")
+
         num_planning_joints = len(self.planning_joint_names)
         if len(self.joint_limits_lower) != num_planning_joints:
             raise ValueError(
