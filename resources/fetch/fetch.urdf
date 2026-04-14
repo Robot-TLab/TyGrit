@@ -2,7 +2,13 @@
   <link name="world_link"/>
 
   <link name="x_link">
-    <!-- Minimal inertial properties -->
+    <!-- Minimal inertial properties: non-zero so MuJoCo-based validators
+         (e.g. Genesis) accept the holonomic-base intermediate link. -->
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.001"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
   </link>
   <joint name="x_joint" type="prismatic">
     <parent link="world_link"/>
@@ -12,7 +18,13 @@
   </joint>
 
   <link name="y_link">
-    <!-- Minimal inertial properties -->
+    <!-- Minimal inertial properties: non-zero so MuJoCo-based validators
+         (e.g. Genesis) accept the holonomic-base intermediate link. -->
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.001"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
   </link>
   <joint name="y_joint" type="prismatic">
     <parent link="x_link"/>
@@ -22,7 +34,13 @@
   </joint>
 
   <link name="theta_link">
-    <!-- Minimal inertial properties -->
+    <!-- Minimal inertial properties: non-zero so MuJoCo-based validators
+         (e.g. Genesis) accept the holonomic-base intermediate link. -->
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="0.001"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
   </link>
   <joint name="theta_joint" type="continuous">
     <parent link="y_link"/>
