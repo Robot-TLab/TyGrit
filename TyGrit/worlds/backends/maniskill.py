@@ -61,7 +61,15 @@ from TyGrit.types.worlds import BuiltWorld, ObjectSpec, SceneSpec
 #: scene source is wired up. Genesis (Step 12) has its own backend at
 #: TyGrit/worlds/backends/genesis.py.
 _SUPPORTED_SOURCES = frozenset(
-    {"replicacad", "procthor", "ithor", "robothor", "architecthor", "robocasa"}
+    {
+        "replicacad",
+        "procthor",
+        "ithor",
+        "robothor",
+        "architecthor",
+        "robocasa",
+        "holodeck",
+    }
 )
 
 
@@ -141,7 +149,9 @@ class SpecBackedSceneBuilder(SceneBuilder):
                 f"supported (have {sorted(_SUPPORTED_SOURCES)})"
             )
 
-        delegate = _make_delegate(source, self.env, self.robot_init_qpos_noise)
+        delegate = _make_delegate(
+            source, self.env, self.robot_init_qpos_noise, specs_tuple
+        )
         spec_to_delegate = _translate_specs_to_delegate_idxs(
             source, specs_tuple, delegate
         )
@@ -462,6 +472,7 @@ def _make_delegate(
     source: str,
     env: Any,
     robot_init_qpos_noise: float,
+    specs: Sequence[SceneSpec],
 ) -> SceneBuilder:
     """Instantiate the ManiSkill scene builder for a SceneSpec ``source``.
 
@@ -474,13 +485,16 @@ def _make_delegate(
       They all share the :class:`AI2THORBaseSceneBuilder` base class and
       differ only by ``scene_dataset`` class attribute, so we dispatch
       via a lookup dict.
+    * **holodeck** → :class:`~TyGrit.worlds.backends.molmospaces_maniskill.HolodeckSceneBuilder`,
+      which wraps AllenAI's :class:`MjcfSceneLoader` to load Holodeck
+      MJCFs into a Sapien scene. Construction needs the per-spec
+      ``background_mjcf`` paths up front because the delegate does not
+      enumerate scenes from any shipped manifest — the caller's spec
+      pool *is* the build-config list.
 
-    AI2THOR imports are deferred to this function so the module stays
-    importable when only ReplicaCAD is installed — ManiSkill loads the
-    AI2THOR metadata JSONs from its own package directory at import
-    time of the variants module, but those JSONs ship with the package
-    so the import itself is safe. The asset files themselves are
-    downloaded separately.
+    AI2THOR / RoboCasa / Holodeck imports are deferred to this
+    function so the module stays importable when only ReplicaCAD is
+    installed.
     """
     if source == "replicacad":
         return ReplicaCADSceneBuilder(
@@ -512,6 +526,31 @@ def _make_delegate(
 
         return RoboCasaSceneBuilder(env, robot_init_qpos_noise=robot_init_qpos_noise)
 
+    if source == "holodeck":
+        from TyGrit.worlds.backends.molmospaces_maniskill import (
+            HolodeckSceneBuilder,
+        )
+
+        # Holodeck SceneSpecs always populate background_mjcf — that's
+        # what TyGrit.worlds.generators.holodeck emits. Surface a
+        # specific error rather than letting None reach Path() and
+        # raising deep inside MjcfSceneLoader.
+        mjcf_paths: list[str] = []
+        for spec in specs:
+            if spec.background_mjcf is None:
+                raise ValueError(
+                    f"_make_delegate(holodeck): spec {spec.scene_id!r} has "
+                    f"background_mjcf=None. Holodeck specs must point at the "
+                    f"on-disk MJCF symlink under "
+                    f"assets/molmospaces/mjcf/scenes/<source>/."
+                )
+            mjcf_paths.append(spec.background_mjcf)
+        return HolodeckSceneBuilder(
+            env,
+            mjcf_paths=mjcf_paths,
+            robot_init_qpos_noise=robot_init_qpos_noise,
+        )
+
     # _SUPPORTED_SOURCES is checked upstream in set_specs, so hitting
     # this branch means the frozenset and this dispatch got out of sync
     # — a programming error, not a data error.
@@ -541,6 +580,10 @@ def _translate_specs_to_delegate_idxs(
       ``"robocasa/one_wall_small__industrial"``, and the translator
       parses them via :func:`_robocasa_scene_id_to_idx` without
       touching the delegate.
+    * **Holodeck** uses an identity mapping. The delegate
+      (:class:`~TyGrit.worlds.backends.molmospaces_maniskill.HolodeckSceneBuilder`)
+      stores the per-spec MJCF paths on its ``build_configs`` in the
+      same order as the spec pool, so ``spec_idx == delegate_idx``.
 
     Raises
     ------
@@ -549,6 +592,9 @@ def _translate_specs_to_delegate_idxs(
     """
     if source == "robocasa":
         return [_robocasa_scene_id_to_idx(s.scene_id) for s in specs]
+
+    if source == "holodeck":
+        return list(range(len(specs)))
 
     # All other supported sources (replicacad, procthor, ithor,
     # robothor, architecthor) use the stem-map approach because their

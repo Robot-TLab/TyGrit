@@ -197,6 +197,52 @@ class TestV1BugGuard:
             builder.build([0])
 
 
+class TestHolodeckDispatch:
+    """source='holodeck' routes to the molmospaces_maniskill adapter."""
+
+    def _holodeck_spec(self, idx: int = 0) -> SceneSpec:
+        return SceneSpec(
+            scene_id=f"holodeck/holodeck-objaverse-train/train_{idx}",
+            source="holodeck",
+            background_mjcf=(
+                f"assets/molmospaces/mjcf/scenes/holodeck-objaverse-train/"
+                f"train_{idx}.xml"
+            ),
+        )
+
+    def test_valid_holodeck_specs_populate_build_configs(self) -> None:
+        # Loading the molmo_spaces_maniskill loader needs a real install;
+        # if the world env hasn't run install-molmo-spaces-maniskill, skip
+        # the dispatch test rather than fail with a confusing ImportError.
+        pytest.importorskip("molmo_spaces_maniskill", exc_type=ImportError)
+
+        builder = SpecBackedSceneBuilder(_FakeEnv())
+        specs = tuple(self._holodeck_spec(i) for i in range(3))
+        builder.set_specs(specs)
+        assert builder.build_configs == specs
+        assert builder._delegate is not None  # noqa: SLF001
+        # Identity translation: spec_idx == delegate_idx for Holodeck.
+        assert builder._spec_to_delegate_idxs == (0, 1, 2)  # noqa: SLF001
+        # Delegate stores the MJCF paths in the same order as the specs.
+        assert builder._delegate.build_configs == tuple(  # noqa: SLF001
+            s.background_mjcf for s in specs
+        )
+
+    def test_rejects_holodeck_spec_without_mjcf(self) -> None:
+        pytest.importorskip("molmo_spaces_maniskill", exc_type=ImportError)
+        builder = SpecBackedSceneBuilder(_FakeEnv())
+        bad = (
+            SceneSpec(
+                scene_id="holodeck/holodeck-objaverse-train/train_0",
+                source="holodeck",
+                # no background_mjcf — the generator always sets it,
+                # but a hand-built spec might not.
+            ),
+        )
+        with pytest.raises(ValueError, match="background_mjcf=None"):
+            builder.set_specs(bad)
+
+
 # ───────────────────── integration (real gym.make) ─────────────────
 
 
