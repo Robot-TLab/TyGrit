@@ -25,11 +25,16 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
 
 from TyGrit.types.robots import RobotState  # forward ref resolved at import time
+from TyGrit.types.robots import RobotStateVec
+
+if TYPE_CHECKING:
+    import torch  # noqa: F401 — used in SensorSnapshotVec field annotations
 
 _IDENTITY_QUAT_XYZW: tuple[float, float, float, float] = (0.0, 0.0, 0.0, 1.0)
 
@@ -123,4 +128,39 @@ class SensorSnapshot:
     segmentation: npt.NDArray[np.int32] | None = None
 
 
-__all__ = ["CameraSpec", "SensorSnapshot"]
+@dataclass(frozen=True)
+class SensorSnapshotVec:
+    """Batched :class:`SensorSnapshot` — every per-env field is a torch
+    tensor with leading axis ``num_envs``.
+
+    Lives next to :class:`SensorSnapshot` (CLAUDE.md Rule 4: no
+    parallel ``types/`` tree). Consumed by
+    :class:`~TyGrit.envs.fetch.core_vec.FetchRobotCoreVec` and any vec
+    controller / RL trainer.
+
+    Shape convention:
+
+    * ``rgb``: ``(num_envs, H, W, 3)`` uint8.
+    * ``depth``: ``(num_envs, H, W)`` float32 in metres.
+    * ``intrinsics``: ``(3, 3)`` float64 numpy — shared across envs
+      (intrinsics don't vary per env in any handler today).
+    * ``segmentation``: ``(num_envs, H, W)`` int32 or ``None``.
+    * ``robot_state``: :class:`RobotStateVec` — already batched.
+
+    Tensors live on the device the producing handler was constructed
+    with. Callers must not cross the CPU↔GPU boundary implicitly —
+    use ``.cpu()`` explicitly at observation-logging time.
+    """
+
+    rgb: "torch.Tensor"  # (N, H, W, 3) uint8
+    depth: "torch.Tensor"  # (N, H, W) float32 metres
+    intrinsics: npt.NDArray[np.float64]  # (3, 3) shared across envs
+    robot_state: RobotStateVec
+    segmentation: "torch.Tensor | None" = None
+
+    @property
+    def num_envs(self) -> int:
+        return int(self.rgb.shape[0])
+
+
+__all__ = ["CameraSpec", "SensorSnapshot", "SensorSnapshotVec"]

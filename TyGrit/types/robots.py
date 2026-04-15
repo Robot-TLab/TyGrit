@@ -51,6 +51,8 @@ if TYPE_CHECKING:
     # from this module. CameraSpec is referenced only in annotations on
     # RobotCfg which use string-form via `from __future__ import
     # annotations`, so the import never needs to resolve eagerly.
+    import torch  # noqa: F401 — used in RobotStateVec field annotations
+
     from TyGrit.types.sensors import CameraSpec
 
 #: Supported joint control modes. Sim handlers translate to their
@@ -459,6 +461,36 @@ class RobotState:
 
 
 @dataclass(frozen=True)
+class RobotStateVec:
+    """Batched :class:`RobotState` — every field is a torch tensor with
+    leading axis ``num_envs``.
+
+    Lives next to :class:`RobotState` (CLAUDE.md Rule 4: no parallel
+    ``types/`` tree). Consumed by :class:`~TyGrit.envs.fetch.core_vec.
+    FetchRobotCoreVec` and any vec controller / RL trainer.
+
+    Shape convention:
+
+    * ``base_xy_theta``: ``(num_envs, 3)`` — ``[x, y, theta]`` per env
+      in world frame.
+    * ``planning_joints``: ``(num_envs, 8)`` — torso + 7 arm.
+    * ``head_joints``: ``(num_envs, 2)`` — pan + tilt.
+
+    Tensors live on the device the producing handler was constructed
+    with. Callers must not cross the CPU↔GPU boundary implicitly —
+    use ``.cpu()`` explicitly at observation-logging time.
+    """
+
+    base_xy_theta: "torch.Tensor"  # (N, 3)
+    planning_joints: "torch.Tensor"  # (N, 8)
+    head_joints: "torch.Tensor"  # (N, 2)
+
+    @property
+    def num_envs(self) -> int:
+        return int(self.base_xy_theta.shape[0])
+
+
+@dataclass(frozen=True)
 class WholeBodyConfig:
     """Whole-body configuration for planning: arm + base."""
 
@@ -481,7 +513,9 @@ class IKSolution:
             )
 
 
-__all__.extend(["IKSolution", "JointState", "RobotState", "WholeBodyConfig"])
+__all__.extend(
+    ["IKSolution", "JointState", "RobotState", "RobotStateVec", "WholeBodyConfig"]
+)
 
 # Note: the legacy flat ``RobotSpec`` dataclass and ``FETCH_SPEC``
 # alias were deleted on 2026-04-15 once every call site (sim/,
