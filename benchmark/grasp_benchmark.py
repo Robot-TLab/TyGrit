@@ -30,8 +30,9 @@ from loguru import logger
 from TyGrit.belief_state.config import PointCloudSceneConfig
 from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.controller.fetch.mpc import MPCConfig
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill import ManiSkillFetchRobot
+from TyGrit.envs.fetch.core import FetchRobotCore
 from TyGrit.kinematics.fetch.camera import compute_camera_pose
 from TyGrit.kinematics.fetch.ikfast import IKFastSolver
 from TyGrit.perception.grasping.config import GraspGenConfig
@@ -87,7 +88,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def run_single_trial(
-    robot: ManiSkillFetchRobot,
+    robot: FetchRobotCore,
     planner: VampPreviewPlanner,
     grasp_sampler: GraspSampler,
     scene: PointCloudScene,
@@ -206,16 +207,18 @@ def main() -> None:
 
     env_config = FetchEnvConfig(
         scene_sampler=SceneSamplerConfig(manifest_path=args.manifest_path),
-        obs_mode="rgb+depth+segmentation",
-        control_mode="pd_joint_delta_pos",
-        render_mode="human" if args.render else None,
+        sim_opts={
+            "obs_mode": "rgb+depth+segmentation",
+            "control_mode": "pd_joint_delta_pos",
+            "render_mode": "human" if args.render else None,
+        },
         camera_width=args.camera_width,
         camera_height=args.camera_height,
     )
     mpc_config = MPCConfig()
 
     logger.info("Creating ManiSkill env from manifest: {}", args.manifest_path)
-    robot = ManiSkillFetchRobot(config=env_config, mpc_config=mpc_config)
+    robot = FetchRobot.create(config=env_config, mpc_config=mpc_config)
 
     logger.info("Creating VampPreviewPlanner")
     planner = VampPreviewPlanner(VampPlannerConfig())
