@@ -71,6 +71,7 @@ class GenesisSimHandler:
         *,
         initial_scene_idx: int = 0,
         show_viewer: bool = False,
+        num_envs: int = 0,
     ) -> None:
         if robot_cfg.urdf_path is None:
             raise ValueError(
@@ -89,6 +90,10 @@ class GenesisSimHandler:
                 f"out of range for scene pool of size {len(self._scenes)}"
             )
         self._show_viewer = show_viewer
+        # Genesis uses n_envs=0 for the "no batching dimension" path
+        # (scalar) and n_envs>=1 for batched. GenesisSimHandlerVec
+        # passes n_envs=N here; scalar callers leave the default 0.
+        self._num_envs_build: int = int(num_envs)
 
         # Build once at construction; rebuild on every scene switch.
         self._scene: "gs.Scene" | None = None
@@ -167,7 +172,9 @@ class GenesisSimHandler:
             )
             cameras[cam.camera_id] = cam_handle
 
-        scene.build()
+        # n_envs=0 → no batching dimension (scalar path); n_envs>=1 →
+        # batched scene with that many parallel envs.
+        scene.build(n_envs=self._num_envs_build)
 
         self._scene = scene
         self._robot_entity = robot_entity
@@ -509,32 +516,22 @@ class GenesisSimHandler:
             )
 
 
-class GenesisSimHandlerVec:
+class GenesisSimHandlerVec(GenesisSimHandler):
     """Robot-agnostic :class:`~TyGrit.sim.base.SimHandlerVec` for Genesis.
 
-    Genesis exposes per-env operations via the ``envs_idx`` parameter
-    on :class:`gs.Scene` accessors but enforces a single backing scene
-    rebuild per reset group (``Scene.build`` is one-shot). That means
-    per-env scene heterogeneity is *not* available — every env reads
-    the same background, only object poses can vary. Callers that
-    request mismatched ``idxs`` get a clear :class:`RuntimeError` per
-    CLAUDE.md Rule 1 (no silent replication).
+    Genesis's :meth:`gs.Scene.build` accepts ``n_envs=N`` for native
+    batched simulation. Every :meth:`Entity.get_dofs_position` /
+    :meth:`Link.get_pos` / :meth:`Scene.step` is already batched on
+    axis 0 in that mode. This subclass threads ``num_envs`` through
+    :class:`GenesisSimHandler`'s ``_build_scene`` (via the
+    ``num_envs`` ctor kwarg that passes to ``scene.build(n_envs=...)``)
+    and overrides the :class:`SimHandlerVec` reads to skip the
+    scalar's env-0 flatten.
 
-    Parameters
-    ----------
-    robot_cfg
-        Robot descriptor; must have ``urdf_path`` set.
-    scenes
-        Scene pool drawn from at reset.
-    num_envs
-        Number of parallel envs (must be ``> 1``).
-    initial_scene_idx
-        Index used at construction (and the only index legally
-        re-applied to all envs in :meth:`reset_to_scene_idx`).
-    show_viewer
-        Whether to attach Genesis's interactive viewer.
-    device
-        Torch device for the batched tensor reads.
+    Scene pool heterogeneity: Genesis's ``Scene.build`` is one-shot —
+    swapping the backing stage per env is not possible within a build
+    group. Per-env scene indices must all match; mismatched
+    ``reset_to_scene_idx(idxs)`` raises (CLAUDE.md Rule 1).
     """
 
     def __init__(
@@ -552,107 +549,132 @@ class GenesisSimHandlerVec:
                 f"GenesisSimHandlerVec: num_envs must be > 1; got {num_envs}. "
                 f"Use GenesisSimHandler for the scalar path."
             )
-        self._scalar = GenesisSimHandler(
+        super().__init__(
             robot_cfg,
             scenes,
             initial_scene_idx=initial_scene_idx,
             show_viewer=show_viewer,
+            num_envs=num_envs,
         )
-        # Genesis builds its scene under the hood with n_envs via
-        # Scene.build(n_envs=...). The current scalar handler builds
-        # n_envs=1; widening it to n_envs=num_envs requires reaching
-        # into the build_step. The simplest correct shape today: keep
-        # the scalar handler underneath and replicate its single-env
-        # tensors num_envs times at read time. That is correct for
-        # homogeneous scene sampling (the only mode Genesis allows
-        # today, see class docstring).
         self._num_envs = int(num_envs)
         self._device = device
 
     @property
-    def robot_cfg(self) -> RobotCfg:
-        return self._scalar.robot_cfg
-
-    @property
-    def num_envs(self) -> int:
+    def num_envs(self) -> int:  # type: ignore[override]
         return self._num_envs
 
     @property
     def device(self) -> str:
         return self._device
 
-    @property
-    def total_action_dim(self) -> int:
-        return self._scalar.total_action_dim
+    # ── SimHandlerVec Protocol: batched reads ──────────────────────────
 
-    @property
-    def action_slices(self) -> Mapping[str, slice]:
-        return self._scalar.action_slices
-
-    @property
-    def joint_name_to_idx(self) -> Mapping[str, int]:
-        return self._scalar.joint_name_to_idx
-
-    def get_qpos(self):
+    def get_qpos(self):  # type: ignore[override]
         import torch
 
-        scalar = self._scalar.get_qpos(env_idx=0)
-        t = torch.as_tensor(scalar, device=self._device)
-        return t.unsqueeze(0).expand(self._num_envs, -1).contiguous()
+        # Genesis returns (N, dof) when built with n_envs>=1.
+        qpos = self._robot_entity.get_dofs_position()
+        return torch.as_tensor(qpos, device=self._device)
 
-    def get_link_pose(self, link_name: str):
+    def get_link_pose(self, link_name: str):  # type: ignore[override]
         import torch
 
-        scalar = self._scalar.get_link_pose(link_name, env_idx=0)
-        t = torch.as_tensor(scalar, device=self._device)
-        return t.unsqueeze(0).expand(self._num_envs, -1, -1).contiguous()
+        link = self._robot_entity.get_link(link_name)
+        # Genesis batched API: link.get_pos() → (N, 3); get_quat() →
+        # (N, 4) in wxyz.
+        pos = torch.as_tensor(link.get_pos(), device=self._device).float()
+        q = torch.as_tensor(link.get_quat(), device=self._device).float()
+        w, x, y, z = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+        xx, yy, zz = x * x, y * y, z * z
+        xy, xz, yz = x * y, x * z, y * z
+        wx, wy, wz = w * x, w * y, w * z
+        R = torch.stack(
+            [
+                1 - 2 * (yy + zz),
+                2 * (xy - wz),
+                2 * (xz + wy),
+                2 * (xy + wz),
+                1 - 2 * (xx + zz),
+                2 * (yz - wx),
+                2 * (xz - wy),
+                2 * (yz + wx),
+                1 - 2 * (xx + yy),
+            ],
+            dim=-1,
+        ).reshape(-1, 3, 3)
+        T = torch.eye(4, dtype=pos.dtype, device=pos.device).repeat(
+            self._num_envs, 1, 1
+        )
+        T[:, :3, :3] = R
+        T[:, :3, 3] = pos
+        return T
 
-    def get_camera(self, camera_id: str):
+    def get_camera(self, camera_id: str):  # type: ignore[override]
         import torch
 
-        rgb_s, depth_s, seg_s = self._scalar.get_camera(camera_id, env_idx=0)
+        # Genesis renders a single viewpoint per call regardless of
+        # n_envs — the camera is a world-frame entity, not per-env.
+        # To satisfy the SimHandlerVec shape contract we broadcast
+        # the one render across all envs and document it here.
+        self._robot_cfg.camera_by_id(camera_id)  # raises on typo
+        if camera_id not in self._cameras:
+            raise RuntimeError(
+                f"GenesisSimHandlerVec.get_camera: camera {camera_id!r} is in "
+                f"the RobotCfg but was not constructed on this scene."
+            )
+        rgb_np, depth_np = self._cameras[camera_id].render()
         rgb = (
-            torch.as_tensor(rgb_s, device=self._device)
+            torch.as_tensor(rgb_np, device=self._device)
             .unsqueeze(0)
             .expand(self._num_envs, -1, -1, -1)
             .contiguous()
         )
         depth = (
-            torch.as_tensor(depth_s, device=self._device)
+            torch.as_tensor(depth_np, device=self._device)
+            .float()
             .unsqueeze(0)
             .expand(self._num_envs, -1, -1)
             .contiguous()
         )
-        seg = None
-        if seg_s is not None:
-            seg = (
-                torch.as_tensor(seg_s, device=self._device)
-                .unsqueeze(0)
-                .expand(self._num_envs, -1, -1)
-                .contiguous()
-            )
-        return rgb, depth, seg
+        return rgb, depth, None
 
-    def get_intrinsics(self, camera_id: str):
-        return self._scalar.get_intrinsics(camera_id)
+    # ── SimHandlerVec Protocol: batched writes ─────────────────────────
 
-    def apply_action(self, action) -> None:
+    def apply_action(self, action) -> None:  # type: ignore[override]
         import torch
 
-        if action.shape != (self._num_envs, self._scalar.total_action_dim):
+        if action.shape != (self._num_envs, self._total_action_dim):
             raise ValueError(
                 f"GenesisSimHandlerVec.apply_action: action shape "
                 f"{tuple(action.shape)} != ({self._num_envs}, "
-                f"{self._scalar.total_action_dim})"
+                f"{self._total_action_dim})"
             )
-        # Genesis's scalar handler applies a single env's action;
-        # apply env-0's action and rely on the homogeneous-scene
-        # contract documented above.
-        scalar_action = action[0].detach().cpu().numpy().astype("float32")
-        self._scalar.apply_action(scalar_action)
-        _ = torch  # used for shape check above
+        self._update_attached_cameras()
+        action_np = action.detach().cpu().numpy()
+        for actuator_name, sl in self._action_slices.items():
+            actuator = self._robot_cfg.actuators[actuator_name]
+            sub = np.asarray(action_np[:, sl], dtype=np.float64)  # (N, dim)
 
-    def reset_to_scene_idx(self, idxs, *, seed=None) -> None:
+            if actuator.kind == "base_twist":
+                # base_twist is an SE(2) velocity command; Genesis'
+                # base twist applier expects a per-env (N, 2) array.
+                self._apply_base_twist(actuator, sub)
+                continue
+
+            dof_idxs = [self._joint_name_to_idx[n] for n in actuator.joint_names]
+            if actuator.command_to_joint_mapping is None:
+                values = sub  # (N, len(joints))
+            else:
+                values = np.stack(
+                    [sub[:, i] for i in actuator.command_to_joint_mapping],
+                    axis=-1,
+                )  # (N, n_joints)
+
+            self._apply_actuator(actuator.control_mode, dof_idxs, values)
+        self._scene.step()
+        _ = torch  # shape validation used torch above
+
+    def reset_to_scene_idx(self, idxs, *, seed=None) -> None:  # type: ignore[override]
         import torch
 
         if isinstance(idxs, torch.Tensor):
@@ -670,52 +692,64 @@ class GenesisSimHandlerVec:
                 f"per-env scene indices not supported; Genesis enforces a "
                 f"single backing scene per build group. Got idxs={idxs_list}."
             )
-        self._scalar.reset_to_scene_idx(int(idxs_list[0]), seed=seed)
+        super().reset_to_scene_idx(int(idxs_list[0]), seed=seed)
 
-    def set_joint_positions(self, positions, *, env_ids=None) -> None:
-        # Homogeneous semantics — apply env-0's slice to the scalar
-        # handler. Per-env divergence is not modelled in Genesis.
+    def set_joint_positions(self, positions, *, env_ids=None) -> None:  # type: ignore[override]
+        import torch
+
         if not positions:
             return
-        scalar_positions: dict[str, float] = {}
-        for name, values in positions.items():
-            v = values
-            if hasattr(v, "detach"):
-                v = float(v.detach().cpu().numpy().reshape(-1)[0])
-            else:
-                v = float(np.asarray(v).reshape(-1)[0])
-            scalar_positions[name] = v
-        self._scalar.set_joint_positions(scalar_positions, env_idx=0)
-        _ = env_ids
+        # Genesis's set_dofs_position accepts a batched tensor +
+        # envs_idx list for per-env selection. Assemble a (len(env_ids),
+        # len(dof_idxs)) tensor.
+        if env_ids is None:
+            env_ids_list = list(range(self._num_envs))
+        elif isinstance(env_ids, torch.Tensor):
+            env_ids_list = env_ids.detach().cpu().tolist()
+        else:
+            env_ids_list = list(env_ids)
 
-    def set_base_pose(self, xy_theta, *, env_ids=None) -> None:
+        dof_idxs = [self._joint_name_to_idx[name] for name in positions]
+        # positions[name] is (num_envs,); select env_ids rows, stack
+        # into columns matching dof_idxs ordering.
+        cols = []
+        for name in positions:
+            v = positions[name]
+            if hasattr(v, "detach"):
+                v = v.detach().cpu().numpy()
+            cols.append(np.asarray(v)[env_ids_list])
+        batched_positions = np.stack(cols, axis=-1)  # (len(env_ids), n_dofs)
+        self._robot_entity.set_dofs_position(
+            batched_positions, dof_idxs, envs_idx=env_ids_list
+        )
+
+    def set_base_pose(self, xy_theta, *, env_ids=None) -> None:  # type: ignore[override]
         if not self._robot_cfg.is_mobile:
             raise RuntimeError(
                 f"GenesisSimHandlerVec.set_base_pose: robot "
-                f"{self.robot_cfg.name!r} is fixed-base"
+                f"{self._robot_cfg.name!r} is fixed-base"
             )
-        x = float(xy_theta[0, 0])
-        y = float(xy_theta[0, 1])
-        th = float(xy_theta[0, 2])
-        self._scalar.set_base_pose(x, y, th, env_idx=0)
-        _ = env_ids
+        bj = self._robot_cfg.base_joint_names
+        if len(bj) != 3:
+            raise ValueError(
+                f"GenesisSimHandlerVec.set_base_pose: expected 3 base "
+                f"joints (x, y, theta); got {bj!r}"
+            )
+        positions = {
+            bj[0]: xy_theta[:, 0],
+            bj[1]: xy_theta[:, 1],
+            bj[2]: xy_theta[:, 2],
+        }
+        self.set_joint_positions(positions, env_ids=env_ids)
 
-    @property
-    def _robot_cfg(self) -> RobotCfg:
-        return self._scalar.robot_cfg
-
-    def get_navigable_positions(self) -> list:
-        scalar = self._scalar.get_navigable_positions()
-        # Replicate per env for the homogeneous case.
-        if not scalar:
+    def get_navigable_positions(self) -> list:  # type: ignore[override]
+        # Single-scene build group (Genesis one-shot); every env
+        # shares the same navmesh. Base impl returns a list length
+        # num_envs with the active scene's navmesh repeated.
+        base = super().get_navigable_positions()
+        if not base:
             return [None] * self._num_envs
-        return [scalar[0]] * self._num_envs
-
-    def render(self) -> None:
-        self._scalar.render()
-
-    def close(self) -> None:
-        self._scalar.close()
+        return [base[0]] * self._num_envs
 
 
 __all__ = ["GenesisSimHandler", "GenesisSimHandlerVec"]
