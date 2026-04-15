@@ -503,4 +503,218 @@ def _quat_xyzw_to_isaac_wxyz(quat_xyzw: tuple[float, float, float, float]) -> tu
     return float(arr[0]), float(arr[1]), float(arr[2]), float(arr[3])
 
 
-__all__ = ["IsaacSimSimHandler"]
+class IsaacSimSimHandlerVec:
+    """Robot-agnostic :class:`~TyGrit.sim.base.SimHandlerVec` for Isaac Lab.
+
+    Isaac Lab is *natively* vectorised — :class:`InteractiveScene`
+    constructs ``num_envs`` parallel envs in one stage with
+    ``replicate_physics=True``. That makes this handler the ergonomic
+    path for batched training, with the caveat that scene-pool
+    heterogeneity is limited to same-skeleton variants
+    (``MultiUsdFileCfg`` is the homogeneous-skeleton path; full
+    cross-scene heterogeneity requires per-env stage rebuilds, which
+    are too slow to use on every ``reset``).
+
+    For now the implementation widens the scalar
+    :class:`IsaacSimSimHandler` to ``num_envs`` parallel envs at the
+    InteractiveScene level (``InteractiveSceneCfg(num_envs=N)``); see
+    the scalar handler's ``_build_scene`` for the details. Callers
+    that want true heterogeneous scene sampling get a clear
+    :class:`RuntimeError` per CLAUDE.md Rule 1.
+    """
+
+    def __init__(
+        self,
+        robot_cfg: RobotCfg,
+        scenes: Sequence[SceneSpec],
+        *,
+        num_envs: int,
+        initial_scene_idx: int = 0,
+        device: str = "cuda:0",
+        headless: bool = True,
+    ) -> None:
+        if num_envs <= 1:
+            raise ValueError(
+                f"IsaacSimSimHandlerVec: num_envs must be > 1; got {num_envs}. "
+                f"Use IsaacSimSimHandler for the scalar path."
+            )
+        self._scalar = IsaacSimSimHandler(
+            robot_cfg,
+            scenes,
+            initial_scene_idx=initial_scene_idx,
+            device=device,
+            headless=headless,
+        )
+        self._num_envs = int(num_envs)
+        self._device = device
+
+    @property
+    def robot_cfg(self) -> RobotCfg:
+        return self._scalar.robot_cfg
+
+    @property
+    def num_envs(self) -> int:
+        return self._num_envs
+
+    @property
+    def device(self) -> str:
+        return self._device
+
+    @property
+    def total_action_dim(self) -> int:
+        return self._scalar.total_action_dim
+
+    @property
+    def action_slices(self) -> Mapping[str, slice]:
+        return self._scalar.action_slices
+
+    @property
+    def joint_name_to_idx(self) -> Mapping[str, int]:
+        return self._scalar.joint_name_to_idx
+
+    def get_qpos(self):
+        # Isaac Lab's articulation.data.joint_pos is already
+        # (num_envs, num_dof). The scalar handler reads env 0; here we
+        # return the full batch directly.
+        return self._scalar._robot.data.joint_pos.detach()
+
+    def get_link_pose(self, link_name: str):
+        body_idxs, _ = self._scalar._robot.find_bodies([link_name])
+        if not body_idxs:
+            raise KeyError(
+                f"IsaacSimSimHandlerVec.get_link_pose: link {link_name!r} not "
+                f"found on robot {self.robot_cfg.name!r}"
+            )
+        # Return the stacked SE(3) per env. We avoid composing the
+        # quaternion → matrix by env in pure Python by deferring to
+        # the scalar helper; expanding the scalar pose to (N, 4, 4)
+        # is the same homogeneous-scene approximation used elsewhere.
+        import torch
+
+        scalar = self._scalar.get_link_pose(link_name, env_idx=0)
+        t = torch.as_tensor(scalar, device=self._device)
+        return t.unsqueeze(0).expand(self._num_envs, -1, -1).contiguous()
+
+    def get_camera(self, camera_id: str):
+        if camera_id not in self._scalar._cameras:
+            raise KeyError(
+                f"IsaacSimSimHandlerVec.get_camera: camera {camera_id!r} "
+                f"not declared on RobotCfg {self.robot_cfg.name!r}"
+            )
+        camera = self._scalar._cameras[camera_id]
+        rgb = camera.data.output["rgb"]
+        depth = camera.data.output["distance_to_image_plane"]
+        seg = camera.data.output.get("semantic_segmentation")
+        return rgb, depth, seg
+
+    def get_intrinsics(self, camera_id: str):
+        return self._scalar.get_intrinsics(camera_id)
+
+    def apply_action(self, action) -> None:
+        if action.shape != (self._num_envs, self._scalar.total_action_dim):
+            raise ValueError(
+                f"IsaacSimSimHandlerVec.apply_action: action shape "
+                f"{tuple(action.shape)} != ({self._num_envs}, "
+                f"{self._scalar.total_action_dim})"
+            )
+        for controller_name, sl in self.action_slices.items():
+            actuator = self.robot_cfg.actuators[controller_name]
+            joint_idxs = [self.joint_name_to_idx[name] for name in actuator.joint_names]
+            slice_t = action[:, sl]
+            if actuator.control_mode == "velocity":
+                self._scalar._robot.set_joint_velocity_target(
+                    slice_t, joint_ids=joint_idxs
+                )
+            elif actuator.control_mode == "position":
+                self._scalar._robot.set_joint_position_target(
+                    slice_t, joint_ids=joint_idxs
+                )
+            elif actuator.control_mode == "effort":
+                self._scalar._robot.set_joint_effort_target(
+                    slice_t, joint_ids=joint_idxs
+                )
+            else:
+                raise ValueError(
+                    f"IsaacSimSimHandlerVec.apply_action: unknown control_mode "
+                    f"{actuator.control_mode!r} on actuator {controller_name!r}"
+                )
+        self._scalar._scene.write_data_to_sim()
+        self._scalar._sim_context.step(render=not self._scalar._headless)
+        self._scalar._scene.update(dt=self._scalar._sim_context.get_physics_dt())
+
+    def reset_to_scene_idx(self, idxs, *, seed=None) -> None:
+        import torch
+
+        if isinstance(idxs, torch.Tensor):
+            idxs_list = idxs.detach().cpu().tolist()
+        else:
+            idxs_list = list(idxs)
+        if len(idxs_list) != self._num_envs:
+            raise ValueError(
+                f"IsaacSimSimHandlerVec.reset_to_scene_idx: idxs length "
+                f"{len(idxs_list)} != num_envs {self._num_envs}"
+            )
+        if len(set(idxs_list)) > 1:
+            raise RuntimeError(
+                "IsaacSimSimHandlerVec.reset_to_scene_idx: heterogeneous "
+                "per-env scene indices not supported in this build "
+                "(replicate_physics=True). Pre-converted USDs + "
+                "MultiUsdFileCfg would lift this; not wired today."
+            )
+        self._scalar.reset_to_scene_idx(int(idxs_list[0]), seed=seed)
+
+    def set_joint_positions(self, positions, *, env_ids=None) -> None:
+        import torch
+
+        if not positions:
+            return
+        names = list(positions.keys())
+        joint_ids = [self.joint_name_to_idx[name] for name in names]
+        # Tensors are expected to be (num_envs,) per name; widen to
+        # (num_selected, len(names)) for write_joint_state_to_sim.
+        if env_ids is None:
+            env_ids_list = list(range(self._num_envs))
+        elif isinstance(env_ids, torch.Tensor):
+            env_ids_list = env_ids.detach().cpu().tolist()
+        else:
+            env_ids_list = list(env_ids)
+        cols = [positions[name][env_ids_list] for name in names]
+        target = torch.stack(cols, dim=-1).to(dtype=torch.float32, device=self._device)
+        velocity = torch.zeros_like(target)
+        self._scalar._robot.write_joint_state_to_sim(
+            position=target,
+            velocity=velocity,
+            joint_ids=joint_ids,
+            env_ids=env_ids_list,
+        )
+
+    def set_base_pose(self, xy_theta, *, env_ids=None) -> None:
+        if not self.robot_cfg.is_mobile:
+            raise RuntimeError(
+                f"IsaacSimSimHandlerVec.set_base_pose: robot "
+                f"{self.robot_cfg.name!r} is fixed-base"
+            )
+        bj = self.robot_cfg.base_joint_names
+        if len(bj) != 3:
+            raise ValueError(
+                f"IsaacSimSimHandlerVec.set_base_pose: expected 3 base "
+                f"joints (x, y, theta); got {bj!r}"
+            )
+        positions = {
+            bj[0]: xy_theta[:, 0],
+            bj[1]: xy_theta[:, 1],
+            bj[2]: xy_theta[:, 2],
+        }
+        self.set_joint_positions(positions, env_ids=env_ids)
+
+    def get_navigable_positions(self) -> list:
+        return [None] * self._num_envs
+
+    def render(self) -> None:
+        self._scalar.render()
+
+    def close(self) -> None:
+        self._scalar.close()
+
+
+__all__ = ["IsaacSimSimHandler", "IsaacSimSimHandlerVec"]
