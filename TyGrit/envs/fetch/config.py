@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
+from typing import Any
 
 from TyGrit.envs.config import EnvConfig
 from TyGrit.types.worlds import SceneSamplerConfig
@@ -18,13 +20,30 @@ def _default_scene_sampler() -> SceneSamplerConfig:
     return SceneSamplerConfig(manifest_path="resources/worlds/replicacad.json")
 
 
+def _default_sim_opts() -> Mapping[str, Any]:
+    """Sim-specific defaults routed verbatim into the handler constructor.
+
+    The default values here match the previous hard-wired ManiSkill
+    behaviour (``obs_mode="rgb+depth+state+segmentation"``,
+    ``control_mode="pd_joint_vel"``, ``render_mode="human"``). Using an
+    opaque :class:`Mapping` keeps :class:`FetchEnvConfig` free of any
+    per-simulator field — a new Genesis or Isaac Sim backend pass its
+    own opts without forcing edits here.
+    """
+    return {
+        "obs_mode": "rgb+depth+state+segmentation",
+        "control_mode": "pd_joint_vel",
+        "render_mode": "human",
+    }
+
+
 @dataclass(frozen=True)
 class FetchEnvConfig(EnvConfig):
     """Configuration for Fetch robot environments.
 
     The ``backend`` field (inherited from ``EnvConfig``) selects the
-    simulation or hardware driver.  Backend-specific fields are ignored
-    by other backends.
+    simulation or hardware driver.  Simulator-specific options travel
+    in :attr:`sim_opts` so this dataclass stays simulator-agnostic.
     """
 
     robot: str = "fetch"
@@ -43,8 +62,10 @@ class FetchEnvConfig(EnvConfig):
     # TyGrit.worlds.sampler for the v1 repeating-scene fix.
     scene_sampler: SceneSamplerConfig = field(default_factory=_default_scene_sampler)
 
-    # ── ManiSkill-specific (ignored when backend != "maniskill") ──────────
-    obs_mode: str = "rgb+depth+state+segmentation"
-    control_mode: str = "pd_joint_vel"
-    render_mode: str | None = "human"
+    # ── simulator options (opaque, per-backend) ───────────────────────────
+    # Passed verbatim as kwargs to the backend's ``SimHandler`` constructor.
+    # Keeping this opaque means a new simulator (Genesis, Isaac Sim, …) can
+    # ship its own opt keys without touching ``FetchEnvConfig``.
+    sim_opts: Mapping[str, Any] = field(default_factory=_default_sim_opts)
+
     num_envs: int = 1

@@ -136,8 +136,11 @@ def evaluate(
 
     env_config = FetchEnvConfig(
         num_envs=1,
-        obs_mode="rgbd",
-        render_mode="human" if render else None,
+        sim_opts={
+            "obs_mode": "rgbd",
+            "control_mode": "pd_joint_vel",
+            "render_mode": "human" if render else None,
+        },
         camera_width=128,
         camera_height=128,
     )

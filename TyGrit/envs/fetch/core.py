@@ -330,7 +330,7 @@ class FetchRobotCore:
     def step(self, action: npt.NDArray[np.float32]) -> SensorSnapshot:
         low_level_action = self._assemble_action(action)
         self._handler.apply_action(low_level_action)
-        if self._config.render_mode == "human":
+        if self._config.sim_opts.get("render_mode") == "human":
             self._handler.render()
         return self._build_sensor_snapshot("head")
 
@@ -426,6 +426,6 @@ class FetchRobotCore:
         self._waypoint_idx = 0
         self._gripper_target = 0.0
         self._head_target = (float("nan"), float("nan"))
-        if self._config.render_mode == "human":
+        if self._config.sim_opts.get("render_mode") == "human":
             self._handler.render()
         return self._build_sensor_snapshot("head")

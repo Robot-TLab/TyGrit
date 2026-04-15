@@ -61,16 +61,14 @@ class ManiSkillFetchRobot(FetchRobotCore, FetchRobot):
             sampler.scenes,
             initial_scene_idx=initial_idx,
             camera_resolution=(cfg.camera_width, cfg.camera_height),
-            obs_mode=cfg.obs_mode,
-            control_mode=cfg.control_mode,
-            render_mode=cfg.render_mode,
+            **cfg.sim_opts,
         )
 
         FetchRobotCore.__init__(self, cfg, handler, mpc_config)
 
         # Initial render kicks the viewer once after the
         # construction-time reset so the first frame is visible.
-        if cfg.render_mode == "human":
+        if cfg.sim_opts.get("render_mode") == "human":
             handler.render()
 
 

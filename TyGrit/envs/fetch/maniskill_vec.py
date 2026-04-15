@@ -136,9 +136,9 @@ class ManiSkillFetchRobotVec(FetchRobot):
                 gpu_memory_config=_gpu_memory_config(self._num_envs),
                 scene_config=SceneConfig(contact_offset=0.002),
             ),
-            obs_mode=cfg.obs_mode,
-            control_mode=cfg.control_mode,
-            render_mode=cfg.render_mode,
+            obs_mode=cfg.sim_opts.get("obs_mode", "rgb+depth+state+segmentation"),
+            control_mode=cfg.sim_opts.get("control_mode", "pd_joint_vel"),
+            render_mode=cfg.sim_opts.get("render_mode", "human"),
             camera_resolution=(cfg.camera_width, cfg.camera_height),
             num_envs=self._num_envs,
             sim_backend="gpu" if self._num_envs > 1 else "cpu",
@@ -182,7 +182,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         # Cached qpos from obs dict — updated by step() and reset()
         self._qpos = self._obs["agent"]["qpos"].float()
 
-        if cfg.render_mode == "human":
+        if cfg.sim_opts.get("render_mode") == "human":
             self._env.render()
 
     @property
@@ -346,7 +346,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         self._obs, reward, terminated, truncated, info = self._env.step(ms_action)
         self._qpos = self._obs["agent"]["qpos"].float()
         ee_pos, ee_forward = self._extract_tcp_pose()
-        if self._config.render_mode == "human":
+        if self._config.sim_opts.get("render_mode") == "human":
             self._env.render()
         return {
             "obs": self._obs,
@@ -462,7 +462,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
                 self._obs, *_ = self._env.step(zero_action)
         self._qpos = self._obs["agent"]["qpos"].float()
         ee_pos, ee_forward = self._extract_tcp_pose()
-        if self._config.render_mode == "human":
+        if self._config.sim_opts.get("render_mode") == "human":
             self._env.render()
         return {
             "obs": self._obs,

@@ -59,7 +59,11 @@ class TestManiSkillFetchRobotWiring:
         # and "depth" keys, which only exist when obs_mode includes
         # "rgb" + "depth".
         cfg = FetchEnvConfig(
-            render_mode=None,
+            sim_opts={
+                "obs_mode": "rgb+depth+state+segmentation",
+                "control_mode": "pd_joint_vel",
+                "render_mode": None,
+            },
             camera_width=64,
             camera_height=64,
         )

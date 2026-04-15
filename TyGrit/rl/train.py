@@ -881,8 +881,11 @@ def main() -> None:
     logger.info("[init] Creating ManiSkill env (num_envs={})...", args.num_envs)
     env_config = FetchEnvConfig(
         num_envs=args.num_envs,
-        obs_mode="rgbd",
-        render_mode="human" if args.render else None,
+        sim_opts={
+            "obs_mode": "rgbd",
+            "control_mode": "pd_joint_vel",
+            "render_mode": "human" if args.render else None,
+        },
         camera_width=128,
         camera_height=128,
     )
