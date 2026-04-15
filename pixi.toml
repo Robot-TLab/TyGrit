@@ -22,6 +22,7 @@ tygrit = { path = ".", editable = true }
 
 [tasks]
 test = { cmd = "pytest", env = { PYTHONPATH = "${workspace}:${workspace}/build" } }
+setup-fetch-sim = { cmd = "mkdir -p resources/fetch/sim; test -e resources/fetch/sim/fetch.urdf || cp .pixi/envs/world/lib/python3.11/site-packages/mani_skill/assets/robots/fetch/fetch.urdf resources/fetch/sim/; test -d resources/fetch/sim/fetch_description || cp -r .pixi/envs/world/lib/python3.11/site-packages/mani_skill/assets/robots/fetch/fetch_description resources/fetch/sim/", default-environment = "world" }
 
 # ── maniskill (torch + mani-skill + cuda) ──────────────────────────────
 # Shared base for every env that imports the ManiSkill simulator: rl,
@@ -183,9 +184,108 @@ boost = ">=1.85.0,<2"
 py-trees = ">=2.2,<3"
 opencv-python-headless = ">=4.8,<5"
 
+[feature.genesis.dependencies]
+# Genesis env uses no-default-feature = true (see [environments]) to
+# avoid the default feature's numpy pin conflicting with genesis-world's
+# torch 2.10+ constraint. Declare its own base Python here.
+python = "3.11.*"
+pip = ">=25.3,<26"
+pytest = ">=9.0.3,<10"
+
 [feature.genesis.pypi-dependencies]
+tygrit = { path = ".", editable = true }
+loguru = ">=0.7,<1"
+scipy = ">=1.11,<2"
+numpy = ">=1.26,<2"
 genesis-world = "*"
 torch = ">=2.10.0, <3"
+
+# ── isaacsim (Isaac Sim 5.1 + CUDA torch 2.7) ──────────────────────────
+# Separate env like genesis because NVIDIA's omniverse-kit base layer
+# pins its own USD/pxr stack and doesn't play well composed with
+# mani-skill's sapien-based build. Install gets ~9 GB of kit extensions
+# into the pixi env cache; expect the first `pixi install -e isaacsim`
+# to take a while. Needs a CUDA 12.x RTX GPU; won't import on CPU-only
+# boxes. The EULA acceptance env var is set at env activation time.
+
+[feature.isaacsim.dependencies]
+# Minimum conda base for the isolated isaacsim env (see `no-default-feature
+# = true` under [environments]). ONLY python is pinned on the conda side.
+#
+# Background: NVIDIA's isaacsim-* wheels pin very tight versions of
+# numpy / packaging / typing_extensions. pixi's solver treats every
+# conda package (even `pip` itself) as a hard constraint on the pypi
+# side of the solve, because conda's pip transitively depends on
+# packaging etc. That exposed a real bug:
+#
+#   isaacsim-core==5.1.0.0 depends on packaging==23.0 and packaging==26.0
+#
+# — meaning NVIDIA's wheel metadata has TWO contradictory packaging
+# constraints, and any conda pin of packaging (via pip) tips the solver
+# into the 26.0 branch which collides with isaacsim's own 23.0 pin.
+# We avoid this by NOT declaring `pip` on the conda side here and
+# letting uv (pixi's pypi solver) ship its own pip to install editable
+# pypi deps into this env.
+python = "3.11.*"
+
+[feature.isaacsim.pypi-dependencies]
+tygrit = { path = ".", editable = true }
+loguru = ">=0.7,<1"
+scipy = ">=1.11,<2"
+pytest = ">=9.0.3,<10"
+# Pillow + numpy MUST match isaacsim_kernel 5.0.0's exact pins
+# (Pillow==11.2.1, numpy==1.26.0). Pre-pin them on the pypi side so
+# uv chooses those exact versions; otherwise Isaac Lab's pillow
+# upgrade collides at solve time.
+Pillow = "==11.2.1"
+numpy = "==1.26.0"
+torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
+# isaacsim with the [extscache] extra — extscache_kit /
+# extscache_physics / extscache_kit_sdk supply the omniverse-kit
+# extension binaries the ``isaacsim`` package itself loads at import
+# time (``simulation_app`` etc.). Without [extscache], `import
+# isaacsim` raises IndexError because the extensions dir is empty.
+# The [all] extra is intentionally dropped — it adds replicator/ros
+# packages that we don't use today and that worsen the solve.
+# Need [all]+[extscache] together: [all] pulls isaacsim-app (which
+# provides simulation_app), [extscache] pulls the omniverse-kit
+# extension binaries. Without app, `import isaacsim` raises
+# IndexError because expose_api can't find simulation_app on disk.
+isaacsim = { version = "==5.0.0", extras = ["all", "extscache"], index = "https://pypi.nvidia.com" }
+# IMPORTANT — Isaac Lab is NOT installed via pypi. The pip-published
+# isaaclab==2.3.x pins pillow==11.3.0 which collides with isaacsim
+# 5.0's pillow==11.2.1, making the solve infeasible. The supported
+# install path is a git checkout + `./isaaclab.sh --install`. Run
+# `pixi run -e isaacsim install-isaaclab` once after the env solves
+# to clone + install from source. Same pattern as VAMP / GraspGen /
+# MomaViz (see [feature.thirdparty.tasks]).
+
+# NVIDIA ships Isaac Sim wheels tagged manylinux_2_35_x86_64. pixi's
+# default glibc floor is 2.17 (manylinux_2_17), which excludes those
+# wheels even on systems that have newer glibc. Declare the real floor
+# for this feature so pixi picks the right wheels. Confirmed 2.35+ on
+# any Ubuntu 22.04-class host; fails to resolve on older CentOS boxes,
+# which is correct behaviour since Isaac Sim genuinely doesn't ship
+# wheels for them.
+[feature.isaacsim.system-requirements]
+libc = { family = "glibc", version = "2.35" }
+
+[feature.isaacsim.activation.env]
+OMNI_KIT_ACCEPT_EULA = "Yes"
+
+[feature.isaacsim.tasks]
+# One-shot Isaac Lab install from source. Clones the upstream repo
+# under thirdparty/IsaacLab if missing, then runs ./isaaclab.sh
+# --install which pip-installs the workflow / lab packages with
+# --no-deps so they don't try to upgrade pillow over isaacsim's pin.
+# The shell script is the upstream's documented install entry-point;
+# bypassing it (running pip install on the source tree directly) is
+# unsupported and known to break extension discovery.
+install-isaaclab = """
+if [ ! -d thirdparty/IsaacLab ]; then \
+  git clone --depth 1 --branch v2.3.1 https://github.com/isaac-sim/IsaacLab.git thirdparty/IsaacLab; \
+fi && cd thirdparty/IsaacLab && ./isaaclab.sh --install
+"""
 
 # ── environments ───────────────────────────────────────────────────────
 
@@ -200,7 +300,10 @@ ci         = ["ci"]
 # Genesis is an alternative physics engine — NOT composed with
 # maniskill because the two sims don't share a scene/actor API
 # and pinning torch/cuda twice in one env risks resolution
-# conflicts. Each backend lives in its own env; the core TyGrit
-# package (types, utils, samplers, FetchRobotCore) is pure-Python
-# and importable from both.
-genesis    = ["genesis"]
+# conflicts. `no-default-feature = true` so the default feature's
+# numpy pin doesn't clash with genesis-world's dependency tree;
+# the genesis feature re-declares its own minimal base (python,
+# numpy, scipy, loguru). Pure-Python core (types, utils, samplers,
+# robot cores) remains importable in both envs.
+genesis  = { features = ["genesis"], no-default-feature = true }
+isaacsim = { features = ["isaacsim"], no-default-feature = true }

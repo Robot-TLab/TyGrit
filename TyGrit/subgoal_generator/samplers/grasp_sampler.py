@@ -17,8 +17,8 @@ import numpy.typing as npt
 from loguru import logger
 
 from TyGrit.subgoal_generator.samplers.config import GraspSamplerConfig
-from TyGrit.types.robot import RobotState, WholeBodyConfig
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState, WholeBodyConfig
+from TyGrit.types.sensors import SensorSnapshot
 from TyGrit.utils.depth import pointcloud_from_mask
 from TyGrit.utils.grasping import T_GRASPGEN_TO_FETCH_EE
 from TyGrit.utils.transforms import se2_to_matrix

@@ -8,11 +8,11 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.fetch import FetchRobot
 from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 
 
 class ROSFetchRobot(FetchRobot):

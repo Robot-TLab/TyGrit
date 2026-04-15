@@ -8,8 +8,8 @@ import numpy as np
 import numpy.typing as npt
 
 from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 
 
 class RobotBase(Protocol):

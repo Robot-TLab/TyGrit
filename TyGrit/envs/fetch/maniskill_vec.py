@@ -6,7 +6,7 @@ that handles ``num_envs > 1``. The single-env class now composes a
 this vec class operates on torch tensors with dict-shaped step/reset
 returns, so the two no longer share enough method bodies to justify
 inheritance. Construction-time setup is shared via helpers in
-:mod:`TyGrit.envs.fetch.maniskill_setup` (gym.make wrapper, action
+:mod:`TyGrit.sim.maniskill_helpers` (gym.make wrapper, action
 slices, joint-name map, intrinsics).
 
 ``step()`` and ``reset()`` return a dict built from the ManiSkill obs
@@ -24,21 +24,24 @@ from mani_skill.utils.structs.types import GPUMemoryConfig, SceneConfig, SimConf
 from torch import Tensor
 
 from TyGrit.controller.fetch.mpc import MPCConfig
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.fetch import FetchRobot
-from TyGrit.envs.fetch.maniskill_setup import (
+from TyGrit.robots.fetch import FETCH_CFG
+from TyGrit.sim.maniskill_helpers import (
     build_action_slices,
     build_joint_name_to_idx,
     extract_intrinsics,
     make_scene_manipulation_env,
 )
-from TyGrit.robots import FETCH_SPEC
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 from TyGrit.worlds.sampler import create_sampler
 
-_HEAD_SENSOR_ID = FETCH_SPEC.camera_sensor_ids["head"]
+# Resolve the ManiSkill-internal head sensor id once via the
+# CameraSpec.sim_sensor_ids mapping (added 2026-04-15). Same lookup
+# the single-env sim/maniskill.py handler uses.
+_HEAD_SENSOR_ID = FETCH_CFG.camera_by_id("head").sim_sensor_ids.get("maniskill", "head")
 
 
 def _gpu_memory_config(num_envs: int) -> GPUMemoryConfig:
@@ -125,8 +128,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         # Create vectorized environment. GPU sim when num_envs > 1
         # for parallel stepping + rendering; CPU otherwise.
         self._env = make_scene_manipulation_env(
-            cfg,
-            FETCH_SPEC,
+            FETCH_CFG,
             self._scenes,
             build_config_idxs=initial_idxs,
             sim_config=SimConfig(
@@ -134,6 +136,10 @@ class ManiSkillFetchRobotVec(FetchRobot):
                 gpu_memory_config=_gpu_memory_config(self._num_envs),
                 scene_config=SceneConfig(contact_offset=0.002),
             ),
+            obs_mode=cfg.obs_mode,
+            control_mode=cfg.control_mode,
+            render_mode=cfg.render_mode,
+            camera_resolution=(cfg.camera_width, cfg.camera_height),
             num_envs=self._num_envs,
             sim_backend="gpu" if self._num_envs > 1 else "cpu",
         )
@@ -141,7 +147,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         self._obs, _ = self._env.reset()
 
         self._action_slices, self._total_action_dim = build_action_slices(
-            self._agent, FETCH_SPEC
+            self._agent, FETCH_CFG
         )
         self._joint_name_to_idx = build_joint_name_to_idx(self._agent)
         self._intrinsics = extract_intrinsics(self._env, _HEAD_SENSOR_ID)
@@ -155,11 +161,11 @@ class ManiSkillFetchRobotVec(FetchRobot):
 
         # Build joint index tensors for fast batched extraction
         self._planning_indices = torch.tensor(
-            [self._joint_name_to_idx[n] for n in FETCH_SPEC.planning_joint_names],
+            [self._joint_name_to_idx[n] for n in FETCH_CFG.planning_joint_names],
             dtype=torch.long,
         )
         self._head_indices = torch.tensor(
-            [self._joint_name_to_idx[n] for n in FETCH_SPEC.head_joint_names],
+            [self._joint_name_to_idx[n] for n in FETCH_CFG.head_joint_names],
             dtype=torch.long,
         )
 
@@ -486,7 +492,7 @@ class ManiSkillFetchRobotVec(FetchRobot):
         head = self.get_batched_head_joints(qpos)  # (N, 2)
 
         if link_poses is None:
-            from TyGrit.kinematics.fetch.fk_torch import batch_forward_kinematics
+            from TyGrit.robots.fetch.kinematics.fk_torch import batch_forward_kinematics
 
             planning = self.get_batched_planning_joints(qpos)  # (N, 8)
             fk_input = torch.cat([planning, head], dim=1).float()  # (N, 10)

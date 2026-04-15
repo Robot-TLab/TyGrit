@@ -16,8 +16,16 @@ from TyGrit.types.results import (
     SchedulerResult,
     StageResult,
 )
-from TyGrit.types.robot import IKSolution, JointState, RobotState, WholeBodyConfig
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import (
+    ActuatorCfg,
+    ControlMode,
+    IKSolution,
+    JointState,
+    RobotCfg,
+    RobotState,
+    WholeBodyConfig,
+)
+from TyGrit.types.sensors import CameraSpec, SensorSnapshot
 from TyGrit.types.tasks import (
     DynamicObstacle,
     GraspTask,
@@ -46,12 +54,17 @@ __all__ = [
     "SceneSpec",
     # geometry
     "SE2Pose",
-    # robot
+    # robot — runtime state
     "IKSolution",
     "JointState",
     "RobotState",
     "WholeBodyConfig",
-    # sensor
+    # robot — descriptors / config
+    "ActuatorCfg",
+    "ControlMode",
+    "RobotCfg",
+    # sensor — runtime data + descriptors
+    "CameraSpec",
     "SensorSnapshot",
     # failures (per-subsystem)
     "PlannerFailure",

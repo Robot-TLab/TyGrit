@@ -3,7 +3,7 @@
 import numpy as np
 
 from TyGrit.checker.occlusion import check_self_occlusion
-from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
+from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
 
 # Typical Fetch head-camera intrinsics (SAPIEN default).
 CAM_K = np.array(

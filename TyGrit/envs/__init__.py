@@ -29,7 +29,7 @@ def create_env(
         config = FetchEnvConfig()
 
     if config.robot == "fetch":
-        from TyGrit.envs.fetch.fetch import FetchRobot
+        from TyGrit.envs.fetch import FetchRobot
 
         return FetchRobot.create(config, mpc_config=mpc_config)
 

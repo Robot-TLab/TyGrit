@@ -9,7 +9,7 @@ import numpy.typing as npt
 
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.results import PlanResult
-from TyGrit.types.robot import WholeBodyConfig
+from TyGrit.types.robots import WholeBodyConfig
 
 
 class MotionPlanner(Protocol):

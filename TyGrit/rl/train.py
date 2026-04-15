@@ -330,7 +330,14 @@ class FPPOTrainer:
             self._suite.total_tasks,
         )
 
-        self.B = (causal_matrix or default_causal_matrix()).to(self.device)
+        # ``causal_matrix or default_causal_matrix()`` would raise
+        # RuntimeError when ``causal_matrix`` is a real Tensor —
+        # truth-testing a multi-element tensor is ambiguous in PyTorch.
+        # Use an explicit None check so the ``causal_matrix=Tensor(...)``
+        # path actually works.
+        if causal_matrix is None:
+            causal_matrix = default_causal_matrix()
+        self.B = causal_matrix.to(self.device)
 
         # Use first task's target for sample obs shape inference
         first_task = self._suite.scenes[0].grasp_tasks[0]

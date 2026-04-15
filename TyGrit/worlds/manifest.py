@@ -311,7 +311,17 @@ def _scene_from_dict(data: Any, path: Path) -> SceneSpec:
             f"got {type(data).__name__}"
         )
 
-    raw_objects = data.get("objects") or ()
+    # `objects` is optional in the manifest schema; absent and empty-list
+    # both legally mean "scene has no spawned objects". A non-list value
+    # under that key is a malformed manifest and we raise rather than
+    # silently treating it as empty (the previous `or ()` swallowed
+    # truthy bugs like a stray dict or string).
+    raw_objects = data.get("objects", ())
+    if not isinstance(raw_objects, (list, tuple)):
+        raise ValueError(
+            f"manifest {path}: scene entry 'objects' must be a list, got "
+            f"{type(raw_objects).__name__}"
+        )
     objects = tuple(_object_from_dict(o, path) for o in raw_objects)
 
     kwargs: dict[str, Any] = {"objects": objects}

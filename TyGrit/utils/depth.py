@@ -10,6 +10,25 @@ import numpy as np
 import numpy.typing as npt
 
 
+def integer_depth_to_metres(
+    depth: npt.NDArray,
+    millimetres_per_unit: float = 1.0,
+) -> npt.NDArray[np.float32]:
+    """Convert a sim-emitted integer depth image to ``float32`` metres.
+
+    ManiSkill (and other Sapien-derived sims) returns depth as
+    ``uint16`` or ``int16`` millimetres in their observation dict.
+    Genesis returns ``float32`` metres directly. This helper detects
+    the integer case and divides by 1000; floats pass through.
+
+    ``millimetres_per_unit`` defaults to 1.0 (i.e. 1 unit = 1 mm) —
+    override only for sims that use a different fixed-point scale.
+    """
+    if np.issubdtype(depth.dtype, np.integer):
+        return depth.astype(np.float32) * (millimetres_per_unit / 1000.0)
+    return depth.astype(np.float32)
+
+
 def depth_to_pointcloud(
     depth: npt.NDArray[np.float32],
     intrinsics: npt.NDArray[np.float64],

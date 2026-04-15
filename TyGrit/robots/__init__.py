@@ -1,5 +1,10 @@
-"""Robot descriptors (pure-data RobotSpec values). Sim-agnostic."""
+"""Robot descriptors (pure-data :class:`RobotCfg` values). Sim-agnostic.
 
-from TyGrit.robots.fetch import FETCH_SPEC
+:data:`FETCH_CFG` is the canonical Fetch descriptor. Every
+:mod:`TyGrit.sim` handler consumes it. Adding a new robot is a new
+package under this directory exporting its own ``<ROBOT>_CFG``.
+"""
 
-__all__ = ["FETCH_SPEC"]
+from TyGrit.robots.fetch import FETCH_CFG
+
+__all__ = ["FETCH_CFG"]

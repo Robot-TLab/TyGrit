@@ -14,6 +14,14 @@ Scope (what this module supports)
   Genesis natively parses MuJoCo XML, so Holodeck scenes drop in
   without any extra translation layer (unlike the ManiSkill side,
   which needed AllenAI's standalone ``MjcfSceneLoader``).
+* **Habitat-schema datasets** — ``replicacad`` and the four AI2THOR
+  variants (``ithor`` / ``procthor`` / ``robothor`` / ``architecthor``)
+  all ship ``scene_instance.json`` files. They're dispatched to
+  :mod:`TyGrit.worlds.backends._genesis_habitat`, which parses the
+  schema and emits one ``gs.morphs.{Mesh, URDF}`` per entry — the
+  same flow ManiSkill's shipped :class:`ReplicaCADSceneBuilder` /
+  :class:`AI2THORBaseSceneBuilder` implement against Sapien, ported
+  to Genesis.
 * **Per-spec :class:`ObjectSpec` entries** — ``mesh_path`` goes
   through :class:`gs.morphs.Mesh`; ``urdf_path`` goes through
   :class:`gs.morphs.URDF`. ``builtin_id`` prefixes (``ycb:…``)
@@ -25,11 +33,12 @@ Scope (what this module supports)
 Deliberately NOT supported
 --------------------------
 
-ReplicaCAD, AI2THOR (iTHOR / ProcTHOR / RoboTHOR / ArchitecTHOR),
-and RoboCasa are ManiSkill-shipped datasets loaded by their own
-``SceneBuilder`` subclasses inside the ManiSkill repo. Porting
-them to Genesis is out of scope — each has its own asset format
-and scene-instance JSON schema. Specs with those sources raise
+**RoboCasa.** Its 120 kitchen scenes are assembled at runtime by
+ManiSkill's ``RoboCasaSceneBuilder`` from a combinatorial
+layout×style generator; there is no flat scene_instance.json to
+parse. Porting to Genesis would mean re-implementing the assembler
+or pre-snapshotting every combo to standalone MJCF/USD — both
+large workstreams. Specs with ``source="robocasa"`` raise
 :class:`NotImplementedError`.
 
 Single-build constraint
@@ -69,10 +78,28 @@ from TyGrit.types.worlds import ObjectSpec, SceneSpec
 if TYPE_CHECKING:
     import genesis as gs
 
-#: Sources this backend can load. Other sources (replicacad, ithor,
-#: procthor, robothor, architecthor, robocasa) are ManiSkill-only and
-#: raise :class:`NotImplementedError` when encountered.
-_SUPPORTED_SOURCES = frozenset({"holodeck"})
+#: Sources this backend can load. RoboCasa still raises — its
+#: combinatorial layout+style assembler lives inside ManiSkill and
+#: would need to be ported (or snapshotted into standalone MJCFs) to
+#: work here. The Habitat-schema datasets (ReplicaCAD + AI2THOR
+#: variants) flow through :mod:`TyGrit.worlds.backends._genesis_habitat`.
+_SUPPORTED_SOURCES = frozenset(
+    {
+        "holodeck",
+        "replicacad",
+        "ithor",
+        "procthor",
+        "robothor",
+        "architecthor",
+    }
+)
+
+#: Subset of :data:`_SUPPORTED_SOURCES` that use Habitat's
+#: scene_instance.json schema. Routed through
+#: :func:`_genesis_habitat.add_habitat_scene_to`.
+_HABITAT_SOURCES = frozenset(
+    {"replicacad", "ithor", "procthor", "robothor", "architecthor"}
+)
 
 
 def add_spec_to_scene(scene: "gs.Scene", spec: SceneSpec) -> None:
@@ -120,6 +147,12 @@ def add_spec_to_scene(scene: "gs.Scene", spec: SceneSpec) -> None:
             ),
             name=f"scene__{spec.scene_id}",
         )
+    elif spec.source in _HABITAT_SOURCES:
+        # ReplicaCAD + AI2THOR variants share Habitat's
+        # scene_instance.json schema. Dispatch to the shared parser.
+        from TyGrit.worlds.backends._genesis_habitat import add_habitat_scene_to
+
+        add_habitat_scene_to(scene, spec.source, spec.scene_id)
 
     for obj in spec.objects:
         _add_object_to_scene(scene, obj)

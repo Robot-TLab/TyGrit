@@ -41,7 +41,7 @@ from TyGrit.planning.motion_planner import MotionPlanner
 from TyGrit.subgoal_generator.protocol import SubGoalGenerator
 from TyGrit.types.planning import PlanningMode, SchedulerFeedback, Subgoal, Trajectory
 from TyGrit.types.results import PlanResult, SchedulerOutcome, SchedulerResult
-from TyGrit.types.robot import RobotState, WholeBodyConfig
+from TyGrit.types.robots import RobotState, WholeBodyConfig
 
 # ── The scheduler ────────────────────────────────────────────────────────
 

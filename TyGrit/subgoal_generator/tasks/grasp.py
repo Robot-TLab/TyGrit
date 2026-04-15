@@ -31,9 +31,9 @@ import numpy.typing as npt
 from loguru import logger
 
 from TyGrit.controller.fetch.gripper import GRIPPER_CLOSED
-from TyGrit.kinematics.fetch.camera import compute_camera_pose
 from TyGrit.kinematics.ik import create_ik_solver
 from TyGrit.perception.grasping import create_grasp_predictor
+from TyGrit.robots.fetch.kinematics.camera import compute_camera_pose
 from TyGrit.subgoal_generator.samplers.grasp_sampler import GraspSampler
 from TyGrit.types.planning import PlanningMode, Subgoal
 
@@ -44,7 +44,7 @@ if TYPE_CHECKING:
     from TyGrit.envs.base import RobotBase
     from TyGrit.subgoal_generator.config import GraspGeneratorConfig
     from TyGrit.types.planning import SchedulerFeedback
-    from TyGrit.types.robot import RobotState
+    from TyGrit.types.robots import RobotState
 
 
 class _Phase(enum.Enum):

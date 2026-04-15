@@ -10,7 +10,7 @@ import numpy.typing as npt
 
 from TyGrit.belief_state.scene import Scene
 from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 
 
 @dataclass(frozen=True)

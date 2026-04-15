@@ -6,8 +6,8 @@ import pytest
 from TyGrit.belief_state.config import PointCloudSceneConfig
 from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 

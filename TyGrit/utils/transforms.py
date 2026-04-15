@@ -25,6 +25,54 @@ def create_pose_matrix(
     return T
 
 
+def xyzw_to_wxyz(
+    quaternion_xyzw: tuple[float, float, float, float] | npt.NDArray[np.float64],
+) -> tuple[float, float, float, float]:
+    """Convert a quaternion from TyGrit's ``[x, y, z, w]`` to Sapien /
+    MuJoCo / Genesis's ``[w, x, y, z]`` convention.
+
+    Sim adapter modules call this at the boundary when they spawn
+    cameras, articulations, or geoms whose pose is set from a
+    :class:`CameraSpec` / :class:`ObjectSpec` orientation.
+    """
+    x, y, z, w = quaternion_xyzw
+    return (float(w), float(x), float(y), float(z))
+
+
+def wxyz_to_xyzw(
+    quaternion_wxyz: tuple[float, float, float, float] | npt.NDArray[np.float64],
+) -> tuple[float, float, float, float]:
+    """Convert a quaternion from ``[w, x, y, z]`` (Sapien / MuJoCo /
+    Genesis) back to TyGrit's ``[x, y, z, w]`` (SciPy / ROS).
+
+    Sim adapter modules call this when reading a sim's native pose
+    back into a TyGrit-side data structure.
+    """
+    w, x, y, z = quaternion_wxyz
+    return (float(x), float(y), float(z), float(w))
+
+
+def pose_from_pos_quat_wxyz(
+    position: npt.NDArray[np.float64],
+    quaternion_wxyz: npt.NDArray[np.float64],
+) -> npt.NDArray[np.float64]:
+    """Build a 4×4 SE(3) transform from a position and a wxyz quaternion.
+
+    Convenience wrapper for sim handlers (Genesis, Sapien) that read
+    ``(pos, wxyz_quat)`` pairs directly from their entity APIs.
+    """
+    quat_xyzw = np.array(
+        [
+            quaternion_wxyz[1],
+            quaternion_wxyz[2],
+            quaternion_wxyz[3],
+            quaternion_wxyz[0],
+        ],
+        dtype=np.float64,
+    )
+    return create_pose_matrix(np.asarray(position, dtype=np.float64), quat_xyzw)
+
+
 def create_transform_matrix(
     translation: npt.NDArray[np.float64],
     rotation_matrix: npt.NDArray[np.float64],

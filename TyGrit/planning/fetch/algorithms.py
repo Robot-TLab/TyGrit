@@ -211,9 +211,14 @@ def plan_whole_body_fcit(
         )
 
     if interpolation_density is not None:
+        # vamp_preview's ``interpolate`` raises ``RuntimeError`` when
+        # the path is empty or already finer than the requested density.
+        # In both cases the original (un-interpolated) ``res`` is the
+        # right thing to return, so we treat the failure as an
+        # expected no-op rather than propagating it.
         try:
             res.interpolate(interpolation_density)
-        except Exception:
+        except RuntimeError:
             pass
 
     arm_path = vamp_path_to_lists(res.arm_result.path)

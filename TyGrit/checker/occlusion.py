@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.kinematics.fetch.constants import (
+from TyGrit.robots.fetch.kinematics.constants import (
     FETCH_SPHERES,
     HEAD_CAMERA_OFFSET,
     R_CV_TO_CAMERA_LINK,
