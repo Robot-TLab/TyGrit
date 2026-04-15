@@ -6,16 +6,14 @@ Public API:
       ``FetchRobot.create(config)`` to get the right backend
       (ManiSkill / Genesis / Isaac Sim / ROS).
 
-The factory composes :class:`~TyGrit.envs.fetch.core.FetchRobotCore`
-(robot-specific, sim-agnostic) with the appropriate
-:class:`~TyGrit.sim.base.SimHandler` selected via
+The factory composes the appropriate sim-agnostic Fetch core
+(:class:`~TyGrit.envs.fetch.core.FetchRobotCore` for single-env,
+:class:`~TyGrit.envs.fetch.core_vec.FetchRobotCoreVec` for vec) with
+the matching :class:`~TyGrit.sim.base.SimHandler` /
+:class:`~TyGrit.sim.base.SimHandlerVec` selected via
 :func:`TyGrit.sim.create_sim_handler`. Adding a new simulator requires
 **zero** edits to this module — the dispatcher lives in
 :mod:`TyGrit.sim`.
-
-``config.num_envs > 1`` temporarily still routes through the legacy
-:class:`~TyGrit.envs.fetch.maniskill_vec.ManiSkillFetchRobotVec` glue
-until the vec handlers land in :mod:`TyGrit.sim` (§7.5 / §7.6).
 """
 
 from __future__ import annotations
@@ -33,6 +31,11 @@ class FetchRobot:
     def create(config: FetchEnvConfig | None = None):
         """Factory: create a Fetch robot driven by the configured sim.
 
+        Returns a :class:`~TyGrit.envs.fetch.core.FetchRobotCore` for
+        ``num_envs == 1`` and a
+        :class:`~TyGrit.envs.fetch.core_vec.FetchRobotCoreVec` for
+        ``num_envs > 1``.
+
         Parameters
         ----------
         config
@@ -49,22 +52,6 @@ class FetchRobot:
 
             return ROSFetchRobot(cfg)
 
-        if cfg.num_envs > 1:
-            # Temporary: the vec handler has not yet been lifted into
-            # TyGrit.sim, so vec paths still go through the legacy
-            # Fetch-specific wrapper. Lands with §7.5 / §7.6.
-            if cfg.backend != "maniskill":
-                raise NotImplementedError(
-                    f"FetchRobot.create: backend={cfg.backend!r} with "
-                    f"num_envs={cfg.num_envs} — only 'maniskill' has a vec "
-                    f"path today. Genesis / Isaac Sim vec handlers land with "
-                    f"§7.5 in prompts/multi_sim_mobile_manip_refactor.md."
-                )
-            from TyGrit.envs.fetch.maniskill_vec import ManiSkillFetchRobotVec
-
-            return ManiSkillFetchRobotVec(cfg, None)
-
-        from TyGrit.envs.fetch.core import FetchRobotCore
         from TyGrit.robots.fetch import FETCH_CFG
         from TyGrit.sim import create_sim_handler
         from TyGrit.worlds.sampler import create_sampler
@@ -74,8 +61,9 @@ class FetchRobot:
 
         handler_opts = dict(cfg.sim_opts)
         if cfg.backend == "maniskill":
-            # ManiSkillSimHandler accepts a single resolution for all
-            # cameras; wire the env-level (w, h) to it.
+            # ManiSkillSimHandler / *Vec accept one resolution for every
+            # camera in the robot's CameraSpec list; wire the env-level
+            # (w, h) to it so callers don't need to know.
             handler_opts.setdefault(
                 "camera_resolution", (cfg.camera_width, cfg.camera_height)
             )
@@ -89,7 +77,14 @@ class FetchRobot:
             **handler_opts,
         )
 
-        core = FetchRobotCore(cfg, handler)
+        if cfg.num_envs > 1:
+            from TyGrit.envs.fetch.core_vec import FetchRobotCoreVec
+
+            core = FetchRobotCoreVec(cfg, handler)
+        else:
+            from TyGrit.envs.fetch.core import FetchRobotCore
+
+            core = FetchRobotCore(cfg, handler)
 
         # Kick the viewer once after construction so the first frame
         # is visible; no-op when render_mode is not "human".
