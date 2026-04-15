@@ -358,7 +358,10 @@ class FetchRobotCoreVec:
     # ── reset ───────────────────────────────────────────────────────────
 
     def reset(
-        self, seed: int | None = None, randomize_init: bool = True
+        self,
+        seed: int | None = None,
+        randomize_init: bool = True,
+        settle_steps: int = 0,
     ) -> SensorSnapshotVec:
         """Reset every env to a fresh sampler-selected scene; recalibrate
         the holonomic base offset; optionally randomise spawn pose.
@@ -366,6 +369,11 @@ class FetchRobotCoreVec:
         The sampler picks one idx per env keyed by ``(env_idx,
         reset_count)`` so each env gets its own deterministic scene
         sequence (the v1 repeating-scene fix applied per env).
+
+        ``settle_steps`` runs that many zero-action steps after reset
+        so objects can settle out of any initial interpenetration
+        before observations are returned. Callers doing randomised
+        spawns against a cluttered scene typically pass 5-20.
         """
         import torch as _torch
 
@@ -387,6 +395,15 @@ class FetchRobotCoreVec:
             dtype=_torch.float32,
             device=self._device,
         )
+        if settle_steps > 0:
+            zero_action = _torch.zeros(
+                self._num_envs,
+                self._handler.total_action_dim,
+                dtype=_torch.float32,
+                device=self._device,
+            )
+            for _ in range(settle_steps):
+                self._handler.apply_action(zero_action)
         if self._config.sim_opts.get("render_mode") == "human":
             self._handler.render()
         return self._build_sensor_snapshot("head")

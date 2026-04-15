@@ -202,113 +202,28 @@ genesis-world = "*"
 torch = ">=2.10.0, <3"
 
 # ── isaacsim (Isaac Sim 5.1 + CUDA torch 2.7) ──────────────────────────
-# Separate env like genesis because NVIDIA's omniverse-kit base layer
-# pins its own USD/pxr stack and doesn't play well composed with
-# mani-skill's sapien-based build. Install gets ~9 GB of kit extensions
-# into the pixi env cache; expect the first `pixi install -e isaacsim`
-# to take a while. Needs a CUDA 12.x RTX GPU; won't import on CPU-only
-# boxes. The EULA acceptance env var is set at env activation time.
-
 [feature.isaacsim.dependencies]
-# Minimum conda base for the isolated isaacsim env (see `no-default-feature
-# = true` under [environments]). ONLY python + setuptools pinned conda-side.
-#
-# Background: NVIDIA's isaacsim-* wheels pin very tight versions of
-# numpy / packaging / typing_extensions. pixi's solver treats every
-# conda package (even `pip` itself) as a hard constraint on the pypi
-# side of the solve, because conda's pip transitively depends on
-# packaging etc. That exposed a real bug:
-#
-#   isaacsim-core==5.1.0.0 depends on packaging==23.0 and packaging==26.0
-#
-# — meaning NVIDIA's wheel metadata has TWO contradictory packaging
-# constraints, and any conda pin of packaging (via pip) tips the solver
-# into the 26.0 branch which collides with isaacsim's own 23.0 pin.
-# We avoid this by NOT declaring `pip` on the conda side here and
-# letting uv (pixi's pypi solver) ship its own pip to install editable
-# pypi deps into this env.
-#
-# setuptools is added so that `flatdict` (a transitive isaaclab dep
-# whose 4.0.1 sdist imports `pkg_resources` at build time without
-# declaring it) can build under ``no-build-isolation``: with isolation
-# disabled uv reuses this env's setuptools instead of failing on a
-# clean build env.
 python = "3.11.*"
 setuptools = ">=70"
+pip = ">=26.0.1,<27"
 
 [feature.isaacsim.pypi-dependencies]
 tygrit = { path = ".", editable = true }
 loguru = ">=0.7,<1"
 scipy = ">=1.11,<2"
 pytest = ">=9.0.3,<10"
-# Pillow + numpy MUST match isaacsim_kernel 5.0.0's exact pins
-# (Pillow==11.2.1, numpy==1.26.0). Pre-pin them on the pypi side so
-# uv chooses those exact versions; otherwise Isaac Lab's pillow
-# upgrade collides at solve time.
-Pillow = "==11.2.1"
+Pillow = "==11.3.0"
 numpy = "==1.26.0"
 torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" }
-# isaacsim with the [extscache] extra — extscache_kit /
-# extscache_physics / extscache_kit_sdk supply the omniverse-kit
-# extension binaries the ``isaacsim`` package itself loads at import
-# time (``simulation_app`` etc.). Without [extscache], `import
-# isaacsim` raises IndexError because the extensions dir is empty.
-# The [all] extra is intentionally dropped — it adds replicator/ros
-# packages that we don't use today and that worsen the solve.
-# Need [all]+[extscache] together: [all] pulls isaacsim-app (which
-# provides simulation_app), [extscache] pulls the omniverse-kit
-# extension binaries. Without app, `import isaacsim` raises
-# IndexError because expose_api can't find simulation_app on disk.
-isaacsim = { version = "==5.0.0", extras = ["all", "extscache"], index = "https://pypi.nvidia.com" }
-# warp-lang is pulled in transitively by Isaac Lab. Declared here so
-# the install-isaaclab task below doesn't have to manage it.
-warp-lang = ">=1.12,<2"
 
-# IMPORTANT — Isaac Lab is NOT declared as a pypi-dep here. Two
-# upstream issues block a `pixi install`-only path on pixi 0.63.x:
-#
-# 1. isaaclab core pins ``pillow==11.3.0`` while isaacsim 5.0 pins
-#    ``11.2.1``; pixi's per-feature ``pypi-options.dependency-overrides``
-#    is the right surgery (validated by manifest schema), but the solver
-#    still chooses the upstream pin during git-source resolution.
-# 2. Even with an override, isaaclab transitively builds
-#    ``flatdict==4.0.1`` from sdist; flatdict's setup.py imports
-#    ``pkg_resources`` without declaring setuptools as a build dep.
-#    Pixi 0.63 doesn't yet pass ``no-build-isolation`` (whole-workspace
-#    or per-package) to its bundled uv during ``pixi install`` — the
-#    feature exists in `[pypi-options]` but the value is ignored at
-#    install time. Tracked upstream under
-#    https://github.com/prefix-dev/pixi/pull/3657 / #4247.
-#
-# Until both land, run `pixi run -e isaacsim install-isaaclab` (defined
-# under [feature.isaacsim.tasks] below) once after `pixi install -e
-# isaacsim`. The task runs entirely inside this pixi env — no raw
-# machine python or sudo needed.
-
-
-# NVIDIA ships Isaac Sim wheels tagged manylinux_2_35_x86_64. pixi's
-# default glibc floor is 2.17 (manylinux_2_17), which excludes those
-# wheels even on systems that have newer glibc. Declare the real floor
-# for this feature so pixi picks the right wheels. Confirmed 2.35+ on
-# any Ubuntu 22.04-class host; fails to resolve on older CentOS boxes,
-# which is correct behaviour since Isaac Sim genuinely doesn't ship
-# wheels for them.
 [feature.isaacsim.system-requirements]
 libc = { family = "glibc", version = "2.35" }
 
+[feature.isaacsim.tasks]
+install-isaaclab = 'pip install "isaaclab[isaacsim,all]==2.3.2.post1" --extra-index-url https://pypi.nvidia.com'
+
 [feature.isaacsim.activation.env]
 OMNI_KIT_ACCEPT_EULA = "Yes"
-
-[feature.isaacsim.tasks]
-# One-shot Isaac Lab install. Runs *inside* the isaacsim pixi env
-# (the script uses ``$CONDA_PREFIX/bin/python`` which is the env's own
-# interpreter — no raw-machine python touched). The script clones
-# Isaac Lab v2.3.1 if missing, bootstraps pip into the env's venv,
-# then `pip install --no-build-isolation --no-deps` to pick up the
-# isaaclab module without re-resolving conflicting deps. The
-# --no-build-isolation flag uses the env's setuptools (declared as
-# a conda dep above) so flatdict's broken build metadata works.
-install-isaaclab = "python tools/install_isaaclab.py"
 
 # ── environments ───────────────────────────────────────────────────────
 

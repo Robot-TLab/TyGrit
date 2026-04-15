@@ -23,7 +23,10 @@ import numpy.typing as npt
 from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
 
 if TYPE_CHECKING:
+    import torch
+
     from TyGrit.envs.fetch.core import FetchRobotCore
+    from TyGrit.envs.fetch.core_vec import FetchRobotCoreVec
 
 
 def look_at(
@@ -94,4 +97,82 @@ def look_at(
     robot.set_head_target(pan, tilt_abs)
 
 
-__all__ = ["look_at"]
+def look_at_batched(
+    robot: "FetchRobotCoreVec",
+    targets: "torch.Tensor",
+) -> None:
+    """Aim each parallel env's head camera at a 3-D world-frame
+    ``targets[i]`` via batched forward kinematics.
+
+    Vec counterpart of :func:`look_at`. The whole per-env head-
+    kinematics solve is one batched FK + transform; no Python per-env
+    loop. Writes into ``robot._head_target`` via
+    :meth:`FetchRobotCoreVec.set_head_target` so the PD controller in
+    :meth:`FetchRobotCoreVec._compute_head_pd` consumes it on the
+    next step.
+
+    Parameters
+    ----------
+    robot
+        Vec Fetch core on a :class:`SimHandlerVec`.
+    targets
+        ``(num_envs, 3)`` world-frame targets. Device must match
+        ``robot.device`` — the callers in :mod:`TyGrit.rl` allocate
+        on the RL loop's GPU.
+    """
+    import torch as _torch
+
+    from TyGrit.robots.fetch import FETCH_CFG
+    from TyGrit.robots.fetch.kinematics.fk_torch import batch_forward_kinematics
+
+    if targets.shape != (robot.num_envs, 3):
+        raise ValueError(
+            f"fetch_head.look_at_batched: targets shape {tuple(targets.shape)} "
+            f"!= ({robot.num_envs}, 3)"
+        )
+
+    state = robot.get_robot_state()
+    planning = state.planning_joints.to(_torch.float32)  # (N, 8)
+    head = state.head_joints.to(_torch.float32)  # (N, 2)
+    base = state.base_xy_theta.to(_torch.float32)  # (N, 3)
+
+    _ = FETCH_CFG  # documented point of dispatch; link names are Fetch-standard
+    fk_input = _torch.cat([planning, head], dim=1)  # (N, 10)
+    link_poses = batch_forward_kinematics(fk_input)
+
+    T_head_pan = link_poses["head_pan_link"].to(_torch.float32)
+
+    targets = targets.to(robot.device).float()
+    cos_th = _torch.cos(base[:, 2])
+    sin_th = _torch.sin(base[:, 2])
+    dx = targets[:, 0] - base[:, 0]
+    dy = targets[:, 1] - base[:, 1]
+    target_base_x = cos_th * dx + sin_th * dy
+    target_base_y = -sin_th * dx + cos_th * dy
+    target_base_z = targets[:, 2]
+    target_base = _torch.stack([target_base_x, target_base_y, target_base_z], dim=1)
+
+    T_inv = _torch.linalg.inv(T_head_pan)
+    target_base_h = _torch.cat(
+        [target_base, _torch.ones(target_base.shape[0], 1, device=target_base.device)],
+        dim=1,
+    )
+    target_head_pan = _torch.bmm(T_inv, target_base_h.unsqueeze(2)).squeeze(2)[:, :3]
+
+    x, y, z = target_head_pan[:, 0], target_head_pan[:, 1], target_head_pan[:, 2]
+    current_pan = head[:, 0]
+    pan_rel = _torch.atan2(y, x)
+
+    T_head_tilt = link_poses["head_tilt_link"].to(_torch.float32)
+    T_pan_tilt = _torch.bmm(T_inv, T_head_tilt)
+    tilt_origin_pan = T_pan_tilt[:, :3, 3]
+    dist_xy = _torch.sqrt(x * x + y * y)
+    v_target = _torch.stack([dist_xy, _torch.zeros_like(dist_xy), z], dim=1)
+    v_tilt = v_target - tilt_origin_pan
+    tilt_abs = _torch.atan2(-v_tilt[:, 2], v_tilt[:, 0])
+
+    pan = current_pan + pan_rel
+    robot.set_head_target(pan, tilt_abs)
+
+
+__all__ = ["look_at", "look_at_batched"]

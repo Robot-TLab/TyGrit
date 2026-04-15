@@ -1,8 +1,7 @@
 """Shared ManiSkill construction helpers.
 
 Both :class:`~TyGrit.sim.maniskill.ManiSkillSimHandler` (single-env,
-numpy/scalar) and the legacy
-:class:`~TyGrit.envs.fetch.maniskill_vec.ManiSkillFetchRobotVec`
+numpy/scalar) and :class:`~TyGrit.sim.maniskill.ManiSkillSimHandlerVec`
 (vectorised, torch/batched) need the same construction-time setup:
 calling ``gym.make`` on ``SceneManipulation-v1`` with the right
 sensor / scene-builder kwargs, computing per-controller action slices

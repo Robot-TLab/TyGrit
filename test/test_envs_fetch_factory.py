@@ -9,8 +9,8 @@ multi-sim refactor:
 * ``FetchRobot.create`` routes through
   :func:`TyGrit.sim.create_sim_handler` — no per-sim glue file.
 * ``envs/fetch/`` ships no module whose filename contains a sim name
-  on the single-env path (after maniskill.py was deleted); the only
-  remaining exception is ``maniskill_vec.py`` which lands with §7.6.
+  (``maniskill.py`` and ``maniskill_vec.py`` both deleted; vec path
+  goes through ``FetchRobotCoreVec`` + ``create_sim_handler``).
 
 These checks run in the default pixi env (no sim SDK required).
 """
@@ -93,6 +93,32 @@ def test_envs_fetch_no_maniskill_top_level_module() -> None:
     assert not p.exists(), (
         f"{p} still exists; FetchRobot.create should route via "
         "TyGrit.sim.create_sim_handler instead of importing per-sim glue."
+    )
+
+
+def test_envs_fetch_no_maniskill_vec_module() -> None:
+    """§7.6 — TyGrit/envs/fetch/maniskill_vec.py was deleted; the
+    vectorised path is now FetchRobotCoreVec + ManiSkillSimHandlerVec.
+    """
+    p = Path("TyGrit/envs/fetch/maniskill_vec.py")
+    assert not p.exists(), (
+        f"{p} still exists; vec path should go through FetchRobotCoreVec "
+        "over create_sim_handler('maniskill', num_envs=N)."
+    )
+
+
+def test_envs_fetch_has_no_sim_named_module() -> None:
+    """§7.1 (full) — envs/fetch/ ships no filename containing a sim name."""
+    import re
+
+    sim_names = re.compile(r"maniskill|genesis|isaac", re.IGNORECASE)
+    envs_dir = Path("TyGrit/envs/fetch")
+    offenders = [
+        p.name for p in envs_dir.iterdir() if p.is_file() and sim_names.search(p.stem)
+    ]
+    assert not offenders, (
+        f"TyGrit/envs/fetch/ contains sim-named module(s) {offenders}; "
+        "sim-specific code belongs in TyGrit/sim/."
     )
 
 

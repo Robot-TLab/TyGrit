@@ -18,12 +18,10 @@ its :attr:`cameras` to drive the image-query API, and its
 second robot (Fetch + AutoLife) is just a new ``RobotCfg`` instance;
 no code change here.
 
-**Single-env.** The vectorised path lives in
-:class:`TyGrit.envs.fetch.maniskill_vec.ManiSkillFetchRobotVec` for
-now, with its own torch-tensor semantics that don't fit the numpy
-``SimHandler`` surface. When that refactor lands we'll add a
-companion ``ManiSkillSimHandlerVec`` and share the construction
-helpers.
+**Single-env + vec.** :class:`ManiSkillSimHandler` is the scalar
+numpy surface; :class:`ManiSkillSimHandlerVec` (below) is the batched
+torch surface used by :class:`~TyGrit.envs.fetch.core_vec.FetchRobotCoreVec`
+for parallel training / eval.
 
 **Observation cache.** The base class stores ``(obs, info)`` from the
 last ``step`` / ``reset`` call; per-step queries read exclusively
@@ -469,7 +467,7 @@ class ManiSkillSimHandlerVec:
         self._render_mode = render_mode
 
         # Vec-friendly GPU sim config (matches the legacy
-        # ManiSkillFetchRobotVec defaults); callers can override.
+        # legacy ManiSkillFetchRobotVec defaults); callers can override.
         if sim_config is None:
             sim_config = SimConfig(
                 spacing=50,
