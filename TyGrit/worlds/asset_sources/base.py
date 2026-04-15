@@ -166,24 +166,29 @@ class AssetSource(Protocol):
 #: source of truth; the per-backend frozensets become a runtime
 #: assertion that the matrix wasn't lied to.
 SOURCE_SIM_COMPATIBILITY: dict[str, frozenset[str]] = {
-    # YCB: object-only, ManiSkill registry-only (Genesis would need
-    # the asset bundle materialised first).
+    # YCB: object-only, ManiSkill registry-only (Genesis / Isaac Sim
+    # would need the asset bundle materialised first).
     "ycb": frozenset({"maniskill"}),
     # ReplicaCAD + AI2THOR variants: Habitat-schema, work in
     # ManiSkill via shipped builders and in Genesis via the
-    # _genesis_habitat parser.
+    # _genesis_habitat parser. Isaac Sim parity needs pre-converted
+    # USDs of the per-scene Objaverse mesh pool — out of scope today.
     "replicacad": frozenset({"maniskill", "genesis"}),
     "procthor": frozenset({"maniskill", "genesis"}),
     "ithor": frozenset({"maniskill", "genesis"}),
     "robothor": frozenset({"maniskill", "genesis"}),
     "architecthor": frozenset({"maniskill", "genesis"}),
-    # RoboCasa: procedural assembler is ManiSkill-internal; Genesis
-    # would need the assembler ported (large workstream).
+    # RoboCasa: procedural assembler is ManiSkill-internal; Genesis /
+    # Isaac Sim would each need the assembler ported (large
+    # workstream).
     "robocasa": frozenset({"maniskill"}),
-    # Holodeck: MJCF, both sims load it natively.
-    "holodeck": frozenset({"maniskill", "genesis"}),
-    # Objaverse: raw mesh files; both sims spawn via mesh_path.
-    "objaverse": frozenset({"maniskill", "genesis"}),
+    # Holodeck: MJCF — ManiSkill + Genesis load it natively. Isaac
+    # Sim loads it via MjcfConverterCfg → USD round-trip (see
+    # TyGrit.worlds.backends.isaac_sim).
+    "holodeck": frozenset({"maniskill", "genesis", "isaac_sim"}),
+    # Objaverse: raw mesh files. ManiSkill + Genesis spawn via
+    # mesh_path; Isaac Sim spawns via MeshConverterCfg.
+    "objaverse": frozenset({"maniskill", "genesis", "isaac_sim"}),
 }
 
 
