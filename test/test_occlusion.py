@@ -1,9 +1,14 @@
 """Tests for TyGrit.checker.occlusion — self-occlusion check."""
 
 import numpy as np
+import pytest
 
-from TyGrit.checker.occlusion import check_self_occlusion
-from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
+# OpenCV is only used at runtime by check_self_occlusion's mask
+# rasteriser. The default pixi env stays minimal; skip when missing.
+pytest.importorskip("cv2")
+
+from TyGrit.checker.occlusion import check_self_occlusion  # noqa: E402
+from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics  # noqa: E402
 
 # Typical Fetch head-camera intrinsics (SAPIEN default).
 CAM_K = np.array(

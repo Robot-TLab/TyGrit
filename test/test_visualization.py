@@ -1,7 +1,8 @@
 """Tests for TyGrit.visualization module."""
 
-import matplotlib
+import pytest
 
+matplotlib = pytest.importorskip("matplotlib")
 matplotlib.use("Agg")  # non-interactive backend for CI
 
 import numpy as np  # noqa: E402
