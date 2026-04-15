@@ -49,13 +49,16 @@ silent no-ops. See the project CLAUDE.md Rule 3.
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Protocol, runtime_checkable
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import numpy as np
 import numpy.typing as npt
 
 from TyGrit.types.robots import RobotCfg
+
+if TYPE_CHECKING:
+    import torch
 
 
 @runtime_checkable
@@ -231,4 +234,189 @@ class SimHandler(Protocol):
         ...
 
 
-__all__ = ["SimHandler"]
+@runtime_checkable
+class SimHandlerVec(Protocol):
+    """Vectorised counterpart of :class:`SimHandler` — one batched env
+    group, torch tensors throughout.
+
+    Every simulator ships both a scalar :class:`SimHandler` and a
+    :class:`SimHandlerVec`. Parallel training is the default for this
+    project; the scalar path is kept for deterministic rollouts,
+    scripting, and ROS deployment where ``num_envs == 1``.
+
+    Shape / device contract
+    -----------------------
+
+    * All reads return ``torch.Tensor`` batched on axis 0 with leading
+      dimension ``num_envs``.
+    * Tensors live on the device passed at construction time
+      (``"cuda:0"`` default). Callers must not cross the CPU↔GPU
+      boundary implicitly — use ``.cpu()`` explicitly at
+      observation-logging time if needed.
+    * ``apply_action`` takes one fully-batched action tensor per call —
+      no per-env action dispatch.
+    * ``env_ids=None`` means "all envs" for methods that support
+      partial updates.
+
+    Heterogeneity caveat
+    --------------------
+
+    Per-env scene heterogeneity is not a universally-available property;
+    each sim guarantees what its native API supports:
+
+    * ManiSkill3 — full heterogeneous GPU sim via per-actor
+      ``set_scene_idxs``.
+    * Genesis — per-env ops via ``envs_idx`` but scene pool is a single
+      rebuilt stage per reset group.
+    * Isaac Lab — ``replicate_physics=True`` is homogeneous; the
+      ``MultiUsdFileCfg`` heterogeneous path is limited to
+      same-skeleton variants.
+
+    If a caller requests an ``idxs`` / ``env_ids`` pattern the sim can't
+    honour, the handler raises rather than silently replicating the
+    same scene across envs (CLAUDE.md Rule 1).
+    """
+
+    # ── construction-time metadata ─────────────────────────────────────
+
+    @property
+    def robot_cfg(self) -> RobotCfg:
+        """The robot this handler was constructed with."""
+        ...
+
+    @property
+    def num_envs(self) -> int:
+        """Number of parallel envs in this batch. ``> 1`` by contract
+        (single-env callers use :class:`SimHandler`)."""
+        ...
+
+    @property
+    def device(self) -> str:
+        """Torch device hosting the sim tensors (``"cuda:0"`` /
+        ``"cpu"`` / …)."""
+        ...
+
+    @property
+    def total_action_dim(self) -> int:
+        """Length of the per-env action slice; the full action tensor
+        is ``(num_envs, total_action_dim)``."""
+        ...
+
+    @property
+    def action_slices(self) -> Mapping[str, slice]:
+        """Per-controller slices into the per-env action slice. Same
+        keys and semantics as :attr:`SimHandler.action_slices`."""
+        ...
+
+    @property
+    def joint_name_to_idx(self) -> Mapping[str, int]:
+        """Joint-name → qpos column index."""
+        ...
+
+    # ── per-step queries (batched) ─────────────────────────────────────
+
+    def get_qpos(self) -> "torch.Tensor":
+        """Full-batch qpos. Shape ``(num_envs, len(joint_name_to_idx))``
+        on :attr:`device`."""
+        ...
+
+    def get_link_pose(self, link_name: str) -> "torch.Tensor":
+        """Full-batch SE(3) world transforms of ``link_name``. Shape
+        ``(num_envs, 4, 4)``."""
+        ...
+
+    def get_camera(self, camera_id: str) -> tuple[
+        "torch.Tensor",
+        "torch.Tensor",
+        "torch.Tensor | None",
+    ]:
+        """Return batched ``(rgb, depth_m, segmentation)`` for
+        ``camera_id``.
+
+        * ``rgb`` is ``(num_envs, H, W, 3)`` uint8.
+        * ``depth_m`` is ``(num_envs, H, W)`` float32 in metres.
+        * ``segmentation`` is ``(num_envs, H, W)`` int32 when the
+          handler was configured with a segmentation channel, else
+          ``None``.
+        """
+        ...
+
+    def get_intrinsics(self, camera_id: str) -> npt.NDArray[np.float64]:
+        """Per-camera static 3×3 intrinsics (shared across envs)."""
+        ...
+
+    # ── mutations (batched) ────────────────────────────────────────────
+
+    def apply_action(self, action: "torch.Tensor") -> None:
+        """Apply one action tensor and advance one sim step for every
+        env.
+
+        ``action`` has shape ``(num_envs, total_action_dim)`` on
+        :attr:`device`. The handler updates its post-step observation
+        cache before returning.
+        """
+        ...
+
+    def reset_to_scene_idx(
+        self,
+        idxs: "Sequence[int] | torch.Tensor",
+        *,
+        seed: int | None = None,
+    ) -> None:
+        """Reset every env to the scene at ``idxs[i]``.
+
+        ``len(idxs) == num_envs``. The handler rebuilds / re-homes the
+        robot per env as the underlying sim allows (see the
+        heterogeneity caveat in the class docstring).
+        """
+        ...
+
+    def set_joint_positions(
+        self,
+        positions: Mapping[str, "torch.Tensor"],
+        *,
+        env_ids: "Sequence[int] | torch.Tensor | None" = None,
+    ) -> None:
+        """Teleport specific joints on the selected envs.
+
+        ``positions[name]`` is a 1-D tensor of length
+        ``num_envs if env_ids is None else len(env_ids)``. ``env_ids``
+        is an indexable selection; ``None`` means "all envs".
+        """
+        ...
+
+    def set_base_pose(
+        self,
+        xy_theta: "torch.Tensor",
+        *,
+        env_ids: "Sequence[int] | torch.Tensor | None" = None,
+    ) -> None:
+        """Teleport mobile bases to the given ``(x, y, θ)`` per env.
+
+        ``xy_theta`` has shape ``(num_envs, 3)`` (or
+        ``(len(env_ids), 3)`` when scoped). Legal only when
+        ``robot_cfg.is_mobile``; fixed-base robots raise
+        :class:`RuntimeError`.
+        """
+        ...
+
+    # ── world hooks ────────────────────────────────────────────────────
+
+    def get_navigable_positions(self) -> list:
+        """Per-env navmeshes, ``len == num_envs``. ``None`` for envs
+        whose active scene has no navmesh."""
+        ...
+
+    # ── lifecycle ──────────────────────────────────────────────────────
+
+    def render(self) -> None:
+        """Render one frame of env 0 (handlers render a single viewer,
+        not one per env)."""
+        ...
+
+    def close(self) -> None:
+        """Tear down the underlying sim + release GPU resources."""
+        ...
+
+
+__all__ = ["SimHandler", "SimHandlerVec"]

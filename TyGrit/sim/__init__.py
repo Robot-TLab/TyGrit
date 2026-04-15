@@ -22,6 +22,6 @@ default pixi env for type-checking and tests that only need the
 :class:`SimHandler` Protocol itself.
 """
 
-from TyGrit.sim.base import SimHandler
+from TyGrit.sim.base import SimHandler, SimHandlerVec
 
-__all__ = ["SimHandler"]
+__all__ = ["SimHandler", "SimHandlerVec"]
