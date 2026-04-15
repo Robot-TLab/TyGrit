@@ -404,4 +404,291 @@ def _maniskill_sensor_id(cam) -> str:
     return cam.sim_sensor_ids.get("maniskill", cam.camera_id)
 
 
-__all__ = ["ManiSkillSimHandler", "DEFAULT_SIM_CONFIG"]
+class ManiSkillSimHandlerVec:
+    """Robot-agnostic :class:`~TyGrit.sim.base.SimHandlerVec` for ManiSkill3.
+
+    Vectorised counterpart of :class:`ManiSkillSimHandler` — torch
+    tensors batched on axis 0 with leading dimension ``num_envs``.
+
+    Parameters
+    ----------
+    robot_cfg
+        Robot descriptor; must have ``sim_uids["maniskill"]`` set.
+    scenes
+        Scene pool to draw from at reset.
+    num_envs
+        Number of parallel envs; must be ``> 1`` (callers with a
+        single env should use :class:`ManiSkillSimHandler`).
+    initial_scene_idx
+        Single index used for every env at construction. Heterogeneous
+        per-env indices are passed at :meth:`reset_to_scene_idx` time.
+    camera_resolution, obs_mode, control_mode, render_mode
+        Forwarded to the underlying ``gym.make`` env.
+    sim_config
+        Optional ManiSkill ``SimConfig`` override (vec-specific GPU
+        defaults applied when ``None``).
+    device
+        Torch device hosting the GPU sim tensors. ``"cuda:0"`` default.
+    """
+
+    def __init__(
+        self,
+        robot_cfg: RobotCfg,
+        scenes: Sequence[SceneSpec],
+        *,
+        num_envs: int,
+        initial_scene_idx: int = 0,
+        camera_resolution: tuple[int, int] = (128, 128),
+        obs_mode: str = "rgbd",
+        control_mode: str = "pd_joint_vel",
+        render_mode: str | None = None,
+        sim_config: SimConfig | None = None,
+        device: str = "cuda:0",
+    ) -> None:
+        if num_envs <= 1:
+            raise ValueError(
+                f"ManiSkillSimHandlerVec: num_envs must be > 1; got {num_envs}. "
+                f"Use ManiSkillSimHandler for the scalar path."
+            )
+        if "maniskill" not in robot_cfg.sim_uids:
+            raise ValueError(
+                f"ManiSkillSimHandlerVec: RobotCfg {robot_cfg.name!r} has no "
+                f"sim_uids['maniskill'] entry."
+            )
+        self._robot_cfg = robot_cfg
+        self._scenes = tuple(scenes)
+        if len(self._scenes) == 0:
+            raise ValueError("ManiSkillSimHandlerVec: scene pool is empty")
+        if not 0 <= initial_scene_idx < len(self._scenes):
+            raise IndexError(
+                f"ManiSkillSimHandlerVec: initial_scene_idx {initial_scene_idx} "
+                f"out of range for scene pool of size {len(self._scenes)}"
+            )
+        self._num_envs = int(num_envs)
+        self._device = device
+        self._render_mode = render_mode
+
+        # Vec-friendly GPU sim config (matches the legacy
+        # ManiSkillFetchRobotVec defaults); callers can override.
+        if sim_config is None:
+            sim_config = SimConfig(
+                spacing=50,
+                gpu_memory_config=GPUMemoryConfig(
+                    found_lost_pairs_capacity=2**26,
+                    max_rigid_patch_count=2**19,
+                ),
+                scene_config=SceneConfig(contact_offset=0.002),
+            )
+
+        initial_idxs = [initial_scene_idx] * self._num_envs
+        self._env = make_scene_manipulation_env(
+            robot_cfg,
+            self._scenes,
+            build_config_idxs=initial_idxs,
+            sim_config=sim_config,
+            obs_mode=obs_mode,
+            control_mode=control_mode,
+            render_mode=render_mode,
+            camera_resolution=camera_resolution,
+            num_envs=self._num_envs,
+            sim_backend="gpu",
+        )
+
+        obs, info = self._env.reset(
+            options=dict(reconfigure=True, build_config_idxs=initial_idxs)
+        )
+        self._obs: dict = obs
+        self._info: dict = info
+
+        agent = self.env_agent
+        self._joint_name_to_idx: Mapping[str, int] = MappingProxyType(
+            build_joint_name_to_idx(agent)
+        )
+        slices, total_dim = build_action_slices(agent, robot_cfg)
+        self._action_slices: Mapping[str, slice] = MappingProxyType(slices)
+        self._total_action_dim = total_dim
+
+        self._intrinsics: dict[str, npt.NDArray[np.float64]] = {}
+        for cam in robot_cfg.cameras:
+            sensor_id = _maniskill_sensor_id(cam)
+            self._intrinsics[cam.camera_id] = extract_intrinsics(self._env, sensor_id)
+
+    # ── SimHandlerVec: metadata ────────────────────────────────────────
+
+    @property
+    def robot_cfg(self) -> RobotCfg:
+        return self._robot_cfg
+
+    @property
+    def num_envs(self) -> int:
+        return self._num_envs
+
+    @property
+    def device(self) -> str:
+        return self._device
+
+    @property
+    def total_action_dim(self) -> int:
+        return self._total_action_dim
+
+    @property
+    def action_slices(self) -> Mapping[str, slice]:
+        return self._action_slices
+
+    @property
+    def joint_name_to_idx(self) -> Mapping[str, int]:
+        return self._joint_name_to_idx
+
+    @property
+    def env_agent(self):
+        return self._env.unwrapped.agent
+
+    # ── SimHandlerVec: batched queries ─────────────────────────────────
+
+    def get_qpos(self) -> torch.Tensor:
+        return self.env_agent.robot.get_qpos()
+
+    def get_link_pose(self, link_name: str) -> torch.Tensor:
+        for link in self.env_agent.robot.get_links():
+            if link.name == link_name:
+                pose = link.pose
+                T = pose.to_transformation_matrix()
+                return T.reshape(self._num_envs, 4, 4)
+        raise KeyError(
+            f"ManiSkillSimHandlerVec.get_link_pose: link {link_name!r} "
+            f"not on robot {self._robot_cfg.name!r}"
+        )
+
+    def get_camera(self, camera_id: str) -> tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor | None,
+    ]:
+        cam = self._robot_cfg.camera_by_id(camera_id)
+        sensor_id = _maniskill_sensor_id(cam)
+        sensor_data = self._obs["sensor_data"][sensor_id]
+        rgb = sensor_data["rgb"]  # Tensor[N,H,W,3]
+        depth_raw = sensor_data.get("depth")
+        if depth_raw is not None and depth_raw.dtype == torch.uint16:
+            # ManiSkill ships uint16 millimetre depth; the project's
+            # tensor convention is float32 metres.
+            depth = depth_raw.to(torch.float32) * 0.001
+        else:
+            depth = depth_raw
+        seg = sensor_data.get("segmentation")
+        return rgb, depth, seg
+
+    def get_intrinsics(self, camera_id: str) -> npt.NDArray[np.float64]:
+        if camera_id not in self._intrinsics:
+            raise KeyError(
+                f"ManiSkillSimHandlerVec.get_intrinsics: camera {camera_id!r} "
+                f"not declared on RobotCfg {self._robot_cfg.name!r}"
+            )
+        return self._intrinsics[camera_id]
+
+    # ── SimHandlerVec: batched mutations ───────────────────────────────
+
+    def apply_action(self, action: torch.Tensor) -> None:
+        if action.shape != (self._num_envs, self._total_action_dim):
+            raise ValueError(
+                f"ManiSkillSimHandlerVec.apply_action: action shape "
+                f"{tuple(action.shape)} != ({self._num_envs}, "
+                f"{self._total_action_dim})"
+            )
+        self._obs, _r, _term, _trunc, self._info = self._env.step(action)
+
+    def reset_to_scene_idx(
+        self,
+        idxs,
+        *,
+        seed: int | None = None,
+    ) -> None:
+        # Coerce idxs into a per-env list. Length must match num_envs.
+        if isinstance(idxs, torch.Tensor):
+            idxs_list = idxs.detach().cpu().tolist()
+        else:
+            idxs_list = list(idxs)
+        if len(idxs_list) != self._num_envs:
+            raise ValueError(
+                f"ManiSkillSimHandlerVec.reset_to_scene_idx: idxs length "
+                f"{len(idxs_list)} != num_envs {self._num_envs}"
+            )
+        for i, idx in enumerate(idxs_list):
+            if not 0 <= idx < len(self._scenes):
+                raise IndexError(
+                    f"reset_to_scene_idx: idxs[{i}] = {idx} out of range "
+                    f"for scene pool of size {len(self._scenes)}"
+                )
+        self._obs, self._info = self._env.reset(
+            seed=seed,
+            options=dict(reconfigure=True, build_config_idxs=idxs_list),
+        )
+
+    def set_joint_positions(
+        self,
+        positions: Mapping[str, torch.Tensor],
+        *,
+        env_ids=None,
+    ) -> None:
+        if not positions:
+            return
+        # ManiSkill mutates qpos via agent.robot.set_qpos when needed;
+        # for joint-name selective writes the simplest path is to read
+        # the full qpos, modify the columns we own, write back.
+        qpos = self.env_agent.robot.get_qpos().clone()
+        if env_ids is None:
+            env_ids = list(range(self._num_envs))
+        elif isinstance(env_ids, torch.Tensor):
+            env_ids = env_ids.detach().cpu().tolist()
+        else:
+            env_ids = list(env_ids)
+        for name, values in positions.items():
+            j = self._joint_name_to_idx[name]
+            for ei, ev in zip(env_ids, values.detach().cpu().tolist()):
+                qpos[ei, j] = ev
+        self.env_agent.robot.set_qpos(qpos)
+
+    def set_base_pose(
+        self,
+        xy_theta: torch.Tensor,
+        *,
+        env_ids=None,
+    ) -> None:
+        if not self._robot_cfg.is_mobile:
+            raise RuntimeError(
+                f"ManiSkillSimHandlerVec.set_base_pose: robot "
+                f"{self._robot_cfg.name!r} is fixed-base"
+            )
+        bj = self._robot_cfg.base_joint_names
+        if len(bj) != 3:
+            raise ValueError(
+                f"ManiSkillSimHandlerVec.set_base_pose: expected 3 base "
+                f"joints (x, y, theta); got {bj!r}"
+            )
+        positions = {
+            bj[0]: xy_theta[:, 0],
+            bj[1]: xy_theta[:, 1],
+            bj[2]: xy_theta[:, 2],
+        }
+        self.set_joint_positions(positions, env_ids=env_ids)
+
+    # ── SimHandlerVec: world hooks ─────────────────────────────────────
+
+    def get_navigable_positions(self) -> list:
+        sb = self._env.unwrapped.scene_builder
+        if not hasattr(sb, "navigable_positions"):
+            return [None] * self._num_envs
+        return list(sb.navigable_positions)
+
+    # ── SimHandlerVec: lifecycle ───────────────────────────────────────
+
+    def render(self) -> None:
+        if self._render_mode is None:
+            return
+        self._env.render()
+
+    def close(self) -> None:
+        self._env.close()
+
+
+__all__ = ["ManiSkillSimHandler", "ManiSkillSimHandlerVec", "DEFAULT_SIM_CONFIG"]
