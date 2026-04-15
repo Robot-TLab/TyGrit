@@ -32,6 +32,7 @@ from TyGrit.belief_state.scene import Scene
 from TyGrit.core.config import (
     CheckFn,
     ControllerFn,
+    GazeApplyFn,
     GazeFn,
     SchedulerConfig,
 )
@@ -86,8 +87,16 @@ class Scheduler:
         config: SchedulerConfig | None = None,
         check_fn: CheckFn | None = None,
         gaze_fn: GazeFn | None = None,
+        gaze_apply_fn: GazeApplyFn | None = None,
         camera_pose_fn: Callable[[RobotState], npt.NDArray[np.float64]] | None = None,
     ) -> None:
+        if gaze_fn is not None and gaze_apply_fn is None:
+            raise ValueError(
+                "Scheduler: gaze_fn requires gaze_apply_fn — the scheduler "
+                "is robot-agnostic and cannot dispatch gaze targets without "
+                "a per-robot apply callback (e.g. "
+                "TyGrit.gaze.fetch_head.look_at for Fetch)."
+            )
         self.robot = robot
         self.scene = scene
         self.planner = planner
@@ -96,6 +105,7 @@ class Scheduler:
         self.config = config or SchedulerConfig()
         self.check_fn = check_fn
         self.gaze_fn = gaze_fn
+        self.gaze_apply_fn = gaze_apply_fn
         self.camera_pose_fn = camera_pose_fn
 
     # ── Main loop ────────────────────────────────────────────────────────
@@ -173,9 +183,8 @@ class Scheduler:
             if self.gaze_fn is not None:
                 gaze_target = self.gaze_fn(trajectory, waypoint_idx)
                 if gaze_target is not None:
-                    from TyGrit.gaze.fetch_head import look_at as _look_at_fetch
-
-                    _look_at_fetch(self.robot, gaze_target, "head")
+                    assert self.gaze_apply_fn is not None  # checked in __init__
+                    self.gaze_apply_fn(self.robot, gaze_target)
 
             # 5. Path tracking
             action = self.controller_fn(state, trajectory, waypoint_idx)

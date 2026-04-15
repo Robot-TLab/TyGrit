@@ -30,6 +30,7 @@ from loguru import logger
 from TyGrit.belief_state.config import PointCloudSceneConfig
 from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.controller.fetch.mpc import MPCConfig
+from TyGrit.controller.fetch.trajectory import execute_trajectory
 from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.envs.fetch.core import FetchRobotCore
@@ -93,6 +94,7 @@ def run_single_trial(
     grasp_sampler: GraspSampler,
     scene: PointCloudScene,
     args: argparse.Namespace,
+    mpc_config: MPCConfig,
     *,
     seed: int | None = None,
     target_id: int | None = None,
@@ -165,7 +167,7 @@ def run_single_trial(
     logger.info(
         "{}Trajectory: {} waypoints", prefix, len(plan_result.trajectory.arm_path)
     )
-    robot.execute_trajectory(plan_result.trajectory)
+    execute_trajectory(robot, plan_result.trajectory, mpc_config)
 
     # ── Phase 4: Close Gripper ──────────────────────────────────────────
     logger.info("{}Phase 4: Close Gripper", prefix)
@@ -219,7 +221,6 @@ def main() -> None:
 
     logger.info("Creating ManiSkill env from manifest: {}", args.manifest_path)
     robot = FetchRobot.create(config=env_config)
-    _ = mpc_config  # consumed by execute_trajectory in TyGrit.controller.fetch.trajectory
 
     logger.info("Creating VampPreviewPlanner")
     planner = VampPreviewPlanner(VampPlannerConfig())
@@ -286,6 +287,7 @@ def main() -> None:
                     grasp_sampler,
                     pc_scene,
                     args,
+                    mpc_config,
                     seed=bscene.seed,
                     target_id=args.target_id,
                     label=label,
@@ -307,6 +309,7 @@ def main() -> None:
             grasp_sampler,
             pc_scene,
             args,
+            mpc_config,
             target_id=args.target_id,
         )
         if not ok:

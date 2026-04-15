@@ -18,7 +18,67 @@ the matching :class:`~TyGrit.sim.base.SimHandler` /
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import Any
+
 from TyGrit.envs.fetch.config import FetchEnvConfig
+
+#: Per-backend whitelist of recognised sim_opts keys. Anything in
+#: ``cfg.sim_opts`` is filtered through this when constructing the
+#: handler so a ManiSkill-flavoured opts dict (the FetchEnvConfig
+#: default) doesn't TypeError at Genesis / Isaac Sim handler
+#: construction. Per-backend canonical key sets:
+_SIM_OPT_KEYS: dict[str, frozenset[str]] = {
+    "maniskill": frozenset({"obs_mode", "control_mode", "render_mode", "sim_config"}),
+    "genesis": frozenset({"show_viewer"}),
+    "isaac_sim": frozenset({"device", "headless"}),
+}
+
+
+def _select_sim_opts(cfg: FetchEnvConfig) -> dict[str, Any]:
+    """Build the kwargs dict passed to ``create_sim_handler`` for ``cfg``.
+
+    Forwards only the sim_opts keys the selected backend's handler
+    actually accepts. Adds the backend-specific defaults driven from
+    ``EnvConfig`` fields (camera resolution for ManiSkill).
+
+    Raises
+    ------
+    ValueError
+        ``cfg.sim_opts`` contains a key the selected backend doesn't
+        accept *and* didn't come from the FetchEnvConfig defaults.
+        Catching unknown keys early keeps wiring bugs visible instead
+        of silently dropping them.
+    """
+    backend = cfg.backend
+    accepted = _SIM_OPT_KEYS.get(backend, frozenset())
+    raw: Mapping[str, Any] = cfg.sim_opts
+
+    # Default-supplied keys we silently drop when the backend doesn't
+    # accept them (FetchEnvConfig._default_sim_opts ships ManiSkill
+    # keys; using FetchEnvConfig() with backend="genesis" must Just
+    # Work without the caller having to override sim_opts).
+    default_keys = frozenset({"obs_mode", "control_mode", "render_mode"})
+
+    out: dict[str, Any] = {}
+    for k, v in raw.items():
+        if k in accepted:
+            out[k] = v
+        elif k in default_keys:
+            # Carried over from the default ManiSkill-flavoured config —
+            # silently ignored for non-ManiSkill backends.
+            continue
+        else:
+            raise ValueError(
+                f"FetchRobot.create: sim_opts key {k!r} not accepted by "
+                f"backend {backend!r}; valid keys are {sorted(accepted)}."
+            )
+
+    # Backend-specific defaults from EnvConfig fields.
+    if backend == "maniskill":
+        out.setdefault("camera_resolution", (cfg.camera_width, cfg.camera_height))
+
+    return out
 
 
 class FetchRobot:
@@ -59,14 +119,7 @@ class FetchRobot:
         sampler = create_sampler(cfg.scene_sampler)
         initial_idx = sampler.sample_idx(env_idx=0, reset_count=0)
 
-        handler_opts = dict(cfg.sim_opts)
-        if cfg.backend == "maniskill":
-            # ManiSkillSimHandler / *Vec accept one resolution for every
-            # camera in the robot's CameraSpec list; wire the env-level
-            # (w, h) to it so callers don't need to know.
-            handler_opts.setdefault(
-                "camera_resolution", (cfg.camera_width, cfg.camera_height)
-            )
+        handler_opts = _select_sim_opts(cfg)
 
         handler = create_sim_handler(
             cfg.backend,

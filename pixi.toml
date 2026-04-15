@@ -5,6 +5,7 @@ name = "TyGrit"
 platforms = ["linux-64"]
 version = "0.1.0"
 
+
 # ── shared base (inherited unless no-default-feature=true) ─────────────
 # Keep this small: only deps needed to import TyGrit and run pure-Python
 # unit tests. Heavier stacks live in dedicated features below.
@@ -210,7 +211,7 @@ torch = ">=2.10.0, <3"
 
 [feature.isaacsim.dependencies]
 # Minimum conda base for the isolated isaacsim env (see `no-default-feature
-# = true` under [environments]). ONLY python is pinned on the conda side.
+# = true` under [environments]). ONLY python + setuptools pinned conda-side.
 #
 # Background: NVIDIA's isaacsim-* wheels pin very tight versions of
 # numpy / packaging / typing_extensions. pixi's solver treats every
@@ -226,7 +227,14 @@ torch = ">=2.10.0, <3"
 # We avoid this by NOT declaring `pip` on the conda side here and
 # letting uv (pixi's pypi solver) ship its own pip to install editable
 # pypi deps into this env.
+#
+# setuptools is added so that `flatdict` (a transitive isaaclab dep
+# whose 4.0.1 sdist imports `pkg_resources` at build time without
+# declaring it) can build under ``no-build-isolation``: with isolation
+# disabled uv reuses this env's setuptools instead of failing on a
+# clean build env.
 python = "3.11.*"
+setuptools = ">=70"
 
 [feature.isaacsim.pypi-dependencies]
 tygrit = { path = ".", editable = true }
@@ -252,13 +260,31 @@ torch = { version = "==2.7.0", index = "https://download.pytorch.org/whl/cu128" 
 # extension binaries. Without app, `import isaacsim` raises
 # IndexError because expose_api can't find simulation_app on disk.
 isaacsim = { version = "==5.0.0", extras = ["all", "extscache"], index = "https://pypi.nvidia.com" }
-# IMPORTANT — Isaac Lab is NOT installed via pypi. The pip-published
-# isaaclab==2.3.x pins pillow==11.3.0 which collides with isaacsim
-# 5.0's pillow==11.2.1, making the solve infeasible. The supported
-# install path is a git checkout + `./isaaclab.sh --install`. Run
-# `pixi run -e isaacsim install-isaaclab` once after the env solves
-# to clone + install from source. Same pattern as VAMP / GraspGen /
-# MomaViz (see [feature.thirdparty.tasks]).
+# warp-lang is pulled in transitively by Isaac Lab. Declared here so
+# the install-isaaclab task below doesn't have to manage it.
+warp-lang = ">=1.12,<2"
+
+# IMPORTANT — Isaac Lab is NOT declared as a pypi-dep here. Two
+# upstream issues block a `pixi install`-only path on pixi 0.63.x:
+#
+# 1. isaaclab core pins ``pillow==11.3.0`` while isaacsim 5.0 pins
+#    ``11.2.1``; pixi's per-feature ``pypi-options.dependency-overrides``
+#    is the right surgery (validated by manifest schema), but the solver
+#    still chooses the upstream pin during git-source resolution.
+# 2. Even with an override, isaaclab transitively builds
+#    ``flatdict==4.0.1`` from sdist; flatdict's setup.py imports
+#    ``pkg_resources`` without declaring setuptools as a build dep.
+#    Pixi 0.63 doesn't yet pass ``no-build-isolation`` (whole-workspace
+#    or per-package) to its bundled uv during ``pixi install`` — the
+#    feature exists in `[pypi-options]` but the value is ignored at
+#    install time. Tracked upstream under
+#    https://github.com/prefix-dev/pixi/pull/3657 / #4247.
+#
+# Until both land, run `pixi run -e isaacsim install-isaaclab` (defined
+# under [feature.isaacsim.tasks] below) once after `pixi install -e
+# isaacsim`. The task runs entirely inside this pixi env — no raw
+# machine python or sudo needed.
+
 
 # NVIDIA ships Isaac Sim wheels tagged manylinux_2_35_x86_64. pixi's
 # default glibc floor is 2.17 (manylinux_2_17), which excludes those
@@ -274,18 +300,15 @@ libc = { family = "glibc", version = "2.35" }
 OMNI_KIT_ACCEPT_EULA = "Yes"
 
 [feature.isaacsim.tasks]
-# One-shot Isaac Lab install from source. Clones the upstream repo
-# under thirdparty/IsaacLab if missing, then runs ./isaaclab.sh
-# --install which pip-installs the workflow / lab packages with
-# --no-deps so they don't try to upgrade pillow over isaacsim's pin.
-# The shell script is the upstream's documented install entry-point;
-# bypassing it (running pip install on the source tree directly) is
-# unsupported and known to break extension discovery.
-install-isaaclab = """
-if [ ! -d thirdparty/IsaacLab ]; then \
-  git clone --depth 1 --branch v2.3.1 https://github.com/isaac-sim/IsaacLab.git thirdparty/IsaacLab; \
-fi && cd thirdparty/IsaacLab && ./isaaclab.sh --install
-"""
+# One-shot Isaac Lab install. Runs *inside* the isaacsim pixi env
+# (the script uses ``$CONDA_PREFIX/bin/python`` which is the env's own
+# interpreter — no raw-machine python touched). The script clones
+# Isaac Lab v2.3.1 if missing, bootstraps pip into the env's venv,
+# then `pip install --no-build-isolation --no-deps` to pick up the
+# isaaclab module without re-resolving conflicting deps. The
+# --no-build-isolation flag uses the env's setuptools (declared as
+# a conda dep above) so flatdict's broken build metadata works.
+install-isaaclab = "python tools/install_isaaclab.py"
 
 # ── environments ───────────────────────────────────────────────────────
 

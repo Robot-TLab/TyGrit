@@ -76,7 +76,11 @@ class IsaacSimSimHandler:
 
     # Class-level latch so multiple handlers in the same process share
     # one ``AppLauncher`` — Omniverse Kit cannot be initialised twice.
+    # The latched headless mode is recorded so a later instance with a
+    # mismatched ``headless`` raises rather than silently reusing the
+    # wrong viewer state (CLAUDE.md Rule 1: no silent fallback).
     _simulation_app: Any = None
+    _simulation_app_headless: bool | None = None
 
     def __init__(
         self,
@@ -126,11 +130,23 @@ class IsaacSimSimHandler:
     def _ensure_app_launched(cls, headless: bool) -> Any:
         """Initialise Omniverse Kit if it isn't already.
 
-        Idempotent; subsequent calls return the cached
-        :class:`SimulationApp` so multiple handlers share one Kit
-        instance (Kit cannot be initialised twice in the same process).
+        Idempotent for the same ``headless`` value: subsequent calls
+        with the same mode return the cached :class:`SimulationApp` so
+        multiple handlers share one Kit instance. A second call with a
+        different ``headless`` raises — Kit cannot be re-initialised
+        in the same process and silently reusing a viewer-less app
+        when a viewer was requested would be a hidden bug.
         """
         if cls._simulation_app is not None:
+            if cls._simulation_app_headless != headless:
+                raise RuntimeError(
+                    f"IsaacSimSimHandler._ensure_app_launched: Omniverse "
+                    f"Kit was already initialised with headless="
+                    f"{cls._simulation_app_headless!r}; cannot now request "
+                    f"headless={headless!r} (Kit can only be launched "
+                    f"once per process). Construct all handlers with the "
+                    f"same headless mode, or restart the process."
+                )
             return cls._simulation_app
         # Lazy import — AppLauncher's import side-effects spin up the
         # Kit binaries which take seconds.
@@ -138,6 +154,7 @@ class IsaacSimSimHandler:
 
         launcher = AppLauncher(headless=headless)
         cls._simulation_app = launcher.app
+        cls._simulation_app_headless = headless
         return cls._simulation_app
 
     # ── scene build / teardown ────────────────────────────────────────
@@ -185,22 +202,34 @@ class IsaacSimSimHandler:
         sim_cfg = SimulationCfg(device=self._device)
         self._sim_context = SimulationContext(sim_cfg)
 
-        # Populate cameras declared on the robot cfg.
+        # Populate cameras declared on the robot cfg. RobotCfg.cameras
+        # is a tuple of CameraSpec; iterate by value and key by
+        # ``camera.camera_id``.
         camera_cfgs: dict[str, Any] = {}
-        for camera_id, camera in self._robot_cfg.cameras.items():
-            from isaaclab.sensors import CameraCfg
-            from isaaclab.sim import PinholeCameraCfg
+        from isaaclab.sensors import CameraCfg
+        from isaaclab.sim import PinholeCameraCfg
 
-            # CameraCfg requires a prim_path tied to a robot link.
-            link_path = f"/World/envs/env_.*/Robot/{camera.attached_link}"
-            camera_cfgs[camera_id] = CameraCfg(
-                prim_path=f"{link_path}/{camera_id}_camera",
+        for camera in self._robot_cfg.cameras:
+            link_path = f"/World/envs/env_.*/Robot/{camera.parent_link}"
+            # Convert CameraSpec.fovy_degrees → focal length (Isaac Lab's
+            # PinholeCameraCfg consumes focal length, not FOV). Using the
+            # standard pinhole relation: f = (h/2) / tan(fovy/2). Isaac's
+            # default sensor pixel size is 1mm; we keep that convention so
+            # focal length is in mm.
+            from math import radians, tan
+
+            focal_length_mm = (camera.height / 2.0) / tan(
+                radians(camera.fovy_degrees) / 2.0
+            )
+            camera_cfgs[camera.camera_id] = CameraCfg(
+                prim_path=f"{link_path}/{camera.camera_id}_camera",
                 update_period=0.0,
-                height=camera.resolution[1],
-                width=camera.resolution[0],
+                height=camera.height,
+                width=camera.width,
                 data_types=["rgb", "distance_to_image_plane"],
                 spawn=PinholeCameraCfg(
-                    focal_length=camera.focal_length,
+                    focal_length=focal_length_mm,
+                    clipping_range=(camera.near, camera.far),
                 ),
             )
 
@@ -474,16 +503,16 @@ class IsaacSimSimHandler:
     def close(self) -> None:
         # Drop references; the cached SimulationApp stays alive across
         # handlers (Kit cannot be re-initialised in the same process).
-        if self._scene is not None:
-            try:
-                self._scene.reset()
-            except RuntimeError:
-                # Scene already torn down — fine, nothing to do.
-                pass
+        # We do *not* call scene.reset() here — Isaac Lab's reset
+        # raises if the SimulationContext has already been torn down
+        # by an earlier ``close``, and there is no public predicate
+        # that distinguishes "alive" from "torn down". Dropping the
+        # references is enough to let Kit garbage-collect the stage;
+        # the next ``_build_scene`` constructs a fresh
+        # SimulationContext + InteractiveScene unconditionally.
         self._scene = None
         self._robot = None
         self._cameras = {}
-        # Drop SimulationContext last so its internal handles can free.
         self._sim_context = None
 
 
