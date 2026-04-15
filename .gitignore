@@ -252,3 +252,5 @@ wandb/
 .vscode/
 .codex
 .claude
+autoresearch-results.tsv
+thirdparty/IsaacLab/
