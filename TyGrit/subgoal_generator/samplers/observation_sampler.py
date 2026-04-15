@@ -28,4 +28,6 @@ class ObservationSampler:
         camera_id: str = "head",
     ) -> None:
         """Point the camera at *target_world* ``[x, y, z]``."""
-        self._robot.look_at(target_world, camera_id)
+        from TyGrit.gaze.fetch_head import look_at as _look_at_fetch
+
+        _look_at_fetch(self._robot, target_world, camera_id)

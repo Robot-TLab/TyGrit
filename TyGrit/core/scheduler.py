@@ -173,7 +173,9 @@ class Scheduler:
             if self.gaze_fn is not None:
                 gaze_target = self.gaze_fn(trajectory, waypoint_idx)
                 if gaze_target is not None:
-                    self.robot.look_at(gaze_target, "head")
+                    from TyGrit.gaze.fetch_head import look_at as _look_at_fetch
+
+                    _look_at_fetch(self.robot, gaze_target, "head")
 
             # 5. Path tracking
             action = self.controller_fn(state, trajectory, waypoint_idx)

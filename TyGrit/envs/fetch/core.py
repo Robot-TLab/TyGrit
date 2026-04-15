@@ -1,39 +1,30 @@
-"""Sim-agnostic Fetch robot logic.
+"""Sim-agnostic Fetch sensor + actuation adapter.
 
-:class:`FetchRobotCore` implements the
-:class:`~TyGrit.envs.base.RobotBase` protocol for a Fetch mobile
-manipulator using a :class:`~TyGrit.sim.base.SimHandler` for everything
-sim-specific. Concrete robots (``ManiSkillFetchRobot``,
-``GenesisFetchRobot``, future hardware Fetch) are constructed by
-composing this core with the handler appropriate to the sim — adding a
-new sim adds **zero** code here.
+:class:`FetchRobotCore` is the Fetch-specific layer between a
+:class:`~TyGrit.sim.base.SimHandler` and the rest of the project. It
+does **only** what every backend needs uniformly:
 
-What lives here (sim-agnostic, Fetch-specific):
-    * Joint indexing into qpos via the handler's
-      :attr:`~SimHandler.joint_name_to_idx` mapping.
-    * Holonomic-base offset calibration (qpos↔world) using
-      :data:`~TyGrit.robots.fetch.FETCH_CFG`'s
-      ``base_joint_names`` / ``base_link_name`` and the handler's
-      :meth:`~SimHandler.get_link_pose`.
-    * Fetch action assembly: maps the planning-layer 10-vector
-      ``[v, w, torso, *arm_velocities]`` plus gripper target and head
-      PD output into the handler's per-controller :attr:`action_slices`.
-    * :meth:`look_at` — pure FK / IK math against
-      :func:`~TyGrit.robots.fetch.kinematics.fk_numpy.forward_kinematics`,
-      sets the head target consumed by the PD step.
-    * :meth:`execute_trajectory` — synchronous waypoint loop using
-      :func:`~TyGrit.controller.fetch.mpc.compute_mpc_action`.
-    * Scene-sampler ownership: :meth:`reset` advances the sampler's
-      ``reset_count`` so the deterministic scene sequence stays
-      consistent regardless of which sim is plugged in.
-    * Spawn-pose randomisation against
-      ``handler.get_navigable_positions()``.
+* **Sensing** — read the handler's qpos / link poses / camera outputs
+  and shape them into :class:`~TyGrit.types.robots.RobotState` and
+  :class:`~TyGrit.types.sensors.SensorSnapshot` dataclasses, including
+  the holonomic-base qpos↔world offset calibration.
+* **Actuation** — assemble per-controller slices into the flat action
+  vector that :meth:`SimHandler.apply_action` accepts (plus a small
+  head PD that converts a head target into pan/tilt velocities).
+* **Reset / spawn** — advance the scene sampler, drive
+  :meth:`SimHandler.reset_to_scene_idx`, re-calibrate the base offset,
+  and (optionally) randomise the spawn pose against the handler's
+  navmesh.
 
-What lives in the handler (sim-specific):
-    * Sim env construction.
-    * Observation parsing → cached numpy arrays.
-    * Action plumbing into the sim.
-    * Reset / reconfigure / teleport / render / close.
+**Out of scope** (lives elsewhere, consumes a ``FetchRobotCore``):
+
+* MPC trajectory tracking — :mod:`TyGrit.controller.fetch.trajectory`.
+* Head-camera IK (``look_at``) — :mod:`TyGrit.gaze.fetch_head`.
+* Active-perception sampling, gaze targets — :mod:`TyGrit.gaze`.
+
+That separation keeps this module ~250 lines, free of any
+``TyGrit.controller.*`` / ``TyGrit.gaze.*`` imports, and easy to reuse
+across simulators (one ``SimHandler`` per sim — see :mod:`TyGrit.sim`).
 """
 
 from __future__ import annotations
@@ -41,17 +32,10 @@ from __future__ import annotations
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.controller.fetch.mpc import (
-    MPCConfig,
-    compute_mpc_action,
-    robot_state_to_mpc_state,
-)
 from TyGrit.envs.fetch.config import FetchEnvConfig
 from TyGrit.robots.fetch import FETCH_CFG
-from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
 from TyGrit.sim.base import SimHandler
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.planning import Trajectory
 from TyGrit.types.robots import RobotState
 from TyGrit.types.sensors import SensorSnapshot
 from TyGrit.worlds.sampler import create_sampler
@@ -72,8 +56,6 @@ class FetchRobotCore:
         core asserts the handler's ``robot_cfg.name == "fetch"`` so a
         wiring bug surfaces immediately rather than via a confusing
         joint-name lookup failure later.
-    mpc_config
-        Optional MPC tuning override.
 
     The core does once-per-reset base-offset calibration via the
     handler during ``__init__`` and again at the end of every
@@ -84,7 +66,6 @@ class FetchRobotCore:
         self,
         config: FetchEnvConfig,
         handler: SimHandler,
-        mpc_config: MPCConfig | None = None,
     ) -> None:
         if handler.robot_cfg.name != FETCH_CFG.name:
             raise ValueError(
@@ -94,7 +75,6 @@ class FetchRobotCore:
             )
         self._config = config
         self._handler = handler
-        self._mpc_config = mpc_config
 
         # Sampler ownership lives at this layer because scene selection
         # (manifest → indices) is sim-agnostic. Handlers just consume
@@ -108,9 +88,8 @@ class FetchRobotCore:
         self._qpos_base_offset: npt.NDArray[np.float64] = np.zeros(3, dtype=np.float64)
         self._init_qpos_world_offset()
 
-        # Trajectory + actuator state (sim-agnostic).
-        self._trajectory: Trajectory | None = None
-        self._waypoint_idx: int = 0
+        # Actuator state (set externally — gripper from a controller,
+        # head target from TyGrit.gaze.fetch_head.look_at).
         self._gripper_target: float = 0.0
         self._head_target: tuple[float, float] = (float("nan"), float("nan"))
 
@@ -217,53 +196,17 @@ class FetchRobotCore:
         # layer via repeated get_sensor_snapshot calls.
         return self._build_sensor_snapshot("head")
 
-    # ── RobotBase: active perception ──────────────────────────────────
+    # ── head target sink (set externally — see TyGrit.gaze.fetch_head) ──
 
-    def look_at(self, target: npt.NDArray[np.float64], camera_id: str) -> None:
-        """Aim the head camera at a 3-D world-frame ``target`` via FK + IK math.
+    def set_head_target(self, pan: float, tilt: float) -> None:
+        """Set the absolute head pan/tilt target in radians.
 
-        Sets ``self._head_target`` (pan, tilt). The actual head motion
-        happens via the PD controller on each :meth:`step` call.
+        :func:`TyGrit.gaze.fetch_head.look_at` calls this after solving
+        head-pointing kinematics; the PD controller in
+        :meth:`_compute_head_pd` then drives the joints toward
+        ``(pan, tilt)`` on every :meth:`step`.
         """
-        if camera_id != "head":
-            raise NotImplementedError(f"Cannot steer camera {camera_id!r}")
-
-        state = self.get_robot_state()
-
-        # Build FK input: [torso, 7 arm, pan, tilt]
-        fk_joints = np.array(
-            [*state.planning_joints, *state.head_joints],
-            dtype=np.float64,
-        )
-        link_poses = forward_kinematics(fk_joints)
-
-        # Transform world target to base frame.
-        bp = state.base_pose
-        cos_th, sin_th = np.cos(bp.theta), np.sin(bp.theta)
-        R_wb = np.array([[cos_th, -sin_th], [sin_th, cos_th]])
-        t_wb = np.array([bp.x, bp.y])
-        target_base_xy = R_wb.T @ (target[:2] - t_wb)
-        target_base = np.array([target_base_xy[0], target_base_xy[1], target[2]])
-
-        # Compute relative pan in head_pan_link frame.
-        T_head_pan = link_poses["head_pan_link"]
-        T_head_pan_inv = np.linalg.inv(T_head_pan)
-        target_head_pan = (T_head_pan_inv @ np.append(target_base, 1.0))[:3]
-
-        x, y, z = target_head_pan
-        current_pan = float(state.head_joints[0])
-        pan_rel = float(np.arctan2(y, x))
-
-        # Tilt: vector from tilt joint origin to target in pan-aligned frame.
-        T_head_tilt = link_poses["head_tilt_link"]
-        T_pan_tilt = T_head_pan_inv @ T_head_tilt
-        tilt_origin_pan = T_pan_tilt[:3, 3]
-        dist_xy = np.sqrt(x**2 + y**2)
-        v_tilt_target = np.array([dist_xy, 0.0, z]) - tilt_origin_pan
-        tilt_abs = float(np.arctan2(-v_tilt_target[2], v_tilt_target[0]))
-
-        pan = current_pan + pan_rel
-        self._head_target = (pan, tilt_abs)
+        self._head_target = (float(pan), float(tilt))
 
     # ── head PD controller (used by action assembly) ───────────────────
 
@@ -333,38 +276,6 @@ class FetchRobotCore:
         if self._config.sim_opts.get("render_mode") == "human":
             self._handler.render()
         return self._build_sensor_snapshot("head")
-
-    # ── RobotBase: trajectory / motion ────────────────────────────────
-
-    def start_trajectory(self, trajectory: Trajectory) -> None:
-        self._trajectory = trajectory
-        self._waypoint_idx = 0
-
-    def is_motion_done(self) -> bool:
-        return self._trajectory is None or self._waypoint_idx >= len(
-            self._trajectory.arm_path
-        )
-
-    def stop_motion(self) -> None:
-        self._trajectory = None
-        self._waypoint_idx = 0
-
-    def execute_trajectory(self, trajectory: Trajectory) -> bool:
-        cfg = self._config
-        for arm_wp, base_wp in zip(trajectory.arm_path, trajectory.base_configs):
-            x_ref = np.array(
-                [base_wp.x, base_wp.y, base_wp.theta, *arm_wp],
-                dtype=np.float64,
-            )
-            for _ in range(cfg.max_steps_per_waypoint):
-                state = self.get_robot_state()
-                x = robot_state_to_mpc_state(state)
-                error = float(np.linalg.norm(x_ref - x))
-                if error < cfg.convergence_threshold:
-                    break
-                u = compute_mpc_action(x, x_ref, self._mpc_config)
-                self.step(u)
-        return True
 
     # ── RobotBase: end-effector ───────────────────────────────────────
 

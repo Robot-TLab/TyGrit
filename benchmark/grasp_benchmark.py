@@ -218,7 +218,8 @@ def main() -> None:
     mpc_config = MPCConfig()
 
     logger.info("Creating ManiSkill env from manifest: {}", args.manifest_path)
-    robot = FetchRobot.create(config=env_config, mpc_config=mpc_config)
+    robot = FetchRobot.create(config=env_config)
+    _ = mpc_config  # consumed by execute_trajectory in TyGrit.controller.fetch.trajectory
 
     logger.info("Creating VampPreviewPlanner")
     planner = VampPreviewPlanner(VampPlannerConfig())

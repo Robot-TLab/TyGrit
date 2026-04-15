@@ -20,7 +20,6 @@ until the vec handlers land in :mod:`TyGrit.sim` (§7.5 / §7.6).
 
 from __future__ import annotations
 
-from TyGrit.controller.fetch.mpc import MPCConfig
 from TyGrit.envs.fetch.config import FetchEnvConfig
 
 
@@ -31,10 +30,7 @@ class FetchRobot:
     """
 
     @staticmethod
-    def create(
-        config: FetchEnvConfig | None = None,
-        mpc_config: MPCConfig | None = None,
-    ):
+    def create(config: FetchEnvConfig | None = None):
         """Factory: create a Fetch robot driven by the configured sim.
 
         Parameters
@@ -45,9 +41,6 @@ class FetchRobot:
             ``"ros"``); ``config.num_envs`` selects single-env vs
             vectorised. Defaults to ``FetchEnvConfig()`` (single-env
             ManiSkill) when ``None``.
-        mpc_config
-            MPC controller tuning forwarded to
-            :class:`~TyGrit.envs.fetch.core.FetchRobotCore`.
         """
         cfg = config or FetchEnvConfig()
 
@@ -69,7 +62,7 @@ class FetchRobot:
                 )
             from TyGrit.envs.fetch.maniskill_vec import ManiSkillFetchRobotVec
 
-            return ManiSkillFetchRobotVec(cfg, mpc_config)
+            return ManiSkillFetchRobotVec(cfg, None)
 
         from TyGrit.envs.fetch.core import FetchRobotCore
         from TyGrit.robots.fetch import FETCH_CFG
@@ -96,7 +89,7 @@ class FetchRobot:
             **handler_opts,
         )
 
-        core = FetchRobotCore(cfg, handler, mpc_config)
+        core = FetchRobotCore(cfg, handler)
 
         # Kick the viewer once after construction so the first frame
         # is visible; no-op when render_mode is not "human".
