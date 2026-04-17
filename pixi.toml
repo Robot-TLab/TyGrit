@@ -90,6 +90,7 @@ generate-holodeck-scenes = "python -m TyGrit.worlds.generators.holodeck"
 # present in our stable mani-skill 3.x); mujoco (the parser dep) is
 # in [feature.world.pypi-dependencies] above.
 install-molmo-spaces-maniskill = "pip install --no-deps -e thirdparty/molmospaces/molmo_spaces_maniskill"
+generate-mobile-grasp-dataset = { cmd = "python -m TyGrit.worlds.generators.mobile_grasp", env = { PYTHONPATH = "${PIXI_PROJECT_ROOT}:${PIXI_PROJECT_ROOT}/build" } }
 
 # ── thirdparty (one-shot install tasks for VAMP/GraspGen/MomaViz/SAM3) ─
 # This env is rarely activated — only for `pixi run -e thirdparty install-*`
@@ -131,13 +132,14 @@ yourdfpy = "==0.0.56"
 tensorboardx = ">=2.6.4, <3"
 tensorboard = ">=2.20.0, <3"
 diffusers = ">=0.25, <1"
+open3d = ">=0.18.0, <0.19"
 
 [feature.thirdparty.tasks]
 install-vamp = "pip install --no-build-isolation -e thirdparty/vamp_preview"
 install-graspgen = "pip install --no-build-isolation thirdparty/GraspGen/pointnet2_ops && pip install --no-build-isolation --no-deps -e thirdparty/GraspGen"
 install-momaviz = "pip install --no-deps -e thirdparty/MomaViz"
 download-graspgen-weights = "scripts/download_graspgen_weights.sh"
-install-extensions = "pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu128.html && pip install spconv-cu120 && pip install sam3@git+https://github.com/facebookresearch/sam3.git"
+install-extensions = "pip install torch-scatter -f https://data.pyg.org/whl/torch-2.7.0+cu128.html && pip install spconv-cu126==2.3.8 && pip install sam3@git+https://github.com/facebookresearch/sam3.git"
 
 # Note: a `robot` feature/env for ROS (ros-humble-desktop) is NOT
 # defined here. Pixi warns about unused features, so we add it only

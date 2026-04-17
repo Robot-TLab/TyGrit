@@ -1,8 +1,13 @@
 """Visualization utilities for development and debugging.
 
-All rendering functions produce numpy arrays (no interactive windows),
-making them safe for headless servers and easy to pipe into the VIZ
-logging level.
+The default exports (``image``, ``pointcloud_viz``, ``save``) rasterize to
+numpy arrays / files with no interactive windows, making them safe for
+headless servers and easy to pipe into the VIZ logging level.
+
+For interactive 3-D inspection during development there is also
+``TyGrit.visualization.o3d``, which opens live Open3D windows. It is
+imported explicitly (not re-exported here) because Open3D is only
+installed in the ``thirdparty`` pixi env.
 """
 
 from TyGrit.visualization.image import (
