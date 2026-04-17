@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Callable
 
-from TyGrit.types.robot import WholeBodyConfig
+from TyGrit.types.robots import WholeBodyConfig
 
 if TYPE_CHECKING:
     from TyGrit.planning.motion_planner import MotionPlanner

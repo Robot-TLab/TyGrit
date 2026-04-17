@@ -13,7 +13,7 @@ from TyGrit.controller.fetch.mpc import (
 )
 from TyGrit.core.config import ControllerFn
 from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 
 
 def make_mpc_controller(config: MPCConfig | None = None) -> ControllerFn:

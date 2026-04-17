@@ -9,8 +9,9 @@ import numpy as np
 import numpy.typing as npt
 
 from TyGrit.belief_state.scene import Scene
+from TyGrit.envs.base import RobotBase
 from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 
 
 @dataclass(frozen=True)
@@ -26,3 +27,7 @@ class SchedulerConfig:
 ControllerFn = Callable[[RobotState, Trajectory, int], npt.NDArray[np.float32]]
 CheckFn = Callable[[Trajectory, Scene], tuple[bool, bool]]
 GazeFn = Callable[[Trajectory, int], npt.NDArray[np.float64] | None]
+#: Apply a gaze target to a robot. Robot-specific (Fetch's
+#: :func:`TyGrit.gaze.fetch_head.look_at`); the scheduler stays
+#: robot-agnostic and consumes whatever the caller wires in.
+GazeApplyFn = Callable[[RobotBase, npt.NDArray[np.float64]], None]

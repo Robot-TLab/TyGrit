@@ -18,21 +18,23 @@ import numpy as np
 import torch
 from loguru import logger
 
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill_vec import ManiSkillFetchRobotVec
+from TyGrit.envs.fetch.core_vec import FetchRobotCoreVec
+from TyGrit.gaze.fetch_head import look_at_batched
 from TyGrit.rl.obs import build_obs_dict
 from TyGrit.rl.policy import FactoredPolicy
 from TyGrit.rl.train import (
     _cache_link_groups,
     _compute_factored_reward,
     _make_target_pos,
-    _sim_poses_from_result,
+    _sim_poses_from_robot,
 )
 from TyGrit.tasks.loader import load_tasks
 
 
 def _place_target_marker(
-    robot: ManiSkillFetchRobotVec,
+    robot: FetchRobotCoreVec,
     position: tuple[float, float, float],
     radius: float = 0.03,
     color: tuple[float, float, float, float] = (1.0, 0.2, 0.2, 0.6),
@@ -44,7 +46,7 @@ def _place_target_marker(
     """
     import sapien
 
-    scene = robot._env.unwrapped.scene  # type: ignore[attr-defined]
+    scene = robot.handler._env.unwrapped.scene  # noqa: SLF001 — ManiSkill-specific
     builder = scene.create_actor_builder()
     builder.add_sphere_visual(
         radius=radius,
@@ -55,39 +57,44 @@ def _place_target_marker(
 
 
 def _run_episode(
-    robot: ManiSkillFetchRobotVec,
+    robot: FetchRobotCoreVec,
     policy: FactoredPolicy,
     target_pos: torch.Tensor,
     config,
     device: str,
     link_groups: dict[str, list],
-    init_result: dict,
 ) -> tuple[bool, int, float]:
-    """Run a single evaluation episode. Returns (success, length, reward)."""
-    robot.look_at_batched(target_pos)
+    """Run a single evaluation episode. Returns (success, length, reward).
+
+    Requires the robot to already be reset — caller invokes
+    ``robot.reset()`` before entering this loop. Initial TCP pose is
+    read from the handler's cached obs.
+    """
+    look_at_batched(robot, target_pos)
 
     ep_reward = 0.0
     ep_len = 0
     done = False
     terminated = False
-    current_result = init_result
 
     # Initial distance for potential-based reach reward
-    init_ee = init_result["ee_pos"]
-    prev_dist = torch.linalg.norm(init_ee - target_pos.to(init_ee.device), dim=1)
+    init_poses = _sim_poses_from_robot(robot)
+    prev_dist = torch.linalg.norm(
+        init_poses["ee_pos"] - target_pos.to(init_poses["ee_pos"].device),
+        dim=1,
+    )
 
     while not done:
-        obs = build_obs_dict(current_result, target_pos)
+        obs = build_obs_dict(robot, target_pos)
         obs_dev = {k: v.to(device) for k, v in obs.items()}
         with torch.no_grad():
             action, _ = policy.get_action(obs_dev, deterministic=True)
 
-        step_result = robot.step(action.cpu())
-        current_result = step_result
+        robot.step(action.cpu())
         ep_len += 1
 
-        sim_poses = _sim_poses_from_result(step_result)
-        robot.look_at_batched(target_pos)
+        sim_poses = _sim_poses_from_robot(robot)
+        look_at_batched(robot, target_pos)
 
         total_reward, _terms, prev_dist = _compute_factored_reward(
             target_pos,
@@ -101,7 +108,7 @@ def _run_episode(
 
         # Success: gripper closing near target
         ee_dist = torch.linalg.norm(
-            step_result["ee_pos"] - target_pos.to(step_result["ee_pos"].device),
+            sim_poses["ee_pos"] - target_pos.to(sim_poses["ee_pos"].device),
             dim=1,
         )
         gripper_closing = action[:, -1] > 0
@@ -134,14 +141,21 @@ def evaluate(
     policy.load_state_dict(ckpt["policy_state_dict"])
     policy.eval()
 
+    # num_envs=2 so FetchRobot.create routes through the vec path; eval
+    # only uses env 0 logically, the second env is idle. We accept the
+    # small overhead because the eval code assumes batched shapes
+    # throughout (look_at_batched, build_obs_dict, sim_poses).
     env_config = FetchEnvConfig(
-        num_envs=1,
-        obs_mode="rgbd",
-        render_mode="human" if render else None,
+        num_envs=2,
+        sim_opts={
+            "obs_mode": "rgbd",
+            "control_mode": "pd_joint_vel",
+            "render_mode": "human" if render else None,
+        },
         camera_width=128,
         camera_height=128,
     )
-    robot = ManiSkillFetchRobotVec(config=env_config)
+    robot = FetchRobot.create(config=env_config)
     link_groups = _cache_link_groups(robot)
 
     suite = load_tasks(task_suite_path)
@@ -157,10 +171,10 @@ def evaluate(
 
     task_pairs = list(suite.iter_tasks())
     for idx, (scene, task) in enumerate(task_pairs):
-        reset_result = robot.reset(seed=scene.seed)
+        robot.reset(seed=scene.seed)
         target_pos = _make_target_pos(
             task.object_pose.position,
-            1,
+            robot.num_envs,
             torch.device(device),
         )
 
@@ -174,7 +188,6 @@ def evaluate(
             config,
             device,
             link_groups=link_groups,
-            init_result=reset_result,
         )
 
         successes.append(success)

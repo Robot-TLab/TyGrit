@@ -11,7 +11,7 @@ from typing import Protocol
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.sensors import SensorSnapshot
 
 
 class Scene(Protocol):

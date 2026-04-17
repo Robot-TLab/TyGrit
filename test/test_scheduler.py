@@ -9,8 +9,8 @@ from TyGrit.core.scheduler import Scheduler
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.planning import PlanningMode, Subgoal, Trajectory
 from TyGrit.types.results import PlanResult, SchedulerOutcome
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 
 # ── Helpers / Mocks ──────────────────────────────────────────────────────
 

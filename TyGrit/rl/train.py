@@ -24,8 +24,10 @@ import torch
 from loguru import logger
 from torch import Tensor
 
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill_vec import ManiSkillFetchRobotVec
+from TyGrit.envs.fetch.core_vec import FetchRobotCoreVec
+from TyGrit.gaze.fetch_head import look_at_batched
 from TyGrit.rl.config import TrainConfig, default_causal_matrix
 from TyGrit.rl.obs import DictArray, build_obs_dict
 from TyGrit.rl.policy import FactoredPolicy, MultiChannelValue
@@ -114,16 +116,19 @@ _GRASP_APPROACH_DIR = torch.tensor([0.0, 0.0, -1.0], dtype=torch.float32)
 # ── Collision detection ───────────────────────────────────────────────────────
 
 
-def _cache_link_groups(robot: ManiSkillFetchRobotVec) -> dict:
+def _cache_link_groups(robot: FetchRobotCoreVec) -> dict:
     """Pre-filter and cache collision link objects by group.
 
     Also registers self-collision link pairs with
     ``scene.get_pairwise_contact_forces`` so that the GPU query is
     ready at training time.
     """
-    all_links = robot._env.unwrapped.agent.robot.get_links()
+    handler = robot.handler
+    all_links = handler.env_agent.robot.get_links()  # type: ignore[attr-defined]
     link_map = {link.name: link for link in all_links}
-    scene = robot._env.unwrapped.scene
+    scene = (
+        handler._env.unwrapped.scene
+    )  # noqa: SLF001 — ManiSkill-specific scene handle
 
     # Register self-collision pairs (warmup call)
     self_pairs = []
@@ -173,19 +178,33 @@ def _detect_self_collision(link_groups: dict) -> Tensor:
 # ── Sim-pose extraction from step/reset result ────────────────────────────────
 
 
-def _sim_poses_from_result(result: dict) -> dict[str, Tensor]:
-    """Build sim_poses dict from a step/reset result.
+def _sim_poses_from_robot(robot: FetchRobotCoreVec) -> dict[str, Tensor]:
+    """Build sim_poses dict directly from the vec robot's handler.
 
-    Camera pose comes from the ManiSkill obs dict (``sensor_param``).
-    TCP pose comes from the ``ee_pos``/``ee_forward`` keys added by
-    ``ManiSkillFetchRobotVec``.
+    Camera pose comes from the cached ManiSkill obs dict
+    (``sensor_param/fetch_head/cam2world_gl``); TCP pose + forward come
+    from the agent's ``tcp.pose`` — the one piece of state ManiSkill
+    doesn't ship in the obs dict.
     """
-    cam_mat = result["obs"]["sensor_param"]["fetch_head"][
-        "cam2world_gl"
-    ].float()  # (N, 4, 4)
+    handler = robot.handler
+    raw_obs = handler._obs  # noqa: SLF001
+    cam_mat = raw_obs["sensor_param"]["fetch_head"]["cam2world_gl"].float()
+
+    tcp_pose = handler.env_agent.tcp.pose  # type: ignore[attr-defined]
+    ee_pos = tcp_pose.p.float()
+    q = tcp_pose.q.float()  # (N, 4) wxyz (Sapien convention)
+    w, x, y, z = q[:, 0], q[:, 1], q[:, 2], q[:, 3]
+    ee_forward = torch.stack(
+        [
+            2 * (x * z + w * y),
+            2 * (y * z - w * x),
+            1 - 2 * (x * x + y * y),
+        ],
+        dim=1,
+    )
     return {
-        "ee_pos": result["ee_pos"],
-        "ee_forward": result["ee_forward"],
+        "ee_pos": ee_pos,
+        "ee_forward": ee_forward,
         "cam_pos": cam_mat[:, :3, 3],
         "cam_forward": cam_mat[:, :3, 2],
     }
@@ -315,7 +334,7 @@ class FPPOTrainer:
 
     def __init__(
         self,
-        robot: ManiSkillFetchRobotVec,
+        robot: FetchRobotCoreVec,
         config: TrainConfig | None = None,
         causal_matrix: Tensor | None = None,
     ) -> None:
@@ -330,7 +349,14 @@ class FPPOTrainer:
             self._suite.total_tasks,
         )
 
-        self.B = (causal_matrix or default_causal_matrix()).to(self.device)
+        # ``causal_matrix or default_causal_matrix()`` would raise
+        # RuntimeError when ``causal_matrix`` is a real Tensor —
+        # truth-testing a multi-element tensor is ambiguous in PyTorch.
+        # Use an explicit None check so the ``causal_matrix=Tensor(...)``
+        # path actually works.
+        if causal_matrix is None:
+            causal_matrix = default_causal_matrix()
+        self.B = causal_matrix.to(self.device)
 
         # Use first task's target for sample obs shape inference
         first_task = self._suite.scenes[0].grasp_tasks[0]
@@ -339,8 +365,8 @@ class FPPOTrainer:
             self.cfg.num_envs,
             self.device,
         )
-        reset_result = self.robot.reset()
-        sample_obs = build_obs_dict(reset_result, init_target_pos)
+        self.robot.reset()
+        sample_obs = build_obs_dict(self.robot, init_target_pos)
         sample_obs_dev = {
             k: v[:1].clone().to(self.device) for k, v in sample_obs.items()
         }
@@ -369,7 +395,9 @@ class FPPOTrainer:
             lr=self.cfg.value_lr,
         )
 
-        action_space = robot._env.action_space
+        action_space = (
+            robot.handler._env.action_space
+        )  # noqa: SLF001 — ManiSkill gym env
         self._action_low = torch.tensor(
             action_space.low,
             dtype=torch.float32,
@@ -406,15 +434,15 @@ class FPPOTrainer:
         scene = random.choice(self._suite.scenes)
         task = random.choice(scene.grasp_tasks)
 
-        reset_result = self.robot.reset(settle_steps=self.cfg.settle_steps)
+        self.robot.reset(settle_steps=self.cfg.settle_steps)
 
         target_pos = _make_target_pos(
             task.object_pose.position,
             self.cfg.num_envs,
             self.device,
         )
-        self.robot.look_at_batched(target_pos)
-        obs = build_obs_dict(reset_result, target_pos)
+        look_at_batched(self.robot, target_pos)
+        obs = build_obs_dict(self.robot, target_pos)
         return obs, target_pos
 
     # ── Collect rollout ───────────────────────────────────────────────────
@@ -468,11 +496,11 @@ class FPPOTrainer:
             logprobs_buf[t] = log_prob
             values_buf[t] = value
 
-            step_result = self.robot.step(action)
+            self.robot.step(action)
             step_count += 1
 
-            # Build sim poses from step result (camera from obs, TCP from extra read)
-            sim_poses = _sim_poses_from_result(step_result)
+            # Build sim poses directly from the robot (handler's cached obs)
+            sim_poses = _sim_poses_from_robot(self.robot)
 
             total_reward, terms, prev_dist = _compute_factored_reward(
                 target_pos,
@@ -488,9 +516,7 @@ class FPPOTrainer:
             prev_action = raw_action.to(dev)
 
             # Episode termination: grasp success
-            ee_dist = torch.linalg.norm(
-                step_result["ee_pos"] - target_pos.to(dev), dim=1
-            )
+            ee_dist = torch.linalg.norm(sim_poses["ee_pos"] - target_pos.to(dev), dim=1)
             gripper_closing = action[:, 10].to(dev) > 0
             terminated = (ee_dist < self.cfg.grasp_dist_threshold) & gripper_closing
             truncated = step_count >= self.cfg.max_episode_steps
@@ -502,7 +528,7 @@ class FPPOTrainer:
             ep_returns += total_reward
             self.total_steps += N
 
-            next_obs = build_obs_dict(step_result, target_pos)
+            next_obs = build_obs_dict(self.robot, target_pos)
 
             # Final values bootstrap for truncated envs
             trunc_mask = truncated & ~terminated
@@ -710,9 +736,9 @@ class FPPOTrainer:
         dev = self.device
 
         first_task = self._suite.scenes[0].grasp_tasks[0]
-        reset_result = self.robot.reset()
+        self.robot.reset()
         sample_obs = build_obs_dict(
-            reset_result,
+            self.robot,
             _make_target_pos(first_task.object_pose.position, N, dev),
         )
         obs_buffer = DictArray((T, N), sample_obs)
@@ -874,12 +900,15 @@ def main() -> None:
     logger.info("[init] Creating ManiSkill env (num_envs={})...", args.num_envs)
     env_config = FetchEnvConfig(
         num_envs=args.num_envs,
-        obs_mode="rgbd",
-        render_mode="human" if args.render else None,
+        sim_opts={
+            "obs_mode": "rgbd",
+            "control_mode": "pd_joint_vel",
+            "render_mode": "human" if args.render else None,
+        },
         camera_width=128,
         camera_height=128,
     )
-    robot = ManiSkillFetchRobotVec(config=env_config)
+    robot = FetchRobot.create(config=env_config)
     logger.info("[init] ManiSkill env created in {:.1f}s", time.time() - t0)
 
     t1 = time.time()

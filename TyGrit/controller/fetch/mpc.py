@@ -23,7 +23,7 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 
 
 def robot_state_to_mpc_state(state: RobotState) -> npt.NDArray[np.float64]:

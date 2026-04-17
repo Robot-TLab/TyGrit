@@ -1,12 +1,12 @@
-"""Tests for TyGrit.kinematics.fetch — forward kinematics and camera pose."""
+"""Tests for TyGrit.robots.fetch.kinematics — forward kinematics and camera pose."""
 
 import numpy as np
 import pytest
 
-from TyGrit.kinematics.fetch.camera import compute_camera_pose
-from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
+from TyGrit.robots.fetch.kinematics.camera import compute_camera_pose
+from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 from TyGrit.utils.transforms import se2_to_matrix
 
 torch = pytest.importorskip("torch")
@@ -137,7 +137,7 @@ class TestBatchForwardKinematics:
 
     @pytest.fixture(autouse=True)
     def _import_batch_fk(self):
-        from TyGrit.kinematics.fetch.fk_torch import batch_forward_kinematics
+        from TyGrit.robots.fetch.kinematics.fk_torch import batch_forward_kinematics
 
         self.batch_fk = batch_forward_kinematics
 

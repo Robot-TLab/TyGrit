@@ -208,6 +208,26 @@ cython_debug/
 # Episode data (H5 files, converted from grasp_anywhere)
 data/
 
+# Downloaded simulator assets (scene datasets, object models). Project-local
+# via MS_ASSET_DIR in [feature.maniskill.activation.env] so ManiSkill writes
+# to assets/maniskill/data/scene_datasets/... instead of the user-global
+# ~/.maniskill/ cache.
+assets/maniskill/
+
+# Objaverse mesh cache. Per-UUID .glb files fetched via the objaverse
+# pip package. The UUIDs we sample are NVIDIA's GraspGen-curated
+# Objaverse-LVIS subset — we use their curation as a graspability
+# prior but do NOT use their grasp labels (TyGrit runs its own grasp
+# oracle at inference). See TyGrit/worlds/generators/objaverse.py.
+assets/objaverse/
+
+# MolmoSpaces (AllenAI) MJCF bulk cache — Holodeck scenes + shared
+# THOR + Objaverse object pools. Downloaded via molmospaces_resources
+# in TyGrit.worlds.generators.holodeck (~153 GB for the train split).
+# Only the generated scene manifest (resources/worlds/holodeck.json.gz)
+# lives in git.
+assets/molmospaces/
+
 # Thirdparty build artifacts
 thirdparty/GraspGen/pointnet2_ops/build/
 
@@ -230,3 +250,7 @@ __marimo__/
 runs/
 wandb/
 .vscode/
+.codex
+.claude
+autoresearch-results.tsv
+thirdparty/IsaacLab/

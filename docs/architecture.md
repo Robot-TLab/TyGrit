@@ -23,18 +23,21 @@ The key insight is that progression is **emergent, not scripted**. The subgoal g
 
 | Module | Responsibility |
 |--------|---------------|
-| `types/` | Frozen dataclasses — geometry, robot state, sensor snapshots, planning types |
+| `types/` | Frozen dataclasses — geometry, robot state, sensor snapshots, planning types, **world/object specs** (`types/worlds.py`) |
 | `utils/` | Pure functions — math, transforms, pointcloud, depth |
-| `envs/` | Robot environment layer with two-level dispatch (robot → backend) |
+| `envs/` | Robot environment layer with two-level dispatch (robot → backend). Consumes the `worlds/` layer for scene + object sampling at reset time. |
+| `worlds/` | Sim-agnostic scene + object specification layer. Pure-Python `manifest.py`/`sampler.py`/`object_sampler.py` at the top level; per-simulator adapters under `worlds/backends/` (currently `maniskill.py`, future `genesis.py`/`isaac_sim.py`); one-shot dataset enumerators under `worlds/generators/` (ReplicaCAD, AI2THOR family, RoboCasa, YCB, Objaverse-LVIS). |
 | `kinematics/` | IK and FK solvers (IKFast analytical, TRAC-IK numerical, batch FK) |
 | `planning/` | Motion planning (`MotionPlanner` protocol, VAMP-based implementation) |
 | `perception/` | Grasp prediction (`GraspPredictor` protocol) and segmentation (`Segmenter` protocol) |
-| `scene/` | World model / belief state (`Scene` protocol, point-cloud implementation) |
+| `belief_state/` | Perception representation — point clouds, voxel grids. (Previously `scene/`; renamed to distinguish from the sim-side `worlds/` layer.) |
+| `tasks/` | Task/goal definitions (grasp benchmark loader, target-object placement) |
 | `subgoal_generator/` | High-level goal selection (`SubGoalGenerator` protocol, grasp task) |
 | `controller/` | Tracking control (MPC) and gripper commands |
 | `gaze/` | Active gaze — where the head should look during trajectory execution |
 | `checker/` | Collision and self-occlusion checks |
 | `core/` | Receding-horizon scheduler |
+| `rl/` | Factored-PPO baseline for Fetch whole-body control ([rl-baseline.md](rl-baseline.md)) |
 | `config.py` | `SystemConfig` aggregator + TOML loader |
 
 ## Factory pattern

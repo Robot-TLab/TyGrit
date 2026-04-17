@@ -7,11 +7,10 @@ projected target sphere on the image plane.
 
 from __future__ import annotations
 
-import cv2
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.kinematics.fetch.constants import (
+from TyGrit.robots.fetch.kinematics.constants import (
     FETCH_SPHERES,
     HEAD_CAMERA_OFFSET,
     R_CV_TO_CAMERA_LINK,
@@ -29,6 +28,8 @@ def _spheres_to_mask(
     w: int,
 ) -> npt.NDArray[np.bool_]:
     """Project 3-D spheres onto a 2-D boolean mask via pinhole model."""
+    import cv2  # heavy dep — only loaded when self-occlusion is actually checked
+
     mask = np.zeros((h, w), dtype=np.uint8)
     fx, fy = K[0, 0], K[1, 1]
     cx, cy = K[0, 2], K[1, 2]

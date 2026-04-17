@@ -6,12 +6,12 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
-from PIL import Image
 
 from TyGrit.perception.segmentation.config import SAM3SegmenterConfig
 
 if TYPE_CHECKING:
-    from sam3.model.sam3_image_processor import Sam3Processor
+    from PIL.Image import Image as PILImage  # noqa: F401
+    from sam3.model.sam3_image_processor import Sam3Processor  # noqa: F401
 
 
 class SAM3Segmenter:
@@ -48,6 +48,8 @@ class SAM3Segmenter:
         """
         self._ensure_loaded()
         assert self._processor is not None
+
+        from PIL import Image  # heavy dep — only imported when SAM3 actually runs
 
         cfg = self._config
         image = Image.fromarray(rgb)

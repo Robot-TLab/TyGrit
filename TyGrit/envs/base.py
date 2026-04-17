@@ -1,4 +1,12 @@
-"""Protocol for robot environment implementations."""
+"""Protocol for robot sensor/actuation adapters.
+
+The ``RobotBase`` protocol is the *thin* contract a robot core (e.g.
+``FetchRobotCore``) must satisfy: cameras + state read, low-level step,
+gripper command, reset, and close. Trajectory tracking, active-
+perception, MPC, and IK live above this layer in
+:mod:`TyGrit.controller`, :mod:`TyGrit.gaze`, and the scheduler — they
+consume a :class:`RobotBase` rather than extending it.
+"""
 
 from __future__ import annotations
 
@@ -7,18 +15,12 @@ from typing import Protocol
 import numpy as np
 import numpy.typing as npt
 
-from TyGrit.types.planning import Trajectory
-from TyGrit.types.robot import RobotState
-from TyGrit.types.sensor import SensorSnapshot
+from TyGrit.types.robots import RobotState
+from TyGrit.types.sensors import SensorSnapshot
 
 
 class RobotBase(Protocol):
-    """Protocol every robot environment (sim / real) must satisfy.
-
-    Robot-specific capabilities (torso, specific joint control, MPC,
-    gaze optimisation) belong in concrete subclasses (e.g. ``FetchRobot``),
-    not here.
-    """
+    """Protocol every robot environment (sim / real) must satisfy."""
 
     # ── sensing ──────────────────────────────────────────────────────────
 
@@ -33,18 +35,6 @@ class RobotBase(Protocol):
 
     def get_robot_state(self) -> RobotState: ...
 
-    # ── active perception ────────────────────────────────────────────────
-
-    def look_at(self, target: npt.NDArray[np.float64], camera_id: str) -> None:
-        """Point *camera_id* at a 3-D world-frame target ``[x, y, z]``.
-
-        The implementation resolves this to whatever mechanism the robot
-        uses (pan-tilt head, arm IK for wrist camera, etc.).
-        Not all cameras are steerable — implementations should raise
-        ``NotImplementedError`` for fixed cameras.
-        """
-        ...
-
     # ── stepping (synchronous control) ──────────────────────────────────
 
     def step(self, action: npt.NDArray[np.float32]) -> SensorSnapshot:
@@ -58,16 +48,6 @@ class RobotBase(Protocol):
     def get_observation(self) -> SensorSnapshot:
         """Return the latest observation without stepping."""
         ...
-
-    # ── motion ───────────────────────────────────────────────────────────
-
-    def execute_trajectory(self, trajectory: Trajectory) -> bool: ...
-
-    def start_trajectory(self, trajectory: Trajectory) -> None: ...
-
-    def stop_motion(self) -> None: ...
-
-    def is_motion_done(self) -> bool: ...
 
     # ── end-effector ─────────────────────────────────────────────────────
 

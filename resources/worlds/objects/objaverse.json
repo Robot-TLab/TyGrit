@@ -1,0 +1,5407 @@
+{
+  "version": 1,
+  "source": "objaverse",
+  "generator": "TyGrit.worlds.generators.objaverse --gripper=robotiq_2f_140 --count=200 --seed=0",
+  "objects": [
+    {
+      "name": "005e3725b8d9484e94a71aeb9495aea6",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/005e3725b8d9484e94a71aeb9495aea6.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.05926406437364672,
+        0.05926406437364672,
+        0.05926406437364672
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "009fdf73a9c54e7bbd3a7d28496752e0",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/009fdf73a9c54e7bbd3a7d28496752e0.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.006460484700273031,
+        0.006460484700273031,
+        0.006460484700273031
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "017c41aac5db41f3bfe2f7938a4834d1",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/017c41aac5db41f3bfe2f7938a4834d1.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        7.357477695584292e-05,
+        7.357477695584292e-05,
+        7.357477695584292e-05
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "04527c55da77419c8d23ef9720e52d4d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/04527c55da77419c8d23ef9720e52d4d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0003420806634678303,
+        0.0003420806634678303,
+        0.0003420806634678303
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "04629445e5b14f93bf18dcd211fa3d78",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/04629445e5b14f93bf18dcd211fa3d78.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0861391111062233,
+        0.0861391111062233,
+        0.0861391111062233
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "04bef8e589524b8c9d7a3bb206b206a8",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/04bef8e589524b8c9d7a3bb206b206a8.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08356732244260114,
+        0.08356732244260114,
+        0.08356732244260114
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0906b4391bc2490098dbb009e783a699",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0906b4391bc2490098dbb009e783a699.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.3694203060923178,
+        0.3694203060923178,
+        0.3694203060923178
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0918fd7ec53740c1944b122008ee0e77",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0918fd7ec53740c1944b122008ee0e77.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.12492140040483707,
+        0.12492140040483707,
+        0.12492140040483707
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "092e352fcf0d41ea87d084deec3c5625",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/092e352fcf0d41ea87d084deec3c5625.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.002585285296134365,
+        0.002585285296134365,
+        0.002585285296134365
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "098f5adfb58d40cab5a8376ff4796c5d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/098f5adfb58d40cab5a8376ff4796c5d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.007516810015380009,
+        0.007516810015380009,
+        0.007516810015380009
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "09ee59423b4b428f94f01fc5beccd227",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/09ee59423b4b428f94f01fc5beccd227.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0001579214945292135,
+        0.0001579214945292135,
+        0.0001579214945292135
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0ad165ecf7264702b7b805b1d0c3967e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0ad165ecf7264702b7b805b1d0c3967e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.006445201597858336,
+        0.006445201597858336,
+        0.006445201597858336
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0b0ee0e7f92c48e5bf8a18e162868d67",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0b0ee0e7f92c48e5bf8a18e162868d67.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.1490575526125617,
+        1.1490575526125617,
+        1.1490575526125617
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0c30a9f6b2f740b282b6a305accca96f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0c30a9f6b2f740b282b6a305accca96f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0022468892378611164,
+        0.0022468892378611164,
+        0.0022468892378611164
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0d3b71f006e64fca9a2cdbdfcd5601e7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0d3b71f006e64fca9a2cdbdfcd5601e7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.10548901773643855,
+        0.10548901773643855,
+        0.10548901773643855
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0d408468ddb94f06917ef88f7690ea61",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0d408468ddb94f06917ef88f7690ea61.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.03361760123007209,
+        0.03361760123007209,
+        0.03361760123007209
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0d9a45c2610f4f3aa638dabd8e29a492",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0d9a45c2610f4f3aa638dabd8e29a492.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.13576071495645806,
+        0.13576071495645806,
+        0.13576071495645806
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0e8fde91fdb5413494e878b0fef85cda",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0e8fde91fdb5413494e878b0fef85cda.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06424487912387929,
+        0.06424487912387929,
+        0.06424487912387929
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "0ef2df76b5d04c75b4d612a505ad260b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/0ef2df76b5d04c75b4d612a505ad260b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.014296171779482812,
+        0.014296171779482812,
+        0.014296171779482812
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "12541303f4454268a941b06ee3581427",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/12541303f4454268a941b06ee3581427.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00026448356148365957,
+        0.00026448356148365957,
+        0.00026448356148365957
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "150afe52eb8b4de1a6906aab3dc9eed5",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/150afe52eb8b4de1a6906aab3dc9eed5.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08341305554577634,
+        0.08341305554577634,
+        0.08341305554577634
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1522b9a0752f48878728148d3852a661",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1522b9a0752f48878728148d3852a661.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.005381362407960548,
+        0.005381362407960548,
+        0.005381362407960548
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "162d252bfe6b4317982ed3436486f02e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/162d252bfe6b4317982ed3436486f02e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00012072817778068305,
+        0.00012072817778068305,
+        0.00012072817778068305
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "16508811368a493d9088314be688f726",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/16508811368a493d9088314be688f726.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.029613932215163632,
+        0.029613932215163632,
+        0.029613932215163632
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1893b247c3e844cd835cbc1934595171",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1893b247c3e844cd835cbc1934595171.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        10.253615993625257,
+        10.253615993625257,
+        10.253615993625257
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1a4c7639dc1d4319b1a445653637827c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1a4c7639dc1d4319b1a445653637827c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0005935068900839773,
+        0.0005935068900839773,
+        0.0005935068900839773
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1c207c5e7e5a4f45ac1bff888665c1e4",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1c207c5e7e5a4f45ac1bff888665c1e4.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00015534333428998145,
+        0.00015534333428998145,
+        0.00015534333428998145
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1cfa99de7dc0402e94a5ea72d6d30acb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1cfa99de7dc0402e94a5ea72d6d30acb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        7.15245217377519e-05,
+        7.15245217377519e-05,
+        7.15245217377519e-05
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "1ec220e0d5f74d82896b703f14c76642",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/1ec220e0d5f74d82896b703f14c76642.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        4.813801502196303,
+        4.813801502196303,
+        4.813801502196303
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "20a8088cf7724ee5af9e6c18aa0b0e2b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/20a8088cf7724ee5af9e6c18aa0b0e2b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0014704102800171012,
+        0.0014704102800171012,
+        0.0014704102800171012
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "20b990d003534ed08055d7b34493b2e3",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/20b990d003534ed08055d7b34493b2e3.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0016064111362038918,
+        0.0016064111362038918,
+        0.0016064111362038918
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "21b5220775af4bb6bad570d6d19a00c7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/21b5220775af4bb6bad570d6d19a00c7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00033215723644102504,
+        0.00033215723644102504,
+        0.00033215723644102504
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "24113eec279d488897a4997d5dd1e128",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/24113eec279d488897a4997d5dd1e128.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0015708025049071422,
+        0.0015708025049071422,
+        0.0015708025049071422
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "25617b4723b94665a35c44ed43dd6549",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/25617b4723b94665a35c44ed43dd6549.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.05335276319125399,
+        0.05335276319125399,
+        0.05335276319125399
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "2674f1f26f12465dad6a802cda49289e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/2674f1f26f12465dad6a802cda49289e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.026045299724253252,
+        0.026045299724253252,
+        0.026045299724253252
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "26bb5c1b06ca4825ba2bb387aa1aaae2",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/26bb5c1b06ca4825ba2bb387aa1aaae2.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.04155430262007842,
+        0.04155430262007842,
+        0.04155430262007842
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "28fa872e41264a8fae159c0469fc73ab",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/28fa872e41264a8fae159c0469fc73ab.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.017966176070018568,
+        0.017966176070018568,
+        0.017966176070018568
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "29cf1438c0964956be0c9fdf80996796",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/29cf1438c0964956be0c9fdf80996796.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.014298336275407612,
+        0.014298336275407612,
+        0.014298336275407612
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "29e245bc655942878879b93e658440e7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/29e245bc655942878879b93e658440e7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0013923945413850446,
+        0.0013923945413850446,
+        0.0013923945413850446
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "2be469b7a8b6430690d66f2e1b2ad515",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/2be469b7a8b6430690d66f2e1b2ad515.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        3.064202307547667e-06,
+        3.064202307547667e-06,
+        3.064202307547667e-06
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "2db87772b2b446a3af2ed0cc427b93aa",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/2db87772b2b446a3af2ed0cc427b93aa.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.013187678428744073,
+        0.013187678428744073,
+        0.013187678428744073
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "2df97bfe17f14cfe985053582cd67e81",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/2df97bfe17f14cfe985053582cd67e81.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08766641332736774,
+        0.08766641332736774,
+        0.08766641332736774
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "2e138fb06d494f80b64d8dd5d665988b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/2e138fb06d494f80b64d8dd5d665988b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08673266023364834,
+        0.08673266023364834,
+        0.08673266023364834
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "31e0899e65f74cb9bfdc9df8e71288ee",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/31e0899e65f74cb9bfdc9df8e71288ee.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0003951879929943936,
+        0.0003951879929943936,
+        0.0003951879929943936
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "347770adfbaa4962ac98c58bbc51b23f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/347770adfbaa4962ac98c58bbc51b23f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0001502441982154615,
+        0.0001502441982154615,
+        0.0001502441982154615
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "347a5f42b24648efb7606a661ac71a3f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/347a5f42b24648efb7606a661ac71a3f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.003303693255975462,
+        0.003303693255975462,
+        0.003303693255975462
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "34920ca3027c440d80047bc466a746f1",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/34920ca3027c440d80047bc466a746f1.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0915630585550325,
+        0.0915630585550325,
+        0.0915630585550325
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "34fa7bb706af4ee19c0bdee1cad4c710",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/34fa7bb706af4ee19c0bdee1cad4c710.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.14238165768179614,
+        0.14238165768179614,
+        0.14238165768179614
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "36bd8fbd467e412780d9180b42416635",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/36bd8fbd467e412780d9180b42416635.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.03862773385381861,
+        0.03862773385381861,
+        0.03862773385381861
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "3871ba9b2b2c4b118c8823ec8c8a8176",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/3871ba9b2b2c4b118c8823ec8c8a8176.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.3512870327817976,
+        0.3512870327817976,
+        0.3512870327817976
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "3b50fb746d834312bce22c9fe3472726",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/3b50fb746d834312bce22c9fe3472726.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0841209528239117,
+        0.0841209528239117,
+        0.0841209528239117
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "3de9d35d897c4fad99946bb1fd8aa965",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/3de9d35d897c4fad99946bb1fd8aa965.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.002258799534720359,
+        0.002258799534720359,
+        0.002258799534720359
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "3ead948ed4b448298a8762e912221a4e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/3ead948ed4b448298a8762e912221a4e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.5799211749345753,
+        0.5799211749345753,
+        0.5799211749345753
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "3f67f11540da4e4f835ffd97982a1582",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/3f67f11540da4e4f835ffd97982a1582.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.22574885637287895,
+        0.22574885637287895,
+        0.22574885637287895
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "41a7761ba5f14f20904d90bb042fd5a1",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/41a7761ba5f14f20904d90bb042fd5a1.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.5334593110405825,
+        0.5334593110405825,
+        0.5334593110405825
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "41f0bbfbb0e34b9e853239a6d2d16716",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/41f0bbfbb0e34b9e853239a6d2d16716.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.03347150907185355,
+        0.03347150907185355,
+        0.03347150907185355
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4238acf07e5247f4b8334999159eeb37",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4238acf07e5247f4b8334999159eeb37.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        3.5202174544269073e-07,
+        3.5202174544269073e-07,
+        3.5202174544269073e-07
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "42f0a41639a14d62ba6ccd77846ba7f1",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/42f0a41639a14d62ba6ccd77846ba7f1.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.004031827272856237,
+        0.004031827272856237,
+        0.004031827272856237
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4383b3f88d9646c7b2f336266eaad947",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4383b3f88d9646c7b2f336266eaad947.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.007563388945332371,
+        0.007563388945332371,
+        0.007563388945332371
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "43b3aa28587f49d8b320d27ef9cd2f6c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/43b3aa28587f49d8b320d27ef9cd2f6c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0028239510609491337,
+        0.0028239510609491337,
+        0.0028239510609491337
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "46e3f24928e146718263c1a2706ed8d4",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/46e3f24928e146718263c1a2706ed8d4.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.003924929543765337,
+        0.003924929543765337,
+        0.003924929543765337
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4755b0df84d64b93900ae7e9c9b7c395",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4755b0df84d64b93900ae7e9c9b7c395.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0004952691186742122,
+        0.0004952691186742122,
+        0.0004952691186742122
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "49add91ed5874ca590fa137ca2029353",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/49add91ed5874ca590fa137ca2029353.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.14696183224262255,
+        0.14696183224262255,
+        0.14696183224262255
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "49b5d57469684ded9393eba871854755",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/49b5d57469684ded9393eba871854755.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.021886286693520808,
+        0.021886286693520808,
+        0.021886286693520808
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "49ff5037af0b45fbab69680fcb3228a2",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/49ff5037af0b45fbab69680fcb3228a2.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.0606685176217554,
+        1.0606685176217554,
+        1.0606685176217554
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4a780837e8494759b881c980e302aaa2",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4a780837e8494759b881c980e302aaa2.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.2960409097177268,
+        0.2960409097177268,
+        0.2960409097177268
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4a90c5fa3d824d1d87cd63bbae14ca59",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4a90c5fa3d824d1d87cd63bbae14ca59.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.015336813225986068,
+        0.015336813225986068,
+        0.015336813225986068
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4b62714e0ab84d80a2cd1c1ac4fb02b0",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4b62714e0ab84d80a2cd1c1ac4fb02b0.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08362569309949335,
+        0.08362569309949335,
+        0.08362569309949335
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4bff8adea43045a5ba9ac44946ca0bd5",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4bff8adea43045a5ba9ac44946ca0bd5.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00095329436247158,
+        0.00095329436247158,
+        0.00095329436247158
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4d1b5d90372641778c4eee6cf0d88a57",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4d1b5d90372641778c4eee6cf0d88a57.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.1625316417848717e-06,
+        1.1625316417848717e-06,
+        1.1625316417848717e-06
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4efdeb23f30e49aab10fac0c3064443d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4efdeb23f30e49aab10fac0c3064443d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.2522252503199992,
+        0.2522252503199992,
+        0.2522252503199992
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4f0dc7efa8344611a3b72fc95060e2bd",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4f0dc7efa8344611a3b72fc95060e2bd.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.521630631303974,
+        0.521630631303974,
+        0.521630631303974
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "4f494a27d56f4e2dae3a20d2722df302",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/4f494a27d56f4e2dae3a20d2722df302.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.4962298770031865,
+        1.4962298770031865,
+        1.4962298770031865
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "50385c9fc9cc4dfb951d6b2aeb368204",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/50385c9fc9cc4dfb951d6b2aeb368204.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.02233792903252863,
+        0.02233792903252863,
+        0.02233792903252863
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5111ea327f8e41afb177121ef86b8461",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5111ea327f8e41afb177121ef86b8461.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.10738927455699489,
+        0.10738927455699489,
+        0.10738927455699489
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "54372e592c3a4342b705111fcbc4caab",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/54372e592c3a4342b705111fcbc4caab.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.16680579188668312,
+        0.16680579188668312,
+        0.16680579188668312
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "557bad085856482dadc14e430a49ac0f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/557bad085856482dadc14e430a49ac0f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06894435976367423,
+        0.06894435976367423,
+        0.06894435976367423
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "56eb4dae6885444c8e4390411d902811",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/56eb4dae6885444c8e4390411d902811.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0020939472140318323,
+        0.0020939472140318323,
+        0.0020939472140318323
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "58190ee855394ca0beeb492b3d97791d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/58190ee855394ca0beeb492b3d97791d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0388593901010916,
+        0.0388593901010916,
+        0.0388593901010916
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "596c71a7e55d4909b22514f3c018f15b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/596c71a7e55d4909b22514f3c018f15b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0024978626212216817,
+        0.0024978626212216817,
+        0.0024978626212216817
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "599504c198dd4f9295557ec09848b402",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/599504c198dd4f9295557ec09848b402.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.25449139851056746,
+        0.25449139851056746,
+        0.25449139851056746
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5996e7a42fb14ca99715906e19fc511b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5996e7a42fb14ca99715906e19fc511b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00498232599698142,
+        0.00498232599698142,
+        0.00498232599698142
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5c50e78e4772488688cbbc2968e6a230",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5c50e78e4772488688cbbc2968e6a230.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.23831555107002522,
+        0.23831555107002522,
+        0.23831555107002522
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5d87131def87474883f7c7254d6ac313",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5d87131def87474883f7c7254d6ac313.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.005021245245132155,
+        0.005021245245132155,
+        0.005021245245132155
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5df0e70cb0e1466399b459f5fd0f91ab",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5df0e70cb0e1466399b459f5fd0f91ab.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.012931380398205667,
+        0.012931380398205667,
+        0.012931380398205667
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "5e18f410ea20470ea1efb0acf6b652ea",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/5e18f410ea20470ea1efb0acf6b652ea.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.010112115969260708,
+        0.010112115969260708,
+        0.010112115969260708
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "600e1e7db1cf48479da37f997e6c3448",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/600e1e7db1cf48479da37f997e6c3448.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.024355457345654634,
+        0.024355457345654634,
+        0.024355457345654634
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "607d8d582d3545a5a11f1209863e25e2",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/607d8d582d3545a5a11f1209863e25e2.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.050529160974188504,
+        0.050529160974188504,
+        0.050529160974188504
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "627f8924e9e640d7be96f3e38c5c6330",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/627f8924e9e640d7be96f3e38c5c6330.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.09135643661792091,
+        0.09135643661792091,
+        0.09135643661792091
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "64b170e4864549c382b6c94c529203d7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/64b170e4864549c382b6c94c529203d7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.04395617658968181,
+        0.04395617658968181,
+        0.04395617658968181
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "64cca1f9f2314ba89658aa8213e24258",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/64cca1f9f2314ba89658aa8213e24258.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.004956557849567973,
+        0.004956557849567973,
+        0.004956557849567973
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "658ecf9f837246509b0b1c4aa81e9e5b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/658ecf9f837246509b0b1c4aa81e9e5b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0032582548974536244,
+        0.0032582548974536244,
+        0.0032582548974536244
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "661c85f7cea14b7c81fb30b31d603cab",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/661c85f7cea14b7c81fb30b31d603cab.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.01330720708212564,
+        0.01330720708212564,
+        0.01330720708212564
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "66fd712372f14a8f8d83d4d1e4ff6dce",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/66fd712372f14a8f8d83d4d1e4ff6dce.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        4.675096284019695,
+        4.675096284019695,
+        4.675096284019695
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "6751ae324fd44195903cb0558580837c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/6751ae324fd44195903cb0558580837c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0021756793540702694,
+        0.0021756793540702694,
+        0.0021756793540702694
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "68b7d018f43f4c47922d5059bac9ab8c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/68b7d018f43f4c47922d5059bac9ab8c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.002459019454042982,
+        0.002459019454042982,
+        0.002459019454042982
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "69643553cb794eec90a5d633ddbb504d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/69643553cb794eec90a5d633ddbb504d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.17213899098997965,
+        0.17213899098997965,
+        0.17213899098997965
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "6977120a31234b0f98a16d279b102936",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/6977120a31234b0f98a16d279b102936.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.009750119023189218,
+        0.009750119023189218,
+        0.009750119023189218
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "69d530f7e6bd45b9b3d9f16dae627348",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/69d530f7e6bd45b9b3d9f16dae627348.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.20517825726393557,
+        0.20517825726393557,
+        0.20517825726393557
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "6b778c1a588b40bcb907fa79c601ec5c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/6b778c1a588b40bcb907fa79c601ec5c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.5103626023557204,
+        0.5103626023557204,
+        0.5103626023557204
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "6f7eb2f032d146d6aa70d96d398bf3d7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/6f7eb2f032d146d6aa70d96d398bf3d7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00021647515350594707,
+        0.00021647515350594707,
+        0.00021647515350594707
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "706732962b4846f38863bd28c8fbb1f9",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/706732962b4846f38863bd28c8fbb1f9.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        15.393488678106625,
+        15.393488678106625,
+        15.393488678106625
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "723b227b63bb40d4adf89f265d79fb16",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/723b227b63bb40d4adf89f265d79fb16.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00015077920406016078,
+        0.00015077920406016078,
+        0.00015077920406016078
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7331cd3ba5ed458782491474c2412733",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7331cd3ba5ed458782491474c2412733.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.10080546847354362,
+        0.10080546847354362,
+        0.10080546847354362
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "73a1eb92153a436e8332cb42bf0d4d9d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/73a1eb92153a436e8332cb42bf0d4d9d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.9824672145594585,
+        0.9824672145594585,
+        0.9824672145594585
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7accf73c2b754ec1a969af691368c270",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7accf73c2b754ec1a969af691368c270.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00707147244152783,
+        0.00707147244152783,
+        0.00707147244152783
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7b4241e0a1654d3b98ba922778089b14",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7b4241e0a1654d3b98ba922778089b14.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.011246514472658734,
+        0.011246514472658734,
+        0.011246514472658734
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7c8c94ed8c324cb6a7dfe6ce9fc084ca",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7c8c94ed8c324cb6a7dfe6ce9fc084ca.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.35498677418720465,
+        0.35498677418720465,
+        0.35498677418720465
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7d684d4513464012a2eec874b61ad62e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7d684d4513464012a2eec874b61ad62e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.025467989122283347,
+        0.025467989122283347,
+        0.025467989122283347
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7df2f5dde355444cb7ffccc5156bb5ed",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7df2f5dde355444cb7ffccc5156bb5ed.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0006988671105423473,
+        0.0006988671105423473,
+        0.0006988671105423473
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "7e09848aa0ca4bb6894469496c4c3deb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/7e09848aa0ca4bb6894469496c4c3deb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        3.527242128661506e-06,
+        3.527242128661506e-06,
+        3.527242128661506e-06
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "809f3456a353498299d508c171aa6274",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/809f3456a353498299d508c171aa6274.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.09985256179580311,
+        0.09985256179580311,
+        0.09985256179580311
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "80c655fc179a4e068b03868fd4e2c708",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/80c655fc179a4e068b03868fd4e2c708.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0055361502092938575,
+        0.0055361502092938575,
+        0.0055361502092938575
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "8249f605bad54b11a345874d224af191",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/8249f605bad54b11a345874d224af191.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06580850886395566,
+        0.06580850886395566,
+        0.06580850886395566
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "8277e0c967a6411082b4d15ada73cea8",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/8277e0c967a6411082b4d15ada73cea8.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.009775238540400117,
+        0.009775238540400117,
+        0.009775238540400117
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "82ec2060f2b0431699f57f1b1782ab18",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/82ec2060f2b0431699f57f1b1782ab18.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.05076309916648027,
+        0.05076309916648027,
+        0.05076309916648027
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "83949d068c4d494b88d48501563f8b60",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/83949d068c4d494b88d48501563f8b60.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.13123436071403083,
+        0.13123436071403083,
+        0.13123436071403083
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "84a87c5e5a9c45b4882e841885d445c0",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/84a87c5e5a9c45b4882e841885d445c0.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06950511637966308,
+        0.06950511637966308,
+        0.06950511637966308
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "867ab04528614d6581599e0e27684c52",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/867ab04528614d6581599e0e27684c52.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0024119096811912066,
+        0.0024119096811912066,
+        0.0024119096811912066
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "89545a657ce243148738302a4843f339",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/89545a657ce243148738302a4843f339.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.012421058369247234,
+        0.012421058369247234,
+        0.012421058369247234
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "8d0fee842f1f4ab596aec44c6a91ca04",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/8d0fee842f1f4ab596aec44c6a91ca04.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0001526362287766676,
+        0.0001526362287766676,
+        0.0001526362287766676
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "8d2a40bb2f3940d3a8d050391327a2de",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/8d2a40bb2f3940d3a8d050391327a2de.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.14809845262676663,
+        0.14809845262676663,
+        0.14809845262676663
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "8f0c86b33e0240b48287498dec4fb2eb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/8f0c86b33e0240b48287498dec4fb2eb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0004950490923281944,
+        0.0004950490923281944,
+        0.0004950490923281944
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "9015c94c7fd3433f8a247bab6bb9cada",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/9015c94c7fd3433f8a247bab6bb9cada.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0017052020483618098,
+        0.0017052020483618098,
+        0.0017052020483618098
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "910d3a33ce414c799f7050f08fae45fb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/910d3a33ce414c799f7050f08fae45fb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.2531054921965565,
+        1.2531054921965565,
+        1.2531054921965565
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "926a7987d9b04160916dc4f2b9f0efe5",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/926a7987d9b04160916dc4f2b9f0efe5.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0002537380250171721,
+        0.0002537380250171721,
+        0.0002537380250171721
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "926c66525d50495eab76d7b915ce0967",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/926c66525d50495eab76d7b915ce0967.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.08828474916037753,
+        0.08828474916037753,
+        0.08828474916037753
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "929edd4aa17045d79d3a7fbb0183a6b3",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/929edd4aa17045d79d3a7fbb0183a6b3.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.020936205269061633,
+        0.020936205269061633,
+        0.020936205269061633
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "92af054625b8490ebfb5c08d13781b5d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/92af054625b8490ebfb5c08d13781b5d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.026592666227290656,
+        0.026592666227290656,
+        0.026592666227290656
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "9421418a85084aeca869707ce8ede6f9",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/9421418a85084aeca869707ce8ede6f9.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.1634913320933125,
+        0.1634913320933125,
+        0.1634913320933125
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "95f3d6b37a16463e9d47d20f064af3fa",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/95f3d6b37a16463e9d47d20f064af3fa.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.10335137514678963,
+        0.10335137514678963,
+        0.10335137514678963
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "97fcbcb2c47845c49485a271b10f97d6",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/97fcbcb2c47845c49485a271b10f97d6.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        6.789311290209494,
+        6.789311290209494,
+        6.789311290209494
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "98972a311e6042d790e095c0dbbdb70b",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/98972a311e6042d790e095c0dbbdb70b.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.020232155679881347,
+        0.020232155679881347,
+        0.020232155679881347
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "9a9da7e77f1e4216b86cff73352cb30e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/9a9da7e77f1e4216b86cff73352cb30e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.04866089216118586,
+        0.04866089216118586,
+        0.04866089216118586
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "9b1161c5e56e43218d42c639e3511fe5",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/9b1161c5e56e43218d42c639e3511fe5.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0017696595487036644,
+        0.0017696595487036644,
+        0.0017696595487036644
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "9b50a3b59a654210989494c9e456b473",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/9b50a3b59a654210989494c9e456b473.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00883548371825559,
+        0.00883548371825559,
+        0.00883548371825559
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "a2dce5767c2941988e3bd90e41ba80c9",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/a2dce5767c2941988e3bd90e41ba80c9.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        5.116982813646784,
+        5.116982813646784,
+        5.116982813646784
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "a4e5a0d6c4dc44a98e4c15adf2e10435",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/a4e5a0d6c4dc44a98e4c15adf2e10435.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.019114689753504544,
+        0.019114689753504544,
+        0.019114689753504544
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "a8c2b341d7ed4daaa10b593c0d146e13",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/a8c2b341d7ed4daaa10b593c0d146e13.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        8.202609861016322,
+        8.202609861016322,
+        8.202609861016322
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "a93161d5bafb4d83a73c766aadb97416",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/a93161d5bafb4d83a73c766aadb97416.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0013705417037695152,
+        0.0013705417037695152,
+        0.0013705417037695152
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "acd2dc6383c740c8aac5dd99b36211a4",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/acd2dc6383c740c8aac5dd99b36211a4.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.004750315070501198,
+        0.004750315070501198,
+        0.004750315070501198
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "af666c21157e451388162df8ab90524f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/af666c21157e451388162df8ab90524f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.17508868484510828,
+        0.17508868484510828,
+        0.17508868484510828
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "b166e9a1c5d540c19a1075b7f064f42f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/b166e9a1c5d540c19a1075b7f064f42f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.11569295664214749,
+        0.11569295664214749,
+        0.11569295664214749
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "b1c7e13502c9490086ba95f1e181ffc4",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/b1c7e13502c9490086ba95f1e181ffc4.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0008146967327994229,
+        0.0008146967327994229,
+        0.0008146967327994229
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "b46f808500ff4800a6a8919ad49df7ef",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/b46f808500ff4800a6a8919ad49df7ef.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06534020074189092,
+        0.06534020074189092,
+        0.06534020074189092
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "b489f06859f440a7a6506c58e5b2e149",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/b489f06859f440a7a6506c58e5b2e149.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.16510302069157334,
+        0.16510302069157334,
+        0.16510302069157334
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "b4bd7877b383494197e04edbe969c311",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/b4bd7877b383494197e04edbe969c311.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.013722617352182097,
+        0.013722617352182097,
+        0.013722617352182097
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c0acb964bc584b529440e4c03a1df548",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c0acb964bc584b529440e4c03a1df548.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.045878615999906586,
+        0.045878615999906586,
+        0.045878615999906586
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c0ede25790c64bd1a66d9757451bd8ce",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c0ede25790c64bd1a66d9757451bd8ce.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.011201409134632643,
+        0.011201409134632643,
+        0.011201409134632643
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c13d7df71b4748df94470ff00aa67567",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c13d7df71b4748df94470ff00aa67567.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.13716225110809954,
+        0.13716225110809954,
+        0.13716225110809954
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c157935029774ccfb5a58f634cc58793",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c157935029774ccfb5a58f634cc58793.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.043514832619546855,
+        0.043514832619546855,
+        0.043514832619546855
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c1e15ee7a3d64fb98924928fe45741cf",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c1e15ee7a3d64fb98924928fe45741cf.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.036301532289776756,
+        0.036301532289776756,
+        0.036301532289776756
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c2d0be1d829044be919771983b617aed",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c2d0be1d829044be919771983b617aed.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.4092645652712201,
+        1.4092645652712201,
+        1.4092645652712201
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c7c297cf6e334cd291f9f562f3aac35e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c7c297cf6e334cd291f9f562f3aac35e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.43462664658117345,
+        0.43462664658117345,
+        0.43462664658117345
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c869dc1156cf4d0c8829787f9423a1c2",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c869dc1156cf4d0c8829787f9423a1c2.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.4831292126744188,
+        0.4831292126744188,
+        0.4831292126744188
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c8db5a6b6e0947c38888f476b7e4bd23",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c8db5a6b6e0947c38888f476b7e4bd23.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.011302879006925557,
+        0.011302879006925557,
+        0.011302879006925557
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c93e5655b94343afa12c6b3a1a81823a",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c93e5655b94343afa12c6b3a1a81823a.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0003953316385564479,
+        0.0003953316385564479,
+        0.0003953316385564479
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c9433cb2268f497491a3dfb5bab1870e",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c9433cb2268f497491a3dfb5bab1870e.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.1263277767672317,
+        0.1263277767672317,
+        0.1263277767672317
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "c9bfe52cf3c9435286c354c5f3d51ffb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/c9bfe52cf3c9435286c354c5f3d51ffb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0005572521745235453,
+        0.0005572521745235453,
+        0.0005572521745235453
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ca8f9202ca184ae2943c100ed25b61cb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ca8f9202ca184ae2943c100ed25b61cb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        1.5696016107649635,
+        1.5696016107649635,
+        1.5696016107649635
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ca9ede83ef6c4f769fb8ffc000b73ab9",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ca9ede83ef6c4f769fb8ffc000b73ab9.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.06001619020908438,
+        0.06001619020908438,
+        0.06001619020908438
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "caae0e16666b45c3bb47be55ee6f11fc",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/caae0e16666b45c3bb47be55ee6f11fc.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00041976993667119434,
+        0.00041976993667119434,
+        0.00041976993667119434
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "cc6bc30cdb8645fa8eba878ad854f802",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/cc6bc30cdb8645fa8eba878ad854f802.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0030076850147153673,
+        0.0030076850147153673,
+        0.0030076850147153673
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ccd7decc3cc1451285803fe56dde3386",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ccd7decc3cc1451285803fe56dde3386.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.050616234310904805,
+        0.050616234310904805,
+        0.050616234310904805
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "d10c9764f22e4fa3959db48d3955f282",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/d10c9764f22e4fa3959db48d3955f282.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.005340040377665017,
+        0.005340040377665017,
+        0.005340040377665017
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "d44a2e2519934b51b892a9c6b8a2c64c",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/d44a2e2519934b51b892a9c6b8a2c64c.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.3173282655418801,
+        0.3173282655418801,
+        0.3173282655418801
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "d4f2c598e6be47a498af912f6baa6260",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/d4f2c598e6be47a498af912f6baa6260.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.019157574225267617,
+        0.019157574225267617,
+        0.019157574225267617
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "d6444e535fe54ada93e2234cbf23de37",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/d6444e535fe54ada93e2234cbf23de37.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.04191656033172632,
+        0.04191656033172632,
+        0.04191656033172632
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "d64f26970a7a489d90811e1dad4daf9d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/d64f26970a7a489d90811e1dad4daf9d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.16430083816659816,
+        0.16430083816659816,
+        0.16430083816659816
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "daffc8252c1b4c8d9f6bc704e9e5fad7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/daffc8252c1b4c8d9f6bc704e9e5fad7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        8.037384022369082,
+        8.037384022369082,
+        8.037384022369082
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ddd0e399d275441e81318b68eefa0e30",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ddd0e399d275441e81318b68eefa0e30.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0031572551767547444,
+        0.0031572551767547444,
+        0.0031572551767547444
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "deeb41e3f5f1480bb6f79f474c9f7ef5",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/deeb41e3f5f1480bb6f79f474c9f7ef5.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.09036378871407584,
+        0.09036378871407584,
+        0.09036378871407584
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "dfe66c9fa01d4d3782700395d2cd634a",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/dfe66c9fa01d4d3782700395d2cd634a.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0037436683422219074,
+        0.0037436683422219074,
+        0.0037436683422219074
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "e0f490339cb543f1894b60df92c036b7",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/e0f490339cb543f1894b60df92c036b7.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.31495621807945684,
+        0.31495621807945684,
+        0.31495621807945684
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "e15521857d9b4f8bb9dff28d616e85a4",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/e15521857d9b4f8bb9dff28d616e85a4.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.016856560903468477,
+        0.016856560903468477,
+        0.016856560903468477
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "e328d1e4fd5b4f23a0dc04c9b5c7110d",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/e328d1e4fd5b4f23a0dc04c9b5c7110d.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.09082876405180239,
+        0.09082876405180239,
+        0.09082876405180239
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "e6b23e29525c491bb1cf2f913ee9afcc",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/e6b23e29525c491bb1cf2f913ee9afcc.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.09890651775487834,
+        0.09890651775487834,
+        0.09890651775487834
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "e82ccc11cc1d423385f84ccfedb79652",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/e82ccc11cc1d423385f84ccfedb79652.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0009488042703524893,
+        0.0009488042703524893,
+        0.0009488042703524893
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "eb98251fbccf4cdd8a3737362e2378e9",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/eb98251fbccf4cdd8a3737362e2378e9.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.19512897200797832,
+        0.19512897200797832,
+        0.19512897200797832
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ec12601aca1c4f73878de8e985b06bfe",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ec12601aca1c4f73878de8e985b06bfe.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00040555211220779454,
+        0.00040555211220779454,
+        0.00040555211220779454
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "edb6ef74597c4385b59e23a4eee4e253",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/edb6ef74597c4385b59e23a4eee4e253.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.006968257570280429,
+        0.006968257570280429,
+        0.006968257570280429
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "ef1d02fe28444991837aa1af862469ca",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/ef1d02fe28444991837aa1af862469ca.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.007487614075402331,
+        0.007487614075402331,
+        0.007487614075402331
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f04ea10301984e2eadee7c8456a54405",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f04ea10301984e2eadee7c8456a54405.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0002585955035478443,
+        0.0002585955035478443,
+        0.0002585955035478443
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f21a43f051f24c3d94bcd412948fd030",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f21a43f051f24c3d94bcd412948fd030.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00012900652531225732,
+        0.00012900652531225732,
+        0.00012900652531225732
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f222d8c16b3740ca98c21a5df26c8b13",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f222d8c16b3740ca98c21a5df26c8b13.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.13181494441749655,
+        0.13181494441749655,
+        0.13181494441749655
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f4c122d7819e4f85925b9d1aab72a696",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f4c122d7819e4f85925b9d1aab72a696.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0984688631320182,
+        0.0984688631320182,
+        0.0984688631320182
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f4d181dd05a24c259ba612cf68961445",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f4d181dd05a24c259ba612cf68961445.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0009736736205032347,
+        0.0009736736205032347,
+        0.0009736736205032347
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f561dff7acaa4e828252b3f3373f1059",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f561dff7acaa4e828252b3f3373f1059.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.00012269722249356584,
+        0.00012269722249356584,
+        0.00012269722249356584
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f5baf23f59bd4c5c8f70eb8a2d8c7b1a",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f5baf23f59bd4c5c8f70eb8a2d8c7b1a.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.008694018159648513,
+        0.008694018159648513,
+        0.008694018159648513
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f676081ce3a44b42b7dd7cffce96bc66",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f676081ce3a44b42b7dd7cffce96bc66.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.049641870811389446,
+        0.049641870811389446,
+        0.049641870811389446
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f7b5e46465aa4214a7c5d389a517e925",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f7b5e46465aa4214a7c5d389a517e925.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.006774392544057733,
+        0.006774392544057733,
+        0.006774392544057733
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f9648345dfbd45419be2fcdc9705edb0",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f9648345dfbd45419be2fcdc9705edb0.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        3.779029267072664,
+        3.779029267072664,
+        3.779029267072664
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "f9dfc01a5b894c2d946473c4c06000d6",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/f9dfc01a5b894c2d946473c4c06000d6.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0013969053978602963,
+        0.0013969053978602963,
+        0.0013969053978602963
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "fb8ff119e9ee4ca0bba589ed6e7178fb",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/fb8ff119e9ee4ca0bba589ed6e7178fb.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.725940658546344,
+        0.725940658546344,
+        0.725940658546344
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "fb94ce07ce5b4af9acb2d54a262886ea",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/fb94ce07ce5b4af9acb2d54a262886ea.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.01624560443866812,
+        0.01624560443866812,
+        0.01624560443866812
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "fc28c7110c15496dbe05d9cff4ba6a21",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/fc28c7110c15496dbe05d9cff4ba6a21.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.050505696902995764,
+        0.050505696902995764,
+        0.050505696902995764
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "fe533dcb116d4d35bf55fcf5c0bfb008",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/fe533dcb116d4d35bf55fcf5c0bfb008.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.015037394015048822,
+        0.015037394015048822,
+        0.015037394015048822
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "fe71ccb79a0f46909a259d01e8847fce",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/fe71ccb79a0f46909a259d01e8847fce.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.0017468325405246366,
+        0.0017468325405246366,
+        0.0017468325405246366
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "feb365045ac341f488e985e81aacfe6f",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/feb365045ac341f488e985e81aacfe6f.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.1119844618573124,
+        0.1119844618573124,
+        0.1119844618573124
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    },
+    {
+      "name": "febf6f67ccff4bcab7fa98bc3f47c172",
+      "urdf_path": null,
+      "usd_path": null,
+      "mjcf_path": null,
+      "mesh_path": "assets/objaverse/meshes/febf6f67ccff4bcab7fa98bc3f47c172.glb",
+      "builtin_id": null,
+      "position": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "orientation_xyzw": [
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "scale": [
+        0.1134700789004277,
+        0.1134700789004277,
+        0.1134700789004277
+      ],
+      "fix_base": false,
+      "is_articulated": false,
+      "joint_init": []
+    }
+  ]
+}

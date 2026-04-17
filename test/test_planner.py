@@ -8,7 +8,7 @@ import pytest
 from TyGrit.planning.config import PlannerConfig, VampPlannerConfig
 from TyGrit.planning.planner import create_planner
 from TyGrit.types.geometry import SE2Pose
-from TyGrit.types.robot import WholeBodyConfig
+from TyGrit.types.robots import WholeBodyConfig
 
 # ── Factory tests ────────────────────────────────────────────────────────────
 

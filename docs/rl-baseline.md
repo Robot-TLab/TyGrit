@@ -29,11 +29,30 @@ head_pan, head_tilt
 
 ## Setup
 
-The RL baseline uses a dedicated `rl` pixi environment that is lighter than the full `default` environment (no ROS, GraspGen, VAMP, `torch-scatter`, or `spconv`):
+The RL baseline uses the dedicated `rl` pixi environment, which composes
+the shared `maniskill` feature (torch + mani-skill + cuda-toolkit) with
+the `rl` feature (wandb, tensordict) — a tight bundle that covers exactly
+what the trainer imports, nothing more:
 
 ```bash
 pixi install -e rl
 ```
+
+`ros`, GraspGen, VAMP, `torch-scatter`, `spconv`, etc. are NOT installed in
+`rl` — they live in the separate `thirdparty` environment which is only
+needed at setup time for building C++ extensions. See [setup.md](setup.md)
+for the full environment table.
+
+### Scene diversity
+
+As of the `feature/worlds` env scale-up, scene selection at each episode
+reset is drawn from a deterministic `SceneSampler` over a project-local
+manifest (`resources/worlds/replicacad.json` by default, 90 scenes). Swap
+`FetchEnvConfig.scene_sampler` at `TyGrit/rl/train.py:875` to train on
+AI2-THOR (12,235 scenes), RoboCasa (120 kitchens), or the Objaverse-based
+object pool — see [docs/architecture.md](architecture.md) and
+[`TyGrit/worlds/`](../TyGrit/worlds/) for the manifest loader, sampler, and
+per-sim adapter.
 
 ## Training
 

@@ -127,7 +127,7 @@ def create_fk_solver(
               poses, 10 joints.  PyTorch, GPU-ready.
     """
     if robot == "fetch":
-        from TyGrit.kinematics.fetch.fk import create_fetch_fk_solver
+        from TyGrit.robots.fetch.kinematics.fk import create_fetch_fk_solver
 
         return create_fetch_fk_solver(solver)
     raise ValueError(f"Unknown robot: {robot}")

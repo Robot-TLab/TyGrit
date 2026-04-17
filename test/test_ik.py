@@ -28,11 +28,11 @@ class TestIKFast:
 
     def test_solve_all_returns_list(self):
         """solve_all returns a list of arrays within joint limits."""
-        from TyGrit.kinematics.fetch.constants import (
+        from TyGrit.robots.fetch.kinematics.constants import (
             JOINT_LIMITS_LOWER,
             JOINT_LIMITS_UPPER,
         )
-        from TyGrit.kinematics.fetch.ikfast import IKFastSolver
+        from TyGrit.robots.fetch.kinematics.ikfast import IKFastSolver
 
         solver = IKFastSolver()
         # A reachable pose in front of the robot
@@ -50,7 +50,7 @@ class TestIKFast:
         solver = self._make_solver()
         target = np.eye(4)
         target[:3, 3] = [0.6, 0.0, 0.9]
-        from TyGrit.kinematics.fetch.ikfast import IKFastSolver
+        from TyGrit.robots.fetch.kinematics.ikfast import IKFastSolver
 
         raw_solver = IKFastSolver()
         solutions = raw_solver.solve_all(target, free_params=[0.1, 0.0])

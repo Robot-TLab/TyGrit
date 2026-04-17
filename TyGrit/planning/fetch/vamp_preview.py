@@ -25,7 +25,7 @@ from TyGrit.planning.fetch.algorithms import (
 from TyGrit.types.failures import PlannerFailure
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.results import PlanResult
-from TyGrit.types.robot import WholeBodyConfig
+from TyGrit.types.robots import WholeBodyConfig
 from TyGrit.utils.planning import lists_to_trajectory
 
 

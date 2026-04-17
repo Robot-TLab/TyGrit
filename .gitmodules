@@ -7,3 +7,6 @@
 [submodule "thirdparty/MomaViz"]
 	path = thirdparty/MomaViz
 	url = git@github.com:Robot-TLab/MomaViz.git
+[submodule "thirdparty/molmospaces"]
+	path = thirdparty/molmospaces
+	url = https://github.com/allenai/molmospaces.git

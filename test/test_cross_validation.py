@@ -14,8 +14,11 @@ import os
 import numpy as np
 import pytest
 
-from TyGrit.kinematics.fetch.constants import JOINT_LIMITS_LOWER, JOINT_LIMITS_UPPER
-from TyGrit.kinematics.fetch.fk_numpy import forward_kinematics
+from TyGrit.robots.fetch.kinematics.constants import (
+    JOINT_LIMITS_LOWER,
+    JOINT_LIMITS_UPPER,
+)
+from TyGrit.robots.fetch.kinematics.fk_numpy import forward_kinematics
 
 
 def _random_arm_configs(rng: np.random.Generator, n: int) -> np.ndarray:
@@ -52,7 +55,7 @@ class TestFKCrossValidation:
         pytest.importorskip("ikfast_fetch")
 
     def _compare(self, arm_config: np.ndarray, atol: float = 1e-6) -> None:
-        from TyGrit.kinematics.fetch.fk_ikfast import ee_forward_kinematics
+        from TyGrit.robots.fetch.kinematics.fk_ikfast import ee_forward_kinematics
 
         # NumPy FK needs 10-DOF: 8 arm + 2 head (zeros)
         full_config = np.append(arm_config, [0.0, 0.0])
@@ -81,8 +84,8 @@ class TestIKFKRoundTrip:
         pytest.importorskip("ikfast_fetch")
 
     def test_ikfast_round_trip(self):
-        from TyGrit.kinematics.fetch.fk_ikfast import ee_forward_kinematics
-        from TyGrit.kinematics.fetch.ikfast import IKFastSolver
+        from TyGrit.robots.fetch.kinematics.fk_ikfast import ee_forward_kinematics
+        from TyGrit.robots.fetch.kinematics.ikfast import IKFastSolver
 
         solver = IKFastSolver()
         rng = np.random.default_rng(42)
@@ -107,8 +110,8 @@ class TestIKFKRoundTrip:
         pytest.importorskip("pytracik")
         urdf = _load_urdf()
 
-        from TyGrit.kinematics.fetch.fk_ikfast import ee_forward_kinematics
-        from TyGrit.kinematics.fetch.ik import create_fetch_ik_solver
+        from TyGrit.robots.fetch.kinematics.fk_ikfast import ee_forward_kinematics
+        from TyGrit.robots.fetch.kinematics.ik import create_fetch_ik_solver
 
         solver = create_fetch_ik_solver("trac_base", urdf_string=urdf, epsilon=1e-6)
         rng = np.random.default_rng(42)
@@ -151,9 +154,9 @@ class TestIKCrossValidation:
     def test_both_reach_target(self):
         urdf = _load_urdf()
 
-        from TyGrit.kinematics.fetch.fk_ikfast import ee_forward_kinematics
-        from TyGrit.kinematics.fetch.ik import create_fetch_ik_solver
-        from TyGrit.kinematics.fetch.ikfast import IKFastSolver
+        from TyGrit.robots.fetch.kinematics.fk_ikfast import ee_forward_kinematics
+        from TyGrit.robots.fetch.kinematics.ik import create_fetch_ik_solver
+        from TyGrit.robots.fetch.kinematics.ikfast import IKFastSolver
 
         ikfast_solver = IKFastSolver()
         trac_solver = create_fetch_ik_solver(

@@ -30,8 +30,10 @@ from loguru import logger
 from TyGrit.belief_state.config import PointCloudSceneConfig
 from TyGrit.belief_state.pointcloud_scene import PointCloudScene
 from TyGrit.controller.fetch.mpc import MPCConfig
+from TyGrit.controller.fetch.trajectory import execute_trajectory
+from TyGrit.envs.fetch import FetchRobot
 from TyGrit.envs.fetch.config import FetchEnvConfig
-from TyGrit.envs.fetch.maniskill import ManiSkillFetchRobot
+from TyGrit.envs.fetch.core import FetchRobotCore
 from TyGrit.kinematics.fetch.camera import compute_camera_pose
 from TyGrit.kinematics.fetch.ikfast import IKFastSolver
 from TyGrit.perception.grasping.config import GraspGenConfig
@@ -42,12 +44,15 @@ from TyGrit.subgoal_generator.samplers.config import GraspSamplerConfig
 from TyGrit.subgoal_generator.samplers.grasp_sampler import GraspSampler
 from TyGrit.types.geometry import SE2Pose
 from TyGrit.types.tasks import TaskSuite
+from TyGrit.types.worlds import SceneSamplerConfig
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Grasp benchmark")
     p.add_argument(
-        "--env-id", default="ReplicaCAD_SceneManipulation-v1", help="ManiSkill env ID"
+        "--manifest-path",
+        default="resources/worlds/replicacad.json",
+        help="Path to a world manifest JSON (see TyGrit.worlds.manifest)",
     )
     p.add_argument(
         "--target-id", type=int, default=None, help="Segmentation ID of target object"
@@ -84,11 +89,12 @@ def parse_args() -> argparse.Namespace:
 
 
 def run_single_trial(
-    robot: ManiSkillFetchRobot,
+    robot: FetchRobotCore,
     planner: VampPreviewPlanner,
     grasp_sampler: GraspSampler,
     scene: PointCloudScene,
     args: argparse.Namespace,
+    mpc_config: MPCConfig,
     *,
     seed: int | None = None,
     target_id: int | None = None,
@@ -161,7 +167,7 @@ def run_single_trial(
     logger.info(
         "{}Trajectory: {} waypoints", prefix, len(plan_result.trajectory.arm_path)
     )
-    robot.execute_trajectory(plan_result.trajectory)
+    execute_trajectory(robot, plan_result.trajectory, mpc_config)
 
     # ── Phase 4: Close Gripper ──────────────────────────────────────────
     logger.info("{}Phase 4: Close Gripper", prefix)
@@ -202,17 +208,19 @@ def main() -> None:
     logger.info("Phase 0: Setup")
 
     env_config = FetchEnvConfig(
-        env_id=args.env_id,
-        obs_mode="rgb+depth+segmentation",
-        control_mode="pd_joint_delta_pos",
-        render_mode="human" if args.render else None,
+        scene_sampler=SceneSamplerConfig(manifest_path=args.manifest_path),
+        sim_opts={
+            "obs_mode": "rgb+depth+segmentation",
+            "control_mode": "pd_joint_delta_pos",
+            "render_mode": "human" if args.render else None,
+        },
         camera_width=args.camera_width,
         camera_height=args.camera_height,
     )
     mpc_config = MPCConfig()
 
-    logger.info("Creating ManiSkill env: {}", args.env_id)
-    robot = ManiSkillFetchRobot(config=env_config, mpc_config=mpc_config)
+    logger.info("Creating ManiSkill env from manifest: {}", args.manifest_path)
+    robot = FetchRobot.create(config=env_config)
 
     logger.info("Creating VampPreviewPlanner")
     planner = VampPreviewPlanner(VampPlannerConfig())
@@ -279,6 +287,7 @@ def main() -> None:
                     grasp_sampler,
                     pc_scene,
                     args,
+                    mpc_config,
                     seed=bscene.seed,
                     target_id=args.target_id,
                     label=label,
@@ -300,6 +309,7 @@ def main() -> None:
             grasp_sampler,
             pc_scene,
             args,
+            mpc_config,
             target_id=args.target_id,
         )
         if not ok:

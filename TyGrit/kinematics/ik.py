@@ -73,7 +73,7 @@ def create_ik_solver(robot: str, solver: str, **kwargs) -> IKSolverBase:
             For Fetch TRAC-IK solvers: ``urdf_string``, ``timeout``, ``epsilon``.
     """
     if robot == "fetch":
-        from TyGrit.kinematics.fetch.ik import create_fetch_ik_solver
+        from TyGrit.robots.fetch.kinematics.ik import create_fetch_ik_solver
 
         return create_fetch_ik_solver(solver, **kwargs)
     raise ValueError(f"Unknown robot: {robot}")

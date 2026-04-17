@@ -11,7 +11,7 @@ from typing import Protocol
 
 from TyGrit.belief_state.scene import Scene
 from TyGrit.types.planning import SchedulerFeedback, Subgoal
-from TyGrit.types.robot import RobotState
+from TyGrit.types.robots import RobotState
 
 
 class SubGoalGenerator(Protocol):

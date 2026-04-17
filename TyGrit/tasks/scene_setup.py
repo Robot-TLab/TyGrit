@@ -43,9 +43,18 @@ def spawn_scene_objects(
             builder.set_initial_pose(_make_pose(obj.position, obj.orientation_wxyz))
             builder.build()
             actor_names[task.task_index] = actor_name
-        except Exception:
+        except FileNotFoundError as exc:
+            # ManiSkill's ``get_actor_builder`` resolves the YCB model
+            # id against the on-disk asset cache. Missing assets raise
+            # FileNotFoundError; the benchmark should keep going with
+            # the partial scene rather than abort, because a missing
+            # asset is a data-availability problem (user hasn't run
+            # ``pixi run -e world download-ycb``) — not a code bug.
             logger.warning(
-                "Failed to spawn {} (task {})", obj.model_id, task.task_index
+                "scene_setup: skip {} (task {}): YCB asset missing — {}",
+                obj.model_id,
+                task.task_index,
+                exc,
             )
 
     logger.info(
